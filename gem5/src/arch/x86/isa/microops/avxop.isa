@@ -1,0 +1,135 @@
+def template AVXOpExecute {{
+    Fault
+    %(class_name)s::execute(ExecContext *xc,
+            trace::InstRecord *traceData) const
+    {
+        Fault fault = NoFault;
+        %(op_decl)s;
+        %(op_rd)s;
+        %(code)s;
+        if (fault == NoFault) {
+            %(op_wb)s;
+        }
+        return fault;
+    }
+}};
+
+def template AVXOpDeclare {{
+    class %(class_name)s : public %(base_class)s
+    {
+      public:
+        %(class_name)s(ExtMachInst _machInst, const char *_instMnem,
+                       uint64_t _setFlags, SrcType _srcType,
+                       InstRegIndex _dest, InstRegIndex _src1,
+                       InstRegIndex _src2, uint8_t _destSize, uint8_t _destVL,
+                       uint8_t _srcSize, uint8_t _srcVL,
+                       uint8_t _imm8, uint8_t _ext);
+        Fault execute(ExecContext *, trace::InstRecord *) const;
+    };
+}};
+
+def template AVXOpConstructor {{
+    %(class_name)s::%(class_name)s(ExtMachInst _machInst, const char *_instMnem,
+        uint64_t _setFlags, SrcType _srcType,
+        InstRegIndex _dest, InstRegIndex _src1, InstRegIndex _src2,
+        uint8_t _destSize, uint8_t _destVL, uint8_t _srcSize, uint8_t _srcVL,
+        uint8_t _imm8, uint8_t _ext)
+      : %(base_class)s(_machInst, "%(mnemonic)s", _instMnem, _setFlags,
+        %(op_class)s, _srcType, _dest, _src1, _src2,
+        _destSize, _destVL, _srcSize, _srcVL, _imm8, _ext)
+    {
+        %(constructor)s;
+        %(constructorCode)s;
+    }
+}};
+
+let {{
+    header_output = ""
+    decoder_output = ""
+    exec_output = ""
+
+    class AVXOpMeta(type):
+        def buildCppClasses(self, name, Name, suffix, constructorCode, code):
+            base = "X86ISA::AVXOpBase"
+            iop = InstObjParams(name, Name + suffix, base,
+                                { "constructorCode": constructorCode,
+                                  "code": code })
+            global header_output, decoder_output, exec_output
+            header_output += AVXOpDeclare.subst(iop)
+            decoder_output += AVXOpConstructor.subst(iop)
+            exec_output += AVXOpExecute.subst(iop)
+
+        def __new__(mcls, Name, bases, d):
+            abstract = d.get('abstract', False)
+            d.pop('abstract', None)
+            if 'opClass' not in d: d['opClass'] = None
+            cls = type.__new__(mcls, Name, bases, d)
+            if not abstract:
+                mcls.buildCppClasses(cls, Name.lower(), Name, "", cls.constructorCode, cls.code)
+                microopClasses[Name.lower()] = cls
+            return cls
+
+    class AVXOp(X86Microop, metaclass=AVXOpMeta):
+        abstract = True
+        def __init__(self, dest, src1='InstRegIndex(0)', src2='InstRegIndex(0)',
+                     destSize=0, destVL=16, srcSize=0, srcVL=16,
+                     imm8=0, ext=0):
+            self.dest = dest; self.src1 = src1; self.src2 = src2
+            self.destSize = destSize; self.destVL = destVL
+            self.srcSize = srcSize; self.srcVL = srcVL
+            self.imm8 = imm8; self.ext = ext
+        def getAllocator(self, microFlags):
+            return ("new {cn}(machInst, macrocodeBlock, {flags}, {srcType}, "
+                    "{dest}, {src1}, {src2}, {dSize}, {dVL}, {sSize}, {sVL}, "
+                    "{imm}, {ext})").format(
+                cn=self.className,
+                flags=self.microFlagsText(microFlags),
+                srcType=self.srcType, dest=self.dest, src1=self.src1, src2=self.src2,
+                dSize=self.destSize, dVL=self.destVL, sSize=self.srcSize, sVL=self.srcVL,
+                imm=self.imm8, ext=self.ext)
+
+    class vclear(AVXOp):
+        opClass = 'SimdMiscOp'
+        srcType = 'AVXOpBase::SrcType::Non'
+        def __init__(self, dest, destVL):
+            super().__init__(dest=dest, destVL=destVL, destSize=destVL)
+        constructorCode = """
+            auto vRegs = destVL / sizeof(uint64_t);
+            _numDestRegs = vRegs;
+            _numFPDestRegs = _numDestRegs;
+            for (int i = 0; i < _numDestRegs; ++i)
+                setDestRegIdx(i, RegId(FloatRegClass, dest + i));
+        """
+        code = """
+            for (int i = 0; i < _numDestRegs; ++i)
+                xc->setFloatRegOperandBits(this, i, 0);
+        """
+
+    class varithp(AVXOp):
+        abstract = True
+        srcType = 'AVXOpBase::SrcType::RegReg'
+        def __init__(self, dest, src1, src2, size, VL):
+            super().__init__(dest=dest, src1=src1, src2=src2,
+                             destSize=size, destVL=VL, srcSize=size, srcVL=VL)
+        constructorCode = """
+            this->addAVXDestRegs();
+            auto vRegs = destVL / sizeof(uint64_t);
+            _numSrcRegs = 2 * vRegs;
+            for (int i = 0; i < vRegs; ++i) {
+                setSrcRegIdx(i*2, RegId(FloatRegClass, src1 + i));
+                setSrcRegIdx(i*2+1, RegId(FloatRegClass, src2 + i));
+            }
+        """
+
+    class vaddf(varithp):
+        opClass = 'SimdFloatAddOp'
+        code = 'this->doPackedBinaryOp(xc, BinaryOp::FloatAdd);'
+
+    class vmulf(varithp):
+        opClass = 'SimdFloatMultOp'
+        code = 'this->doPackedBinaryOp(xc, BinaryOp::FloatMul);'
+
+    class vxorf(varithp):
+        opClass = 'SimdAddOp'
+        code = 'this->doPackedBinaryOp(xc, BinaryOp::IntXor);'
+}};
