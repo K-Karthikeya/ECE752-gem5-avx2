@@ -65,6 +65,7 @@ let {{
             if 'opClass' not in d: d['opClass'] = None
             cls = type.__new__(mcls, Name, bases, d)
             if not abstract:
+                cls.className = Name
                 mcls.buildCppClasses(cls, Name.lower(), Name, "", cls.constructorCode, cls.code)
                 microopClasses[Name.lower()] = cls
             return cls
