@@ -200,6 +200,31 @@ stack(int index, int top)
 
 } // namespace float_reg
 
+// ----------------------------------------------------------------------------
+// Backward-compatibility helpers for legacy macro-assembler generated code.
+// Some older AVX/SSE decoder generator fragments referenced symbolic macros
+// FLOATREG_XMM_LOW(reg) / FLOATREG_XMM_HIGH(reg) expecting integer indices
+// for the low/high 64-bit halves of an XMM register. The modern codebase
+// exposes helper functions in the float_reg namespace returning RegIds.
+// To avoid touching large auto-generated decode blobs that still emit these
+// identifiers, define lightweight inline functions that mimic the previous
+// macro semantics. They intentionally return FloatRegIndex (integral) values
+// matching the layout established above so existing FpRegIndex(...) wrappers
+// continue to work.
+// ----------------------------------------------------------------------------
+
+inline constexpr float_reg::FloatRegIndex FLOATREG_XMM_LOW(int reg)
+{
+    return static_cast<float_reg::FloatRegIndex>(
+        float_reg::XmmBase + NumXMMSubRegs * reg);
+}
+
+inline constexpr float_reg::FloatRegIndex FLOATREG_XMM_HIGH(int reg)
+{
+    return static_cast<float_reg::FloatRegIndex>(
+        float_reg::XmmBase + NumXMMSubRegs * reg + 1);
+}
+
 } // namespace X86ISA
 } // namespace gem5
 
