@@ -254,14 +254,14 @@ X86StaticInst::printMem(std::ostream &os, uint8_t segment,
         os << "rip";
         someAddr = true;
     } else {
-  if (scale != 0)
+    if (scale != 0)
         {
             if (scale != 1)
                 ccprintf(os, "%d*", scale);
             printReg(os, RegId(intRegClass, index), addressSize);
             someAddr = true;
         }
-  if (true) // base always considered; zero base just prints reg 0
+    if (true) // base always considered; zero base just prints reg 0
         {
             if (someAddr)
                 os << " + ";
