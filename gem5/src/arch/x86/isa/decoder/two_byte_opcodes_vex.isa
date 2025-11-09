@@ -1,43 +1,45 @@
 //////////////////////////////////////////////////////////////////
 // Minimal VEX two-byte opcode decodes for AVX subset.
 //
-// This file defines the state invoked from two_byte_opcodes.isa when
-// VEX_PRESENT and the dispatcher transitions to TwoByteOpcodeVEX().
-// We only implement a small AVX2 floating-point subset (no AVX-512).
+// This file augments the existing TwoByteOpcode decode to handle VEX-encoded
+// instructions when VEX_PRESENT == 1. We only implement a small AVX2
+// floating-point subset (no AVX-512).
 
-'X86ISA::TwoByteOpcodeVEX': decode OPCODE_OP {
-    // Wrap instruction definitions in a format block so gem5 assigns the
-    // standard Inst format (required for generating StaticInst objects).
-    format Inst {
-        0x58: decode VEX_L {
-            0x1: VADDPS_YMM_YMM();
-            0x0: VADDPS_XMM_XMM();
+'X86ISA::TwoByteOpcode': decode VEX_PRESENT {
+    0x1: decode OPCODE_OP {
+        // Wrap instruction definitions in a format block so gem5 assigns the
+        // standard Inst format (required for generating StaticInst objects).
+        format Inst {
+            0x58: decode VEX_L {
+                0x1: VADDPS_YMM_YMM();
+                0x0: VADDPS_XMM_XMM();
+            }
+            0x59: decode VEX_L {
+                0x1: VMULPS_YMM_YMM();
+                0x0: VMULPS_XMM_XMM();
+            }
+            0x57: decode VEX_L {
+                0x1: VXORPS_YMM_YMM();
+                0x0: VXORPS_XMM_XMM();
+            }
+            0x10: decode VEX_L {
+                0x1: VMOVUPS_YMM_M();
+                0x0: VMOVUPS_XMM_M();
+            }
+            0x11: decode VEX_L {
+                0x1: VMOVUPS_M_YMM();
+                0x0: VMOVUPS_M_XMM();
+            }
+            0x28: decode VEX_L {
+                0x1: VMOVAPS_YMM_M();
+                0x0: VMOVAPS_XMM_M();
+            }
+            0x29: decode VEX_L {
+                0x1: VMOVAPS_M_YMM();
+                0x0: VMOVAPS_M_XMM();
+            }
+            0x77: VZEROUPPER();
+            default: UD2();
         }
-        0x59: decode VEX_L {
-            0x1: VMULPS_YMM_YMM();
-            0x0: VMULPS_XMM_XMM();
-        }
-        0x57: decode VEX_L {
-            0x1: VXORPS_YMM_YMM();
-            0x0: VXORPS_XMM_XMM();
-        }
-        0x10: decode VEX_L {
-            0x1: VMOVUPS_YMM_M();
-            0x0: VMOVUPS_XMM_M();
-        }
-        0x11: decode VEX_L {
-            0x1: VMOVUPS_M_YMM();
-            0x0: VMOVUPS_M_XMM();
-        }
-        0x28: decode VEX_L {
-            0x1: VMOVAPS_YMM_M();
-            0x0: VMOVAPS_XMM_M();
-        }
-        0x29: decode VEX_L {
-            0x1: VMOVAPS_M_YMM();
-            0x0: VMOVAPS_M_XMM();
-        }
-        0x77: VZEROUPPER();
-        default: UD2();
     }
-    }
+}
