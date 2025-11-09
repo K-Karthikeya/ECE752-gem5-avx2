@@ -68,7 +68,7 @@ let {{
     def fpRegIdx(idx):
         return "X86ISA::FpRegIndex(%s)" % idx
     def regIdx(idx):
-        return "RegId(floatRegClass, %s)" % idx
+        return "X86ISA::FpRegIndex(%s)" % idx
     def ctrlRegIdx(idx):
         return "X86ISA::CtrlRegIndex(%s)" % idx
     def crRegIdx(idx):
