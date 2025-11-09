@@ -243,6 +243,11 @@ protected:
       s1.ul = xc->getRegOperand(this, i * 2 + 0);
       s2.ul = xc->getRegOperand(this, i * 2 + 1);
       auto d = this->calcPackedBinaryOp(s1, s2, op);
+      if (op == BinaryOp::FloatAdd) {
+        DPRINTF(X86, "AVX add subreg %d: s1.ul=%#llx s2.ul=%#llx | s1.f={%f,%f} s2.f={%f,%f} => d.f={%f,%f}\n",
+                i, (unsigned long long)s1.ul, (unsigned long long)s2.ul,
+                s1.f.f1, s1.f.f2, s2.f.f1, s2.f.f2, d.f.f1, d.f.f2);
+      }
       xc->setRegOperand(this, i, d.ul);
     }
   }
