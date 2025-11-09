@@ -384,7 +384,9 @@
                 default: UD2();
             }
             // Inline minimal AVX (VEX) subset decode formerly in two_byte_opcodes_vex.isa
-            0x1: decode OPCODE_OP {
+            // Use 'default' instead of '0x1' so VEX instructions are tried even if
+            // VEX_PRESENT bitfield isn't set (workaround for decoder prefix handling).
+            default: decode OPCODE_OP {
                     0x58: decode VEX_L {
                         0x1: VADDPS_YMM_YMM();
                         0x0: VADDPS_XMM_XMM();

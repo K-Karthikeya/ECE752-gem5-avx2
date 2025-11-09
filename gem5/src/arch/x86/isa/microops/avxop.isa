@@ -127,7 +127,10 @@ let {{
 
     class vaddf(varithp):
         opClass = 'SimdFloatAddOp'
-        code = 'this->doPackedBinaryOp(xc, BinaryOp::FloatAdd);'
+        code = '''
+                fprintf(stderr, "[AVX-TRACE] vaddf enter VL=%u size=%u\n", destVL, srcSize);
+                this->doPackedBinaryOp(xc, BinaryOp::FloatAdd);
+                '''
 
     class vmulf(varithp):
         opClass = 'SimdFloatMultOp'
