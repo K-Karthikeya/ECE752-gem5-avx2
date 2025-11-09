@@ -1,7 +1,7 @@
 # Build an x86-64 Linux binary using GCC with AVX2
 # Output: ../bin/x86/linux/avx2-smoke
 
-CFLAGS := -O0 -Wall -Wextra -mavx -mavx2
+CFLAGS := -O0 -Wall -Wextra -std=c11 -mavx -mavx2
 LDFLAGS :=
 CC := gcc
 OUTDIR := ../bin/x86/linux

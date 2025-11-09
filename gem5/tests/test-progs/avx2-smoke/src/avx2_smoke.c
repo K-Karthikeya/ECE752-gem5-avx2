@@ -3,6 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 
+// Portable 32-byte alignment for stack arrays in C
+#if defined(_MSC_VER)
+#  define ALIGNED32 __declspec(align(32))
+#else
+#  define ALIGNED32 __attribute__((aligned(32)))
+#endif
+
 // Helper to compare float arrays with exact match (bitwise) to validate VXORPS
 static int cmp_u32(const uint32_t *a, const uint32_t *b, int n)
 {
@@ -25,11 +32,11 @@ static int cmp_f32_tol(const float *a, const float *b, int n, float tol)
 int main()
 {
     // Use aligned and unaligned buffers to exercise VMOVAPS and VMOVUPS
-    alignas(32) float A_aligned[8] = {1.0f, 2.0f, 3.5f, -4.0f, 0.5f, -0.5f, 10.0f, -8.0f};
-    alignas(32) float B_aligned[8] = {5.0f, -2.0f, 1.5f,  4.0f, 2.0f,  3.0f, -1.0f,  8.0f};
-    alignas(32) float C_add[8];
-    alignas(32) float D_mul[8];
-    alignas(32) float E_xor[8];
+    ALIGNED32 float A_aligned[8] = {1.0f, 2.0f, 3.5f, -4.0f, 0.5f, -0.5f, 10.0f, -8.0f};
+    ALIGNED32 float B_aligned[8] = {5.0f, -2.0f, 1.5f,  4.0f, 2.0f,  3.0f, -1.0f,  8.0f};
+    ALIGNED32 float C_add[8];
+    ALIGNED32 float D_mul[8];
+    ALIGNED32 float E_xor[8];
 
     // Unaligned views: offset by 4 bytes
     uint8_t *A_ua_bytes = (uint8_t *)A_aligned;
@@ -63,11 +70,15 @@ int main()
     for (int i = 0; i < 8; ++i) {
         // For vmul we used unaligned loads, so reference should read from A_unaligned/B_unaligned
         C_ref[i] = A_aligned[i] + B_aligned[i];
-        D_ref[i] = A_unaligned[i] * B_unaligned[i];
+        // Avoid potential UB from reading via unaligned float* by using memcpy
+        float au, bu;
+        memcpy(&au, &A_unaligned[i], sizeof(float));
+        memcpy(&bu, &B_unaligned[i], sizeof(float));
+        D_ref[i] = au * bu;
         // bitwise XOR on float payloads
         union { float f; uint32_t u; } ua, ub;
         ua.f = A_aligned[i];
-        ub.f = B_unaligned[i];
+        memcpy(&ub.f, &B_unaligned[i], sizeof(float));
         E_ref_u32[i] = ua.u ^ ub.u;
     }
 
