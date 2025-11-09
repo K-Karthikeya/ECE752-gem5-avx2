@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <cstdint>
+#include <cstdio>
 
 #include "arch/x86/insts/microop.hh"
 #include "arch/x86/regs/float.hh"
@@ -244,11 +245,26 @@ protected:
       s2.ul = xc->getRegOperand(this, i * 2 + 1);
       auto d = this->calcPackedBinaryOp(s1, s2, op);
       if (op == BinaryOp::FloatAdd) {
-        DPRINTF(X86, "AVX add subreg %d: s1.ul=%#llx s2.ul=%#llx | s1.f={%f,%f} s2.f={%f,%f} => d.f={%f,%f}\n",
-                i, (unsigned long long)s1.ul, (unsigned long long)s2.ul,
-                s1.f.f1, s1.f.f2, s2.f.f1, s2.f.f2, d.f.f1, d.f.f2);
+        // Unconditional instrumentation to diagnose lane mismatch issues.
+        // Each 64-bit chunk carries two 32-bit floats in order {f1,f2}.
+        fprintf(stderr,
+          "[AVX-TRACE] add chunk=%d raw_s1=%#016llx raw_s2=%#016llx f1={%g,%g} f2={%g,%g} result={%g,%g}\n",
+          i,
+          (unsigned long long)s1.ul,
+          (unsigned long long)s2.ul,
+          s1.f.f1, s1.f.f2,
+          s2.f.f1, s2.f.f2,
+          d.f.f1, d.f.f2);
       }
       xc->setRegOperand(this, i, d.ul);
+      if (op == BinaryOp::FloatAdd) {
+        // Read back what we stored to confirm write path.
+        uint64_t stored = xc->getRegOperand(this, i);
+        FloatInt verify; verify.ul = stored;
+        fprintf(stderr,
+          "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
+          i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
+      }
     }
   }
 
