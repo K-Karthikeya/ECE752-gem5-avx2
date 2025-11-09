@@ -40,5 +40,4 @@
         0x77: VZEROUPPER();
         default: UD2();
     }
-}
-}
+    }
