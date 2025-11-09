@@ -373,51 +373,11 @@
             0x6: Inst::UD2();
             0x7: getsec();
         }
-        0x07: decode VEX_PRESENT {
-            0x0: decode OPCODE_OP_BOTTOM3 {
-                0x0: M5InternalError::error(
-                    {{"Three byte opcode shouldn't be handled by "
-                      "two_byte_opcodes.isa!"}});
-                0x2: M5InternalError::error(
-                    {{"Three byte opcode shouldn't be handled by "
-                      "two_byte_opcodes.isa!"}});
-                default: UD2();
-            }
-            // Inline minimal AVX (VEX) subset decode formerly in two_byte_opcodes_vex.isa
-            // Use 'default' instead of '0x1' so VEX instructions are tried even if
-            // VEX_PRESENT bitfield isn't set (workaround for decoder prefix handling).
-            default: decode OPCODE_OP {
-                    0x58: decode VEX_L {
-                        0x1: VADDPS_YMM_YMM();
-                        0x0: VADDPS_XMM_XMM();
-                    }
-                    0x59: decode VEX_L {
-                        0x1: VMULPS_YMM_YMM();
-                        0x0: VMULPS_XMM_XMM();
-                    }
-                    0x57: decode VEX_L {
-                        0x1: VXORPS_YMM_YMM();
-                        0x0: VXORPS_XMM_XMM();
-                    }
-                    0x10: decode VEX_L {
-                        0x1: VMOVUPS_YMM_M();
-                        0x0: VMOVUPS_XMM_M();
-                    }
-                    0x11: decode VEX_L {
-                        0x1: VMOVUPS_M_YMM();
-                        0x0: VMOVUPS_M_XMM();
-                    }
-                    0x28: decode VEX_L {
-                        0x1: VMOVAPS_YMM_M();
-                        0x0: VMOVAPS_XMM_M();
-                    }
-                    0x29: decode VEX_L {
-                        0x1: VMOVAPS_M_YMM();
-                        0x0: VMOVAPS_M_XMM();
-                    }
-                    0x77: VZEROUPPER();
-            }
-        }
+        // NOTE: VEX (AVX) two-byte opcode decoding has been moved back to
+        // `two_byte_opcodes_vex.isa` via the dedicated state
+        // 'X86ISA::TwoByteOpcodeVEX'. Any VEX-prefixed instruction should
+        // transition there from the prefix handling logic instead of
+        // attempting to piggyback on a numeric secondary opcode value here.
         format Inst {
             0x08: decode OPCODE_OP_BOTTOM3 {
                 0x0: CMOVO(Gv,Ev);

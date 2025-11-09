@@ -321,6 +321,9 @@ Decoder::doVexOpcodeState(uint8_t nextByte)
 
     switch (emi.opcode.type) {
       case TwoByteOpcode:
+        // Use existing two-byte opcode tables; the ISA decoder will
+        // differentiate legacy vs VEX via VEX_PRESENT and select the
+        // appropriate decode state ('TwoByteOpcodeVEX') for VEX ops.
         return processOpcode(ImmediateTypeTwoByte, UsesModRMTwoByte);
       case ThreeByte0F38Opcode:
         return processOpcode(ImmediateTypeThreeByte0F38,

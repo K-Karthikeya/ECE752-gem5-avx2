@@ -37,5 +37,6 @@
             0x0: VMOVAPS_M_XMM();
         }
         0x77: VZEROUPPER();
+        default: UD2();
     }
 }
