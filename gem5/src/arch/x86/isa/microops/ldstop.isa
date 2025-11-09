@@ -517,13 +517,13 @@ let {{
     defineMicroLoadOp('ldfp128', code='''
         FpData0_uqw = Mem_u2qw[0];
         FpData1_uqw = Mem_u2qw[1];
-    ''', big = False)
+    ''', big = False, is_float=True)
     defineMicroLoadOp('ldfp256', code='''
         FpData0_uqw = Mem_u4qw[0];
         FpData1_uqw = Mem_u4qw[1];
         FpData2_uqw = Mem_u4qw[2];
         FpData3_uqw = Mem_u4qw[3];
-    ''', big = False)
+    ''', big = False, is_float=True)
 
     defineMicroLoadOp('Ldfp87', code='''
         switch (dataSize)
@@ -663,13 +663,13 @@ let {{
     defineMicroStoreOp('stfp128', code='''
         Mem_u2qw[0] = FpData0_uqw;
         Mem_u2qw[1] = FpData1_uqw;
-    ''')
+    ''', is_float=True)
     defineMicroStoreOp('stfp256', code='''
         Mem_u4qw[0] = FpData0_uqw;
         Mem_u4qw[1] = FpData1_uqw;
         Mem_u4qw[2] = FpData2_uqw;
         Mem_u4qw[3] = FpData3_uqw;
-    ''')
+    ''', is_float=True)
 
     defineMicroStoreOp('Stfp87', code='''
         switch (dataSize)
