@@ -250,10 +250,10 @@ let {{
                     "microops[%d] = %s;\n" % \
                     (micropc, op.getAllocator(flags))
                 allocMicroops += \
-                    'fprintf(stderr, "[MACROOP-ALLOC] micropc=%d allocated ptr=%p\\n", %d, (void*)microops[%d].get());\n' % (micropc, micropc, micropc)
+                    'fprintf(stderr, "[MACROOP-ALLOC] micropc=%d allocated ptr=%%p\\n", %d, (void*)microops[%d].get());\n' % (micropc, micropc, micropc)
                 # Defensive: panic early if allocation returned a null RefCountingPtr.
                 allocMicroops += \
-                    'if (!microops[%d]) { fprintf(stderr, "[MACROOP-ALLOC] micropc=%d NULL in %s\\n", %d, macrocodeBlock); panic("NULL microop in %s", macrocodeBlock); }\n' % (micropc, micropc, micropc)
+                    'if (!microops[%d]) { fprintf(stderr, "[MACROOP-ALLOC] micropc=%d NULL in %%s\\n", %d, macrocodeBlock); panic("NULL microop in %%s", macrocodeBlock); }\n' % (micropc, micropc, micropc)
                 micropc += 1
             if env.useStackSize:
                 useStackSize = "true"

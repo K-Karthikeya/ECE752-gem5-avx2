@@ -20,11 +20,11 @@
         }
         0x10: decode VEX_L {
             0x1: {
-                printf("[VEX-DECODE] opcode=0x10 L=1 selecting VMOVUPS_YMM_M (modrm=%#x disp=%#x)\n", MODRM, DISP32);
+                printf("[VEX-DECODE] opcode=0x10 L=1 selecting VMOVUPS_YMM_M (modrm=%%#x disp=%%#x)\n", MODRM, DISP32);
                 VMOVUPS_YMM_M();
             }
             0x0: {
-                printf("[VEX-DECODE] opcode=0x10 L=0 selecting VMOVUPS_XMM_M (modrm=%#x disp=%#x)\n", MODRM, DISP32);
+                printf("[VEX-DECODE] opcode=0x10 L=0 selecting VMOVUPS_XMM_M (modrm=%%#x disp=%%#x)\n", MODRM, DISP32);
                 VMOVUPS_XMM_M();
             }
         }
