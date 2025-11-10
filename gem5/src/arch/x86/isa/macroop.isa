@@ -240,8 +240,12 @@ let {{
                     flags.append("IsDelayedCommit")
 
                 allocMicroops += \
+                    'fprintf(stderr, "[MACROOP-ALLOC] micropc=%d allocating...\\n", %d);\n' % (micropc, micropc)
+                allocMicroops += \
                     "microops[%d] = %s;\n" % \
                     (micropc, op.getAllocator(flags))
+                allocMicroops += \
+                    'fprintf(stderr, "[MACROOP-ALLOC] micropc=%d allocated ptr=%%p\\n", %d, (void*)microops[%d].get());\n' % (micropc, micropc, micropc)
                 micropc += 1
             if env.useStackSize:
                 useStackSize = "true"
