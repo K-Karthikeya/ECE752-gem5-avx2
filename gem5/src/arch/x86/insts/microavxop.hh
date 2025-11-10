@@ -290,7 +290,7 @@ protected:
   // A helper function to add dest regs.
   inline void addAVXDestRegs() {
     auto vDestRegs = destVL / sizeof(uint64_t);
-    fprintf(stderr, "[AVX-DESTREGS] destVL=%u vDestRegs=%d dest=%u\n", 
+    fprintf(stderr, "[AVX-DESTREGS] destVL=%u vDestRegs=%zu dest=%u\n", 
             destVL, vDestRegs, dest);
     assert(vDestRegs <= NumXMMSubRegs && "DestVL overflow.");
     _numDestRegs = vDestRegs;

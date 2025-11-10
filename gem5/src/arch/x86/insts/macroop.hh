@@ -107,13 +107,13 @@ class MacroopBase : public X86StaticInst
     void size(size_t newSize) override
     {
         fprintf(stderr, "[MACROOP-SIZE] mnemonic=%s numMicroops=%u newSize=%zu\n",
-                mnemonic.c_str(), numMicroops, newSize);
+                mnemonic, numMicroops, newSize);
         for (int i = 0; i < numMicroops; i++) {
             fprintf(stderr, "[MACROOP-SIZE]   microop[%d] = %p\n", i, 
                     (void*)microops[i].get());
-            if (microops[i] == nullptr) {
+            if (!microops[i]) {
                 fprintf(stderr, "[MACROOP-SIZE] ERROR: microop[%d] is NULL!\n", i);
-                panic("NULL microop at index %d in macroop %s\n", i, mnemonic.c_str());
+                panic("NULL microop at index %d in macroop %s\n", i, mnemonic);
             }
             microops[i]->size(newSize);
         }
