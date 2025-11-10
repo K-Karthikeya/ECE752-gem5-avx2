@@ -57,7 +57,7 @@ def template AVXOpConstructor {{
         uint8_t _imm8, uint8_t _ext)
       : %(base_class)s(_machInst, "%(mnemonic)s", _instMnem, _setFlags,
         %(op_class)s, _srcType,
-        RegId(floatRegClass, _dest), RegId(floatRegClass, _src1), RegId(floatRegClass, _src2),
+        RegId(floatRegClass, _dest.index), RegId(floatRegClass, _src1.index), RegId(floatRegClass, _src2.index),
         _destSize, _destVL, _srcSize, _srcVL, _imm8, _ext)
     {
         %(constructor)s;
