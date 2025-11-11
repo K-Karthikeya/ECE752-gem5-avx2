@@ -134,24 +134,43 @@ let {{
             super().__init__(dest=dest, src1=src1, src2=src2,
                              destSize=size, destVL=VL, srcSize=size, srcVL=VL)
         constructorCode = """
-            this->addAVXDestRegs();
-            auto vRegs = destVL / sizeof(uint64_t);
-            fprintf(stderr,
-            "[AVX-SRCMAP] inst=%s destBase=%u src1Base=%u src2Base=%u vRegs=%u\\n",
+        // Register destination subregister chunks (contiguous) first.
+        this->addAVXDestRegs();
+
+        // Each architectural XMM/YMM register is composed of NumXMMSubRegs
+        // (currently 4) 64-bit subregisters laid out contiguously in the
+        // flat float register file. The RegId indices we received for
+        // dest/src1/src2 refer to the FIRST 64-bit subregister of the
+        // respective architectural vector register (e.g., _XmmN_0Idx).
+        // Earlier (buggy) code treated them as already pointing to the
+        // lane 0 chunk for dest but then incremented them per lane for
+        // the sources causing overlap with following architectural
+        // registers (ymm0 used subregs of ymm0, ymm1, ymm2 ...).
+        // Correct mapping: for vRegs=destVL/8 subregister chunks, lane i
+        // lives at base + i for ALL operands (dest/src1/src2) where each
+        // base already points at the first chunk of that logical vector.
+
+        auto vRegs = destVL / sizeof(uint64_t);
+        auto baseDest = dest;   // already first chunk of dest vector
+        auto baseSrc1 = src1;   // first chunk of src1 vector
+        auto baseSrc2 = src2;   // first chunk of src2 vector
+
+        fprintf(stderr,
+            "[AVX-SRCMAP] inst=%s destBase=%u src1Base=%u src2Base=%u vRegs=%u (fixed)\\n",
             _instMnem,
-                    (unsigned)dest, (unsigned)src1, (unsigned)src2, (unsigned)vRegs);
-            _numSrcRegs = 2 * vRegs;
-            // AVX sources are floating-point vector subregister chunks.
-            // No per-type source register accounting exists in StaticInst;
-            // setSrcRegIdx with RegId(floatRegClass, ...) is sufficient.
-            for (int i = 0; i < vRegs; ++i) {
-                fprintf(stderr,
-                        "[AVX-SRCMAP] lane=%d destIdx=%u src1Idx=%u src2Idx=%u\\n",
-                        i,
-                        (unsigned)(dest + i), (unsigned)(src1 + i), (unsigned)(src2 + i));
-                setSrcRegIdx(i*2, RegId(floatRegClass, src1 + i));
-                setSrcRegIdx(i*2+1, RegId(floatRegClass, src2 + i));
-            }
+            (unsigned)baseDest, (unsigned)baseSrc1, (unsigned)baseSrc2, (unsigned)vRegs);
+
+        _numSrcRegs = 2 * vRegs;
+        for (int i = 0; i < vRegs; ++i) {
+        unsigned dIdx = baseDest + i;
+        unsigned s1Idx = baseSrc1 + i;
+        unsigned s2Idx = baseSrc2 + i;
+        fprintf(stderr,
+            "[AVX-SRCMAP] lane=%d destIdx=%u src1Idx=%u src2Idx=%u (fixed)\\n",
+            i, dIdx, s1Idx, s2Idx);
+        setSrcRegIdx(i*2,   RegId(floatRegClass, s1Idx));
+        setSrcRegIdx(i*2+1, RegId(floatRegClass, s2Idx));
+        }
         """
 
     class vaddf(varithp):
