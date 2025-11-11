@@ -11,53 +11,7 @@ def template AVXOpExecute {{
             %(op_wb)s;
         }
         return fault;
-                    // Unconditional instrumentation for ADD/MUL/XOR like in the add path.
-                    if (op == BinaryOp::FloatAdd) {
-                        fprintf(stderr,
-                            "[AVX-TRACE] add chunk=%d raw_s1=%#016llx raw_s2=%#016llx f1={%g,%g} f2={%g,%g} result={%g,%g}\n",
-                            i,
-                            (unsigned long long)s1.ul,
-                            (unsigned long long)s2.ul,
-                            s1.f.f1, s1.f.f2,
-                            s2.f.f1, s2.f.f2,
-                            d.f.f1, d.f.f2);
-                    } else if (op == BinaryOp::FloatMul) {
-                        fprintf(stderr,
-                            "[AVX-TRACE] mul chunk=%d raw_s1=%#016llx raw_s2=%#016llx f1={%g,%g} f2={%g,%g} result={%g,%g}\n",
-                            i,
-                            (unsigned long long)s1.ul,
-                            (unsigned long long)s2.ul,
-                            s1.f.f1, s1.f.f2,
-                            s2.f.f1, s2.f.f2,
-                            d.f.f1, d.f.f2);
-                    } else if (op == BinaryOp::IntXor) {
-                        // For XOR, print raw hex values before/after.
-                        fprintf(stderr,
-                            "[AVX-TRACE] xor chunk=%d raw_s1=%#016llx raw_s2=%#016llx result_raw=%#016llx\n",
-                            i,
-                            (unsigned long long)s1.ul,
-                            (unsigned long long)s2.ul,
-                            (unsigned long long)d.ul);
-                       uint8_t _srcSize, uint8_t _srcVL,
-                       uint8_t _imm8, uint8_t _ext);
-                    if (op == BinaryOp::FloatAdd) {
-                        uint64_t stored = xc->getRegOperand(this, i);
-                        FloatInt verify; verify.ul = stored;
-                        fprintf(stderr,
-                            "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
-                            i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
-                    } else if (op == BinaryOp::FloatMul) {
-                        uint64_t stored = xc->getRegOperand(this, i);
-                        FloatInt verify; verify.ul = stored;
-                        fprintf(stderr,
-                            "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
-                            i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
-                    } else if (op == BinaryOp::IntXor) {
-                        uint64_t stored = xc->getRegOperand(this, i);
-                        fprintf(stderr,
-                            "[AVX-TRACE] stored chunk=%d raw=%#016llx\n",
-                            i, (unsigned long long)stored);
-    };
+    }
 }};
 
 def template AVXOpConstructor {{
@@ -101,6 +55,9 @@ let {{
                                 { "constructorCode": constructorCode,
                                   "code": code })
             global header_output, decoder_output, exec_output
+            # Ensure the declaration template exists before use.
+            if 'AVXOpDeclare' not in globals():
+                raise NameError('AVXOpDeclare template missing (check merge).')
             header_output += AVXOpDeclare.subst(iop)
             decoder_output += AVXOpConstructor.subst(iop)
             exec_output += AVXOpExecute.subst(iop)
@@ -205,9 +162,9 @@ let {{
 
     class vmulf(varithp):
         opClass = 'SimdFloatMultOp'
-    code = 'fprintf(stderr, "[AVX-TRACE] vmulf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::FloatMul);'
+        code = 'fprintf(stderr, "[AVX-TRACE] vmulf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::FloatMul);'
 
     class vxorf(varithp):
         opClass = 'SimdAddOp'
-    code = 'fprintf(stderr, "[AVX-TRACE] vxorf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntXor);'
+        code = 'fprintf(stderr, "[AVX-TRACE] vxorf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntXor);'
 }};
