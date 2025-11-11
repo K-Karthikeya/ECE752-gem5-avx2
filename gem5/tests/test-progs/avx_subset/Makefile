@@ -5,7 +5,11 @@
 #   make clean      -> remove artifacts
 
 CC ?= gcc
-CFLAGS ?= -O2 -mavx -Wall -Wextra
+# Disable auto-vectorization and builtins so the compiler does not emit
+# unsupported AVX instructions (e.g., VBROADCASTSS) beyond our minimal subset.
+# You can raise O2->O0 if you want even stricter avoidance, but -fno-tree-vectorize
+# is typically sufficient. Retain -mavx to allow our explicit AVX mnemonics.
+CFLAGS ?= -O2 -mavx -Wall -Wextra -fno-tree-vectorize -fno-builtin
 LDFLAGS ?= -mavx
 
 SRC_ASM := avx_subset.S
@@ -28,6 +32,10 @@ $(BIN): $(OBJ)
 
 run: $(BIN)
 	./$(BIN)
+
+disasm: $(BIN)
+	objdump -d $(BIN) | grep -E "0f(10|11|28|29|57|58|59|77)" || true
+	@echo "(If other AVX/VEX opcodes appear above, adjust CFLAGS to suppress them.)"
 
 clean:
 	rm -f $(OBJ) $(BIN)
