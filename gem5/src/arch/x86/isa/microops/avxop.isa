@@ -136,11 +136,19 @@ let {{
         constructorCode = """
             this->addAVXDestRegs();
             auto vRegs = destVL / sizeof(uint64_t);
+            fprintf(stderr,
+                    "[AVX-SRCMAP] inst=%s destBase=%u src1Base=%u src2Base=%u vRegs=%u\n",
+                    instMnem,
+                    (unsigned)dest, (unsigned)src1, (unsigned)src2, (unsigned)vRegs);
             _numSrcRegs = 2 * vRegs;
             // AVX sources are floating-point vector subregister chunks.
             // No per-type source register accounting exists in StaticInst;
             // setSrcRegIdx with RegId(floatRegClass, ...) is sufficient.
             for (int i = 0; i < vRegs; ++i) {
+                fprintf(stderr,
+                        "[AVX-SRCMAP] lane=%d destIdx=%u src1Idx=%u src2Idx=%u\n",
+                        i,
+                        (unsigned)(dest + i), (unsigned)(src1 + i), (unsigned)(src2 + i));
                 setSrcRegIdx(i*2, RegId(floatRegClass, src1 + i));
                 setSrcRegIdx(i*2+1, RegId(floatRegClass, src2 + i));
             }
