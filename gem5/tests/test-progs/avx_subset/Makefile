@@ -5,12 +5,12 @@
 #   make clean      -> remove artifacts
 
 CC ?= gcc
-# Disable auto-vectorization and builtins so the compiler does not emit
-# unsupported AVX instructions (e.g., VBROADCASTSS) beyond our minimal subset.
-# You can raise O2->O0 if you want even stricter avoidance, but -fno-tree-vectorize
-# is typically sufficient. Retain -mavx to allow our explicit AVX mnemonics.
-CFLAGS ?= -O2 -mavx -Wall -Wextra -fno-tree-vectorize -fno-builtin
-LDFLAGS ?= -mavx
+# Separate flags for ASM vs C so the harness does NOT use AVX (prevents VEX scalar v* ops).
+# - ASM: keep -mavx so the explicit AVX mnemonics assemble as VEX.
+# - C:   use -mno-avx and disable vectorization/builtins to avoid emitting unsupported AVX.
+CFLAGS_ASM ?= -O2 -mavx -Wall -Wextra
+CFLAGS_C   ?= -O2 -mno-avx -Wall -Wextra -fno-tree-vectorize -fno-builtin
+LDFLAGS ?= 
 
 SRC_ASM := avx_subset.S
 SRC_C   := harness.c
@@ -25,10 +25,10 @@ $(BIN): $(OBJ)
 	$(CC) $(LDFLAGS) -o $@ $^
 
 %.o: %.S
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS_ASM) -c -o $@ $<
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS_C) -c -o $@ $<
 
 run: $(BIN)
 	./$(BIN)
