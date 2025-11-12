@@ -227,12 +227,11 @@ let {{
                 # This might refer to memory or to a register. We need to
                 # divide it up farther.
                 regEnv = copy.copy(env)
-                # Only treat the register form of the W (XMM/YMM) operand as
-                # using env.regm so AVX macroops can reference xmm0m. E/Q are
-                # widely used integer/MMX forms; marking them regm would bloat
-                # the emulation environment and exhaust register specialization.
-                if opType.tag == "W":
-                    regEnv.regmUsed = True
+                # Revert earlier attempt to force W operands into env.regm to
+                # prevent exhausting register specialization slots for common
+                # SSE/SSE2 instructions (e.g., MOVUPS). Arithmetic AVX src2 now
+                # uses explicit RM-based symbols added in microasm.isa instead
+                # of relying on env.regm.
                 regEnv.addReg(ModRMRMIndex)
 
                 # This refers to memory. The macroop constructor should set up
