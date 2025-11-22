@@ -1,0 +1,215 @@
+def template AVXOpExecute {{
+    Fault
+    %(class_name)s::execute(ExecContext *xc,
+            trace::InstRecord *traceData) const
+    {
+        Fault fault = NoFault;
+        %(op_decl)s;
+        %(op_rd)s;
+        %(code)s;
+        if (fault == NoFault) {
+            %(op_wb)s;
+        }
+        return fault;
+    }
+}};
+
+def template AVXOpDeclare {{
+        class %(class_name)s : public %(base_class)s
+        {
+            public:
+                // Main constructor (RegId version)
+                %(class_name)s(ExtMachInst _machInst, const char *_instMnem,
+                                             uint64_t _setFlags, SrcType _srcType,
+                                             RegId _dest, RegId _src1,
+                                             RegId _src2, uint8_t _destSize, uint8_t _destVL,
+                                             uint8_t _srcSize, uint8_t _srcVL,
+                                             uint8_t _imm8, uint8_t _ext);
+                // Compatibility constructor (FpRegIndex version - converts to RegId)
+                %(class_name)s(ExtMachInst _machInst, const char *_instMnem,
+                                             uint64_t _setFlags, SrcType _srcType,
+                                             FpRegIndex _dest, FpRegIndex _src1,
+                                             FpRegIndex _src2, uint8_t _destSize, uint8_t _destVL,
+                                             uint8_t _srcSize, uint8_t _srcVL,
+                                             uint8_t _imm8, uint8_t _ext);
+                Fault execute(ExecContext *, trace::InstRecord *) const;
+        };
+}};
+
+def template AVXOpConstructor {{
+    %(class_name)s::%(class_name)s(ExtMachInst _machInst, const char *_instMnem,
+        uint64_t _setFlags, SrcType _srcType,
+        RegId _dest, RegId _src1, RegId _src2,
+        uint8_t _destSize, uint8_t _destVL, uint8_t _srcSize, uint8_t _srcVL,
+        uint8_t _imm8, uint8_t _ext)
+      : %(base_class)s(_machInst, "%(mnemonic)s", _instMnem, _setFlags,
+        %(op_class)s, _srcType, _dest, _src1, _src2,
+        _destSize, _destVL, _srcSize, _srcVL, _imm8, _ext)
+    {
+        %(constructor)s;
+        %(constructorCode)s;
+    }
+    
+    %(class_name)s::%(class_name)s(ExtMachInst _machInst, const char *_instMnem,
+        uint64_t _setFlags, SrcType _srcType,
+        FpRegIndex _dest, FpRegIndex _src1, FpRegIndex _src2,
+        uint8_t _destSize, uint8_t _destVL, uint8_t _srcSize, uint8_t _srcVL,
+        uint8_t _imm8, uint8_t _ext)
+      : %(base_class)s(_machInst, "%(mnemonic)s", _instMnem, _setFlags,
+        %(op_class)s, _srcType,
+        RegId(floatRegClass, _dest.index), RegId(floatRegClass, _src1.index), RegId(floatRegClass, _src2.index),
+        _destSize, _destVL, _srcSize, _srcVL, _imm8, _ext)
+    {
+        %(constructor)s;
+        %(constructorCode)s;
+    }
+}};
+
+let {{
+    header_output = ""
+    decoder_output = ""
+    exec_output = ""
+
+    class AVXOpMeta(type):
+        def buildCppClasses(self, name, Name, suffix, constructorCode, code):
+            base = "X86ISA::AVXOpBase"
+            iop = InstObjParams(name, Name + suffix, base,
+                                { "constructorCode": constructorCode,
+                                  "code": code })
+            global header_output, decoder_output, exec_output
+            # Ensure the declaration template exists before use.
+            if 'AVXOpDeclare' not in globals():
+                raise NameError('AVXOpDeclare template missing (check merge).')
+            header_output += AVXOpDeclare.subst(iop)
+            decoder_output += AVXOpConstructor.subst(iop)
+            exec_output += AVXOpExecute.subst(iop)
+
+        def __new__(mcls, Name, bases, d):
+            abstract = d.get('abstract', False)
+            d.pop('abstract', None)
+            if 'opClass' not in d: d['opClass'] = None
+            cls = type.__new__(mcls, Name, bases, d)
+            if not abstract:
+                cls.className = Name
+                mcls.buildCppClasses(cls, Name.lower(), Name, "", cls.constructorCode, cls.code)
+                microopClasses[Name.lower()] = cls
+            return cls
+
+    class AVXOp(X86Microop, metaclass=AVXOpMeta):
+        abstract = True
+        def __init__(self, dest, src1='X86ISA::FpRegIndex(0)', src2='X86ISA::FpRegIndex(0)',
+                     destSize=0, destVL=16, srcSize=0, srcVL=16,
+                     imm8=0, ext=0):
+            self.dest = dest; self.src1 = src1; self.src2 = src2
+            self.destSize = destSize; self.destVL = destVL
+            self.srcSize = srcSize; self.srcVL = srcVL
+            self.imm8 = imm8; self.ext = ext
+        def getAllocator(self, microFlags):
+            return ("new {cn}(machInst, macrocodeBlock, {flags}, {srcType}, "
+                    "{dest}, {src1}, {src2}, {dSize}, {dVL}, {sSize}, {sVL}, "
+                    "{imm}, {ext})").format(
+                cn=self.className,
+                flags=self.microFlagsText(microFlags),
+                srcType=self.srcType, dest=self.dest, src1=self.src1, src2=self.src2,
+                dSize=self.destSize, dVL=self.destVL, sSize=self.srcSize, sVL=self.srcVL,
+                imm=self.imm8, ext=self.ext)
+
+    class vclear(AVXOp):
+        opClass = 'SimdMiscOp'
+        srcType = 'AVXOpBase::SrcType::Non'
+        def __init__(self, dest, destVL):
+            super().__init__(dest=dest, destVL=destVL, destSize=destVL)
+        constructorCode = """
+            fprintf(stderr, "[VCLEAR-CONSTRUCT] dest=%u destVL=%u\\n", 
+                    (unsigned)dest, (unsigned)destVL);
+            // Use the standard AVX destination register setup instead of manual manipulation
+            this->addAVXDestRegs();
+        """
+        code = """
+            for (int i = 0; i < _numDestRegs; ++i)
+                xc->setRegOperand(this, i, (RegVal)0);
+        """
+
+    class varithp(AVXOp):
+        abstract = True
+        srcType = 'AVXOpBase::SrcType::RegReg'
+        def __init__(self, dest, src1, src2, size, VL):
+            super().__init__(dest=dest, src1=src1, src2=src2,
+                             destSize=size, destVL=VL, srcSize=size, srcVL=VL)
+        constructorCode = """
+        // Raw decode field dump before mapping
+        fprintf(stderr,
+            "[AVX-RAW] inst=%s opcodeType=%u modrm=%#x mod=%u reg=%u rm=%u vvvv=%u L=%u evex=%#x\\n",
+            _instMnem,
+            (unsigned)_machInst.opcode.type,
+            (unsigned)(uint8_t)_machInst.modRM,
+            (unsigned)_machInst.modRM.mod,
+            (unsigned)_machInst.modRM.reg,
+            (unsigned)_machInst.modRM.rm,
+            (unsigned)_machInst.evex.v_extend,
+            (unsigned)_machInst.evex.l,
+            (unsigned)(uint16_t)_machInst.evex);
+
+        fprintf(stderr,
+            "[AVX-RAW] ctor RegIds dest=%u src1=%u src2=%u\\n",
+            (unsigned)dest, (unsigned)src1, (unsigned)src2);
+
+        // Register destination subregister chunks (contiguous) first.
+        this->addAVXDestRegs();
+
+        // Each architectural XMM/YMM register is composed of NumXMMSubRegs
+        // (currently 4) 64-bit subregisters laid out contiguously in the
+        // flat float register file. The RegId indices we received for
+        // dest/src1/src2 refer to the FIRST 64-bit subregister of the
+        // respective architectural vector register (e.g., _XmmN_0Idx).
+        // Earlier (buggy) code treated them as already pointing to the
+        // lane 0 chunk for dest but then incremented them per lane for
+        // the sources causing overlap with following architectural
+        // registers (ymm0 used subregs of ymm0, ymm1, ymm2 ...).
+        // Correct mapping: for vRegs=destVL/8 subregister chunks, lane i
+        // lives at base + i for ALL operands (dest/src1/src2) where each
+        // base already points at the first chunk of that logical vector.
+
+        auto vRegs = destVL / sizeof(uint64_t);
+        auto baseDest = dest;   // already first chunk of dest vector
+        auto baseSrc1 = src1;   // first chunk of src1 vector
+        auto baseSrc2 = src2;   // first chunk of src2 vector
+
+        fprintf(stderr,
+            "[AVX-SRCMAP] inst=%s destBase=%u src1Base=%u src2Base=%u vRegs=%u (fixed)\\n",
+            _instMnem,
+            (unsigned)baseDest, (unsigned)baseSrc1, (unsigned)baseSrc2, (unsigned)vRegs);
+
+        _numSrcRegs = 2 * vRegs;
+        // Register all src1 lanes first, then all src2 lanes. This matches
+        // StaticInst operand ordering expectations used by getRegOperand.
+        for (int i = 0; i < vRegs; ++i) {
+            unsigned dIdx = baseDest + i;
+            unsigned s1Idx = baseSrc1 + i;
+            unsigned s2Idx = baseSrc2 + i;
+            fprintf(stderr,
+                "[AVX-SRCMAP] lane=%d destIdx=%u src1Idx=%u src2Idx=%u (fixed)\\n",
+                i, dIdx, s1Idx, s2Idx);
+            setSrcRegIdx(i, RegId(floatRegClass, s1Idx));
+        }
+        for (int i = 0; i < vRegs; ++i) {
+            unsigned s2Idx = baseSrc2 + i;
+            setSrcRegIdx(vRegs + i, RegId(floatRegClass, s2Idx));
+        }
+        """
+
+    class vaddf(varithp):
+        opClass = 'SimdFloatAddOp'
+        constructorCode = varithp.constructorCode
+        code = 'fprintf(stderr, "[AVX-TRACE] vaddf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatAdd);'
+
+    class vmulf(varithp):
+        opClass = 'SimdFloatMultOp'
+        constructorCode = varithp.constructorCode
+        code = 'fprintf(stderr, "[AVX-TRACE] vmulf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatMul);'
+
+    class vxorf(varithp):
+        opClass = 'SimdAddOp'
+        constructorCode = varithp.constructorCode
+        code = 'fprintf(stderr, "[AVX-TRACE] vxorf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::IntXor);'
+}};

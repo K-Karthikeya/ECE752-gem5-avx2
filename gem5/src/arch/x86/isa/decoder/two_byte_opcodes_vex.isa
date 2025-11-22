@@ -1,0 +1,47 @@
+//////////////////////////////////////////////////////////////////
+// Minimal VEX two-byte opcode decodes for AVX subset.
+//
+// This file defines a distinct opcode state for VEX-encoded two-byte (0x0F)
+// opcodes. Only a small AVX/AVX2 floating-point subset is implemented.
+
+'X86ISA::TwoByteOpcodeVEX': decode OPCODE_OP {
+    format Inst {
+        // Arithmetic ops: reg-reg forms STILL use ModRM (reg = dest, r/m = src2).
+        // The ModRM byte is always present; we parse it to populate env.reg and
+        // env.regm distinctly (needed so xmm0 dest and xmm0m src2 differ).
+        // gem5 treats all reg-reg forms as implicit R forms (no M operand).
+        0x58: decode VEX_L {
+            // Reg-reg: use Vo (XMM reg via ModRM.reg) and Wo (XMM reg/mem via ModRM.r/m)
+            0x1: VADDPS_YMM_YMM(Vo, Wo);
+            0x0: VADDPS_XMM_XMM(Vo, Wo);
+        }
+        0x59: decode VEX_L {
+            0x1: VMULPS_YMM_YMM(Vo, Wo);
+            0x0: VMULPS_XMM_XMM(Vo, Wo);
+        }
+        0x57: decode VEX_L {
+            0x1: VXORPS_YMM_YMM(Vo, Wo);
+            0x0: VXORPS_XMM_XMM(Vo, Wo);
+        }
+        // Load from memory (M operand triggers doModRM via specializeInst)
+        0x10: decode VEX_L {
+            0x1: VMOVUPS_YMM(M);
+            0x0: VMOVUPS_XMM(M);
+        }
+        // Store to memory (M operand triggers doModRM via specializeInst)
+        0x11: decode VEX_L {
+            0x1: VMOVUPS_M_YMM(M);
+            0x0: VMOVUPS_M_XMM(M);
+        }
+        0x28: decode VEX_L {
+            0x1: VMOVAPS_YMM(M);
+            0x0: VMOVAPS_XMM(M);
+        }
+        0x29: decode VEX_L {
+            0x1: VMOVAPS_M_YMM(M);
+            0x0: VMOVAPS_M_XMM(M);
+        }
+        0x77: VZEROUPPER();
+        default: UD2();
+    }
+}
