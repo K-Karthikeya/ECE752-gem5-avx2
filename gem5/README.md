@@ -97,3 +97,5 @@ or start discussions. To join the mailing list please visit
 We hope you enjoy using gem5. When appropriate we advise sharing your
 contributions to the project. <https://www.gem5.org/contributing> can help you
 get started. Additional information can be found in the CONTRIBUTING.md file.
+
+We are trying to merge gem5-avx extension into mainline gem5 as part of our course project for ECE752 at UW-Madison
