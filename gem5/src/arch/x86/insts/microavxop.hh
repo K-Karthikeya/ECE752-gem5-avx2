@@ -312,14 +312,14 @@ protected:
       } else if (op == BinaryOp::FloatMul) {
         uint64_t stored = xc->getRegOperand(this, i);
         FloatInt verify; verify.ul = stored;
-        fprintf(stderr,
-          "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
-          i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
+        // fprintf(stderr,
+        //   "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
+        //   i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
       } else if (op == BinaryOp::IntXor) {
         uint64_t stored = xc->getRegOperand(this, i);
-        fprintf(stderr,
-          "[AVX-TRACE] stored chunk=%d raw=%#016llx\n",
-          i, (unsigned long long)stored);
+        // fprintf(stderr,
+        //   "[AVX-TRACE] stored chunk=%d raw=%#016llx\n",
+        //   i, (unsigned long long)stored);
       }
     }
   }
