@@ -682,7 +682,7 @@ let {{
     defineMicroStoreOp('stfp128', code='''
         Mem_u2qw[0] = FpData0_uqw;
         Mem_u2qw[1] = FpData1_uqw;
-        fprintf(stderr, "[STFP128-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx\n",
+        fprintf(stderr, "[STFP128-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx\\n",
                 (unsigned)srcRegIdx(0).index(),
                 (unsigned long long)FpData0_uqw,
                 (unsigned long long)FpData1_uqw);
@@ -692,7 +692,7 @@ let {{
         Mem_u4qw[1] = FpData1_uqw;
         Mem_u4qw[2] = FpData2_uqw;
         Mem_u4qw[3] = FpData3_uqw;
-        fprintf(stderr, "[STFP256-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx stored2=%#016llx stored3=%#016llx\n",
+        fprintf(stderr, "[STFP256-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx stored2=%#016llx stored3=%#016llx\\n",
                 (unsigned)srcRegIdx(0).index(),
                 (unsigned long long)FpData0_uqw,
                 (unsigned long long)FpData1_uqw,
