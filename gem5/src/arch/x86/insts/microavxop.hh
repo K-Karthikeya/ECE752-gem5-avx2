@@ -303,20 +303,20 @@ protected:
       // Write result into destination register lane i.
       xc->setRegOperand(this, i, d.ul);
       if (op == BinaryOp::FloatAdd) {
-        // Read back what we stored to confirm write path (reads destination, not source).
-        uint64_t stored = xc->getRegOperand(this, i);
-        FloatInt verify; verify.ul = stored;
-        fprintf(stderr,
-          "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
-          i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
+        // // Read back what we stored to confirm write path (reads destination, not source).
+        // uint64_t stored = xc->getRegOperand(this, i);
+        // FloatInt verify; verify.ul = stored;
+        // fprintf(stderr,
+        //   "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
+        //   i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
       } else if (op == BinaryOp::FloatMul) {
-        uint64_t stored = xc->getRegOperand(this, i);
-        FloatInt verify; verify.ul = stored;
+        // uint64_t stored = xc->getRegOperand(this, i);
+        // FloatInt verify; verify.ul = stored;
         // fprintf(stderr,
         //   "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
         //   i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
       } else if (op == BinaryOp::IntXor) {
-        uint64_t stored = xc->getRegOperand(this, i);
+        // uint64_t stored = xc->getRegOperand(this, i);
         // fprintf(stderr,
         //   "[AVX-TRACE] stored chunk=%d raw=%#016llx\n",
         //   i, (unsigned long long)stored);

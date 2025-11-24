@@ -26,7 +26,8 @@ def macroop VMOVUPS_YMM_M {
     # ldfp xmm2, seg, sib, "DISPLACEMENT + 16", dataSize=8
     # ldfp xmm3, seg, sib, "DISPLACEMENT + 24", dataSize=8
     # Single 256-bit load into the YMM destination starting at xmm0
-    ldfp256 xmm0, seg, sib, "DISPLACEMENT", dataSize=32
+    # dataSize here is element size (8B); microop fetches 4 lanes internally.
+    ldfp256 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
 };
 def macroop VMOVUPS_YMM_P {
     rdip t7
@@ -42,7 +43,8 @@ def macroop VMOVUPS_M_YMM_M {
     # stfp xmm2, seg, sib, "DISPLACEMENT + 16", dataSize=8
     # stfp xmm3, seg, sib, "DISPLACEMENT + 24", dataSize=8
     # Single 256-bit store starting at xmm0
-    stfp256 xmm0, seg, sib, "DISPLACEMENT", dataSize=32
+    # dataSize is element size (8B); microop stores 4 lanes internally.
+    stfp256 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
 };
 def macroop VMOVUPS_M_YMM_P {
     rdip t7
