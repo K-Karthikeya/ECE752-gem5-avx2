@@ -521,12 +521,22 @@ let {{
     defineMicroLoadOp('ldfp128', code='''
         FpData0_uqw = Mem_u2qw[0];
         FpData1_uqw = Mem_u2qw[1];
+        fprintf(stderr, "[LDFP128-EXEC] loaded0=%#016llx loaded1=%#016llx destBase=FloatReg %u\\n",
+                (unsigned long long)FpData0_uqw,
+                (unsigned long long)FpData1_uqw,
+                (unsigned)destRegIdx(0).index());
     ''', big = False, is_float=True)
     defineMicroLoadOp('ldfp256', code='''
         FpData0_uqw = Mem_u4qw[0];
         FpData1_uqw = Mem_u4qw[1];
         FpData2_uqw = Mem_u4qw[2];
         FpData3_uqw = Mem_u4qw[3];
+        fprintf(stderr, "[LDFP256-EXEC] loaded0=%#016llx loaded1=%#016llx loaded2=%#016llx loaded3=%#016llx destBase=FloatReg %u\\n",
+                (unsigned long long)FpData0_uqw,
+                (unsigned long long)FpData1_uqw,
+                (unsigned long long)FpData2_uqw,
+                (unsigned long long)FpData3_uqw,
+                (unsigned)destRegIdx(0).index());
     ''', big = False, is_float=True)
 
     defineMicroLoadOp('Ldfp87', code='''
@@ -672,12 +682,22 @@ let {{
     defineMicroStoreOp('stfp128', code='''
         Mem_u2qw[0] = FpData0_uqw;
         Mem_u2qw[1] = FpData1_uqw;
+        fprintf(stderr, "[STFP128-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx\\n",
+                (unsigned)srcRegIdx(0).index(),
+                (unsigned long long)FpData0_uqw,
+                (unsigned long long)FpData1_uqw);
     ''', is_float=True)
     defineMicroStoreOp('stfp256', code='''
         Mem_u4qw[0] = FpData0_uqw;
         Mem_u4qw[1] = FpData1_uqw;
         Mem_u4qw[2] = FpData2_uqw;
         Mem_u4qw[3] = FpData3_uqw;
+        fprintf(stderr, "[STFP256-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx stored2=%#016llx stored3=%#016llx\\n",
+                (unsigned)srcRegIdx(0).index(),
+                (unsigned long long)FpData0_uqw,
+                (unsigned long long)FpData1_uqw,
+                (unsigned long long)FpData2_uqw,
+                (unsigned long long)FpData3_uqw);
     ''', is_float=True)
 
     defineMicroStoreOp('Stfp87', code='''

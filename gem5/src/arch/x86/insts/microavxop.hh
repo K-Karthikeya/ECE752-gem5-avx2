@@ -262,14 +262,15 @@ protected:
   // Operand index ordering within StaticInst is:
   //   [dest0..destN-1, src10..src1N-1, src20..src2N-1]
   // i.e., all destination operands first, then all src1 lanes, then all src2 lanes.
-    // Therefore, when reading sources use the source operand indices starting at 0
-    // (i.e., [src10..src1N-1, src20..src2N-1]) without any destination offset.
+    // Sources are registered starting at index 0 in the source operand array.
+    // Destinations are in a separate array accessed via setRegOperand/getRegOperand with destIdx.
     auto vRegs = destVL / sizeof(uint64_t);
+    int src1Base = 0;          // first src1 lane in source operand array
+    int src2Base = vRegs;      // first src2 lane in source operand array
     for (int i = 0; i < vRegs; i++) {
       FloatInt s1, s2;
-      // With sources registered as [src1(0..N-1), src2(0..N-1)] starting at index 0
-      s1.ul = xc->getRegOperand(this, i);
-      s2.ul = xc->getRegOperand(this, vRegs + i);
+      s1.ul = xc->getRegOperand(this, src1Base + i);
+      s2.ul = xc->getRegOperand(this, src2Base + i);
       auto d = this->calcPackedBinaryOp(s1, s2, op);
       if (op == BinaryOp::FloatAdd) {
         // Each 64-bit chunk carries two 32-bit floats in order {f1,f2}.
@@ -299,25 +300,26 @@ protected:
           (unsigned long long)s2.ul,
           (unsigned long long)d.ul);
       }
+      // Write result into destination register lane i.
       xc->setRegOperand(this, i, d.ul);
       if (op == BinaryOp::FloatAdd) {
-        // Read back what we stored to confirm write path.
-        uint64_t stored = xc->getRegOperand(this, i);
-        FloatInt verify; verify.ul = stored;
-        fprintf(stderr,
-          "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
-          i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
+        // // Read back what we stored to confirm write path (reads destination, not source).
+        // uint64_t stored = xc->getRegOperand(this, i);
+        // FloatInt verify; verify.ul = stored;
+        // fprintf(stderr,
+        //   "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
+        //   i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
       } else if (op == BinaryOp::FloatMul) {
-        uint64_t stored = xc->getRegOperand(this, i);
-        FloatInt verify; verify.ul = stored;
-        fprintf(stderr,
-          "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
-          i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
+        // uint64_t stored = xc->getRegOperand(this, i);
+        // FloatInt verify; verify.ul = stored;
+        // fprintf(stderr,
+        //   "[AVX-TRACE] stored chunk=%d raw=%#016llx asFloats={%g,%g}\n",
+        //   i, (unsigned long long)stored, verify.f.f1, verify.f.f2);
       } else if (op == BinaryOp::IntXor) {
-        uint64_t stored = xc->getRegOperand(this, i);
-        fprintf(stderr,
-          "[AVX-TRACE] stored chunk=%d raw=%#016llx\n",
-          i, (unsigned long long)stored);
+        // uint64_t stored = xc->getRegOperand(this, i);
+        // fprintf(stderr,
+        //   "[AVX-TRACE] stored chunk=%d raw=%#016llx\n",
+        //   i, (unsigned long long)stored);
       }
     }
   }
