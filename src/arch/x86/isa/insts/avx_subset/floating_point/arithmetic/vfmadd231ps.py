@@ -35,6 +35,11 @@ def macroop VFMADD231PS_XMM_XMM_XMM_P {
 };
 
 def macroop VFMADD231PS_YMM_YMM {
+    limm t0, 0
+    limm t1, 0
+    limm t2, 0
+    # Debug: mark register variant selection
+    vclear dest=xmm2, destVL=0
     vfmadd231f dest=xmm0, src1=xmm0v, src2=xmmrm, size=4, VL=32
 };
 def macroop VFMADD231PS_YMM_YMM_XMM_XMM {
@@ -42,6 +47,8 @@ def macroop VFMADD231PS_YMM_YMM_XMM_XMM {
 };
 def macroop VFMADD231PS_YMM_M {
     ldfp256 ufp0, seg, sib, "DISPLACEMENT", dataSize=8
+    # Debug: mark memory variant selection
+    vclear dest=xmm2, destVL=0
     vfmadd231f dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=32
 };
 def macroop VFMADD231PS_YMM_YMM_M {

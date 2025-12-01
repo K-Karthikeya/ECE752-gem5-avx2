@@ -485,7 +485,12 @@ Decoder::doModRMState(uint8_t nextByte)
 {
     State nextState = ErrorState;
     ModRM modRM = nextByte;
-    DPRINTF(Decoder, "Found modrm byte %#x.\n", nextByte);
+        // Always print detailed ModRM info to stderr for debugging specialization
+        fprintf(stderr, "[MODRM] byte=%#x mod=%u reg=%u rm=%u | REX_B=%u VEX_L=%u opcodeType=%u op=%#x\n",
+          nextByte,
+          (unsigned)modRM.mod, (unsigned)modRM.reg, (unsigned)modRM.rm,
+          (unsigned)emi.rex.b, (unsigned)emi.evex.l,
+          (unsigned)emi.opcode.type, (unsigned)emi.opcode.op);
     if (emi.addrSize == 2) {
         // Figure out 16 bit displacement size.
         if ((modRM.mod == 0 && modRM.rm == 6) || modRM.mod == 2)
