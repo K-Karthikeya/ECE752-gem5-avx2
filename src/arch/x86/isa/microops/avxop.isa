@@ -212,4 +212,64 @@ let {{
         opClass = 'SimdAddOp'
         constructorCode = varithp.constructorCode
         code = 'fprintf(stderr, "[AVX-TRACE] vxorf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::IntXor);'
+
+    # New arithmetic/logic microops required for VSUBPS, VANDPS, VDIVPS, VFMADD231PS, VCMPPS
+    class vsubf(varithp):
+        opClass = 'SimdFloatAddOp'
+        constructorCode = varithp.constructorCode
+        code = 'fprintf(stderr, "[AVX-TRACE] vsubf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::FloatSub);'
+
+    class vandf(varithp):
+        opClass = 'SimdAddOp'
+        constructorCode = varithp.constructorCode
+        code = 'fprintf(stderr, "[AVX-TRACE] vandf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntAnd);'
+
+    class vdivf(varithp):
+        opClass = 'SimdFloatDivOp'
+        constructorCode = varithp.constructorCode
+        code = 'fprintf(stderr, "[AVX-TRACE] vdivf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::FloatDiv);'
+
+    # Fused multiply-add (231 form): dest = (src2 * src1) + dest.
+    # We implement a dedicated fused microop base to map three sources (src1, src2, dest-original).
+    class vfused(AVXOp):
+        abstract = True
+        srcType = 'AVXOpBase::SrcType::RegRegReg'
+        def __init__(self, dest, src1, src2, size, VL):
+            super().__init__(dest=dest, src1=src1, src2=src2,
+                             destSize=size, destVL=VL, srcSize=size, srcVL=VL)
+        constructorCode = """
+        // Fused op constructor mapping (three sources + dest).
+        this->addAVXDestRegs();
+        auto vRegs = destVL / sizeof(uint64_t);
+        auto baseDest = dest;
+        auto baseSrc1 = src1;
+        auto baseSrc2 = src2;
+        // Treat dest as third source (accumulator) for 231 form.
+        _numSrcRegs = 3 * vRegs;
+        // src1 lanes
+        for (int i = 0; i < vRegs; ++i) {
+            setSrcRegIdx(i, RegId(floatRegClass, baseSrc1 + i));
+        }
+        // src2 lanes
+        for (int i = 0; i < vRegs; ++i) {
+            setSrcRegIdx(vRegs + i, RegId(floatRegClass, baseSrc2 + i));
+        }
+        // dest (original) lanes as third source
+        for (int i = 0; i < vRegs; ++i) {
+            setSrcRegIdx(2 * vRegs + i, RegId(floatRegClass, baseDest + i));
+        }
+        """
+
+    class vfmadd231f(vfused):
+        opClass = 'SimdFloatAddOp'
+        constructorCode = vfused.constructorCode
+        code = 'fprintf(stderr, "[AVX-TRACE] vfmadd231f enter VL=%u size=%u\\n", destVL, srcSize); this->doFusedPackedBinaryOp(xc, BinaryOp::FloatMul, BinaryOp::FloatAdd);'
+
+    # Simple packed compare (VCMPPS). For now implement EQ predicate only ignoring imm8.
+    class vcmpf(varithp):
+        opClass = 'SimdAddOp'
+        constructorCode = varithp.constructorCode
+        # Implements VCMPPS predicates using imm8 (lower 5 bits). Basic set 0-7 per Intel: EQ, LT, LE, UNORD, NEQ, NLT (GE), NLE (GT), ORD.
+        code = 'fprintf(stderr, "[AVX-TRACE] vcmpf enter VL=%u size=%u imm8=%u\\n", destVL, srcSize, imm8); int _vRegs = destVL / sizeof(uint64_t); int s1Base=0; int s2Base=_vRegs; unsigned pred = imm8 & 0x1F; for (int i=0;i<_vRegs;i++){ uint64_t raw1=xc->getRegOperand(this, s1Base+i); uint64_t raw2=xc->getRegOperand(this, s2Base+i); FloatInt a; a.ul=raw1; FloatInt b; b.ul=raw2; uint32_t maskVal = 0; // default false -> 0x00000000 each lane chunk
+            bool lane0=false; bool lane1=false; float f1a=a.f.f1, f2a=a.f.f2, f1b=b.f.f1, f2b=b.f.f2; auto isnan=[&](float x){ return x!=x; }; bool u0 = isnan(f1a) || isnan(f1b); bool u1 = isnan(f2a) || isnan(f2b); auto cmpLane=[&](int lane, float va, float vb){ switch(pred){ case 0: return va==vb; case 1: return va<vb; case 2: return va<=vb; case 3: return (isnan(va) || isnan(vb)); case 4: return va!=vb; case 5: return !(va<vb) || isnan(va) || isnan(vb); case 6: return !(va<=vb) || isnan(va) || isnan(vb); case 7: return !(isnan(va) || isnan(vb)); default: return va==vb; } }; lane0 = cmpLane(0,f1a,f1b); lane1 = cmpLane(1,f2a,f2b); struct { uint32_t i1; uint32_t i2; } out; out.i1 = lane0? 0xFFFFFFFFu : 0u; out.i2 = lane1? 0xFFFFFFFFu : 0u; FloatInt dest; dest.si.i1 = (int32_t)out.i1; dest.si.i2 = (int32_t)out.i2; xc->setRegOperand(this, i, dest.ul); }'
 }};

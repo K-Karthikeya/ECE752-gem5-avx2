@@ -23,6 +23,21 @@
             0x1: VXORPS_YMM_YMM(Vo, Wo);
             0x0: VXORPS_XMM_XMM(Vo, Wo);
         }
+        0x5C: decode VEX_L {
+            // VSUBPS reg-reg (Vo dest, Wo src2)
+            0x1: VSUBPS_YMM_YMM(Vo, Wo);
+            0x0: VSUBPS_XMM_XMM(Vo, Wo);
+        }
+        0x54: decode VEX_L {
+            // VANDPS reg-reg
+            0x1: VANDPS_YMM_YMM(Vo, Wo);
+            0x0: VANDPS_XMM_XMM(Vo, Wo);
+        }
+        0x5E: decode VEX_L {
+            // VDIVPS reg-reg
+            0x1: VDIVPS_YMM_YMM(Vo, Wo);
+            0x0: VDIVPS_XMM_XMM(Vo, Wo);
+        }
         // Load from memory (M operand triggers doModRM via specializeInst)
         0x10: decode VEX_L {
             0x1: VMOVUPS_YMM(M);
@@ -40,6 +55,12 @@
         0x29: decode VEX_L {
             0x1: VMOVAPS_M_YMM(M);
             0x0: VMOVAPS_M_XMM(M);
+        }
+        // FMA3 instructions live in 0F38 map; this file covers only 0F. See three_byte_opcodes_vex.isa for VFMADD231PS mapping.
+        // VCMPPS (0xC2) requires an immediate; for now we handle only reg-reg/mem forms by branching to _I macroops.
+        0xC2: decode VEX_L {
+            0x1: VCMPPS_YMM_YMM_I(Vo, Wo, IMMEDIATE);
+            0x0: VCMPPS_XMM_XMM_I(Vo, Wo, IMMEDIATE);
         }
         0x77: VZEROUPPER();
         default: UD2();

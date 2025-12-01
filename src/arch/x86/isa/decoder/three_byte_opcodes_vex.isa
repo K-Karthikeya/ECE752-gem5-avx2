@@ -1,0 +1,14 @@
+//////////////////////////////////////////////////////////////////
+// Minimal VEX three-byte (0F 38) opcode decodes for added FMA.
+// Only VFMADD231PS subset (XMM/YMM) is mapped here.
+
+'X86ISA::ThreeByteOpcodeVEX_0F38': decode OPCODE_OP {
+    format Inst {
+        // FMA3 encoding for VFMADD231PS: 0F 38 B8 /r (PS 231 form)
+        0xB8: decode VEX_L {
+            0x1: VFMADD231PS_YMM_YMM(Vo, Wo, Vo); // Vo dest (accumulator), Wo src2, Vo src1 via vvvv field already in Vo
+            0x0: VFMADD231PS_XMM_XMM(Vo, Wo, Vo);
+        }
+        default: UD2();
+    }
+}
