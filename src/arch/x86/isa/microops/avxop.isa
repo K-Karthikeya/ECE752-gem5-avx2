@@ -271,11 +271,11 @@ let {{
         constructorCode = varithp.constructorCode
         # Implements VCMPPS predicates using imm8 (lower 5 bits). Basic set 0-7 per Intel: EQ, LT, LE, UNORD, NEQ, NLT (GE), NLE (GT), ORD.
         code = """
-            fprintf(stderr, "[AVX-TRACE] vcmpf enter VL=%u size=%u imm8=%u\\n", destVL, srcSize, imm8);
+            fprintf(stderr, "[AVX-TRACE] vcmpf enter VL=%u size=%u ext=%u\\n", destVL, srcSize, ext);
             int _vRegs = destVL / sizeof(uint64_t);
             int s1Base = 0;
             int s2Base = _vRegs;
-            unsigned pred = imm8 & 0x1F;
+            unsigned pred = ((unsigned)ext) & 0x1F;
             for (int i = 0; i < _vRegs; i++) {
                 uint64_t raw1 = xc->getRegOperand(this, s1Base + i);
                 uint64_t raw2 = xc->getRegOperand(this, s2Base + i);
