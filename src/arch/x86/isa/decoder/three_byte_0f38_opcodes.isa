@@ -140,15 +140,16 @@
                 default: Inst::PHMINPOSUW(Vdq, Wdq);
             }
             // VEX FMA3: VFMADD231PS (0F 38 B8 /r)
-            // Use Inst:: calls within WarnUnimpl format; route by MODRM.MOD.
+            // Use base macroop name with Wo for both paths; MODRM.MOD controls
+            // specialization to register (_XMM_XMM) vs memory (_XMM_M).
             0xB8: decode VEX_L {
                 0x1: decode MODRM_MOD {
                     0x3: Inst::VFMADD231PS_YMM_YMM(Vo, Wo);
-                    default: Inst::VFMADD231PS_YMM_M(Vo, M);
+                    default: Inst::VFMADD231PS_YMM_YMM(Vo, Wo);
                 }
                 0x0: decode MODRM_MOD {
                     0x3: Inst::VFMADD231PS_XMM_XMM(Vo, Wo);
-                    default: Inst::VFMADD231PS_XMM_M(Vo, M);
+                    default: Inst::VFMADD231PS_XMM_XMM(Vo, Wo);
                 }
             }
             default: Inst::UD2();
