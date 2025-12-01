@@ -140,9 +140,11 @@
                 default: Inst::PHMINPOSUW(Vdq, Wdq);
             }
             // VEX FMA3: VFMADD231PS (0F 38 B8 /r), XMM/YMM selected by VEX.L
-            0xB8: decode VEX_L {
-                0x1: Inst::VFMADD231PS_YMM_YMM(Vo, Wo);
-                0x0: Inst::VFMADD231PS_XMM_XMM(Vo, Wo);
+            0xB8: format Inst {
+                decode VEX_L {
+                    0x1: VFMADD231PS_YMM_YMM(Vo, Wo);
+                    0x0: VFMADD231PS_XMM_XMM(Vo, Wo);
+                }
             }
             default: Inst::UD2();
         }
