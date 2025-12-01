@@ -25,5 +25,5 @@ $(BIN): $(OBJ)
 run: $(BIN)
 	./$(BIN)
 
-	$(CC) -o $@ $^ $(LDFLAGS)
-	rm -f $(OBJ) $(BIN)
+clean:
+	$(RM) -f $(OBJ) $(BIN)
