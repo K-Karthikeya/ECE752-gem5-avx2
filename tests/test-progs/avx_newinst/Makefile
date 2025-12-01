@@ -2,7 +2,7 @@
 CC ?= gcc
 CFLAGS_ASM ?= -O2 -mavx -Wall -Wextra
 CFLAGS_C   ?= -O2 -mno-avx -mno-sse2avx -Wall -Wextra -fno-tree-vectorize -fno-builtin
-LDFLAGS ?= 
+LDFLAGS ?= -lm
 
 SRC_ASM := avx_newinst.S
 SRC_C   := harness_newinst.c
