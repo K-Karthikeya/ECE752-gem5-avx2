@@ -7,9 +7,11 @@
     .type avx_newinst_test,@function
 avx_newinst_test:
     # SysV AMD64 arg regs: rdi=a, rsi=b, rdx=c, rcx=out_fma, r8=out_sub, r9=out_and
-    # 7th & 8th args are on stack at [rsp+8] and [rsp+16] respectively on entry.
-    mov     8(%rsp), %r10       # r10 = out_div
-    mov     16(%rsp), %r11      # r11 = out_cmp
+    # Establish a stable frame and read 7th/8th args (out_div, out_cmp) from stack.
+    pushq   %rbp
+    movq    %rsp, %rbp
+    movq    16(%rbp), %r10      # r10 = out_div (7th arg)
+    movq    24(%rbp), %r11      # r11 = out_cmp (8th arg)
     # VFMADD231PS: out_fma[i] = (a[i] * b[i]) + c[i]
     vmovaps   (%rdi), %ymm0      # a
     vmovaps   (%rsi), %ymm1      # b
@@ -39,6 +41,7 @@ avx_newinst_test:
     vcmpps    $1, %ymm14, %ymm13, %ymm15  # 1 = LT
     vmovaps   %ymm15, (%r11)     # out_cmp
     vzeroupper
+    popq    %rbp
     ret
 
     .section .note.GNU-stack,"",@progbits

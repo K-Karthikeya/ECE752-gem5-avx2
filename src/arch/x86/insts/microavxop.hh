@@ -327,14 +327,18 @@ protected:
   // A helper function to perform packed (src1 op1 src2) op2 src3
   inline void doFusedPackedBinaryOp(gem5::ExecContext *xc, BinaryOp op1, BinaryOp op2) const
   {
+    // Operands are blocked by source: src1[0..vRegs-1], src2[vRegs..2*vRegs-1], src3[2*vRegs..3*vRegs-1]
     auto vRegs = destVL / sizeof(uint64_t);
+    int src1Base = 0;
+    int src2Base = vRegs;
+    int src3Base = 2 * vRegs;
     FloatInt src1;
     FloatInt src2;
     FloatInt src3;
     for (int i = 0; i < vRegs; i++) {
-      src1.ul = xc->getRegOperand(this, i * 3 + 0);
-      src2.ul = xc->getRegOperand(this, i * 3 + 1);
-      src3.ul = xc->getRegOperand(this, i * 3 + 2);
+      src1.ul = xc->getRegOperand(this, src1Base + i);
+      src2.ul = xc->getRegOperand(this, src2Base + i);
+      src3.ul = xc->getRegOperand(this, src3Base + i);
       auto tmp = this->calcPackedBinaryOp(src1, src2, op1);
       auto dest = this->calcPackedBinaryOp(tmp, src3, op2);
       xc->setRegOperand(this, i, dest.ul);
