@@ -58,9 +58,12 @@
         }
         // FMA3 instructions live in 0F38 map; this file covers only 0F. See three_byte_opcodes_vex.isa for VFMADD231PS mapping.
         // VCMPPS (0xC2) requires an immediate (Ib); handled via _I macroops.
+        // Must use explicit decode block per VEX_L to avoid mnemonic concatenation error.
         0xC2: decode VEX_L {
-            0x1: VCMPPS_YMM_YMM_I(Vo, Wo, Ib);
-            0x0: VCMPPS_XMM_XMM_I(Vo, Wo, Ib);
+            format Inst {
+                0x1: VCMPPS_YMM_YMM_I(Vo, Wo, Ib);
+                0x0: VCMPPS_XMM_XMM_I(Vo, Wo, Ib);
+            }
         }
         0x77: VZEROUPPER();
         default: UD2();
