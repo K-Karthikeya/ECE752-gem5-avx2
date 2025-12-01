@@ -270,6 +270,45 @@ let {{
         opClass = 'SimdAddOp'
         constructorCode = varithp.constructorCode
         # Implements VCMPPS predicates using imm8 (lower 5 bits). Basic set 0-7 per Intel: EQ, LT, LE, UNORD, NEQ, NLT (GE), NLE (GT), ORD.
-        code = 'fprintf(stderr, "[AVX-TRACE] vcmpf enter VL=%u size=%u imm8=%u\\n", destVL, srcSize, imm8); int _vRegs = destVL / sizeof(uint64_t); int s1Base=0; int s2Base=_vRegs; unsigned pred = imm8 & 0x1F; for (int i=0;i<_vRegs;i++){ uint64_t raw1=xc->getRegOperand(this, s1Base+i); uint64_t raw2=xc->getRegOperand(this, s2Base+i); FloatInt a; a.ul=raw1; FloatInt b; b.ul=raw2; uint32_t maskVal = 0; // default false -> 0x00000000 each lane chunk
-            bool lane0=false; bool lane1=false; float f1a=a.f.f1, f2a=a.f.f2, f1b=b.f.f1, f2b=b.f.f2; auto isnan=[&](float x){ return x!=x; }; bool u0 = isnan(f1a) || isnan(f1b); bool u1 = isnan(f2a) || isnan(f2b); auto cmpLane=[&](int lane, float va, float vb){ switch(pred){ case 0: return va==vb; case 1: return va<vb; case 2: return va<=vb; case 3: return (isnan(va) || isnan(vb)); case 4: return va!=vb; case 5: return !(va<vb) || isnan(va) || isnan(vb); case 6: return !(va<=vb) || isnan(va) || isnan(vb); case 7: return !(isnan(va) || isnan(vb)); default: return va==vb; } }; lane0 = cmpLane(0,f1a,f1b); lane1 = cmpLane(1,f2a,f2b); struct { uint32_t i1; uint32_t i2; } out; out.i1 = lane0? 0xFFFFFFFFu : 0u; out.i2 = lane1? 0xFFFFFFFFu : 0u; FloatInt dest; dest.si.i1 = (int32_t)out.i1; dest.si.i2 = (int32_t)out.i2; xc->setRegOperand(this, i, dest.ul); }'
+        code = """
+            fprintf(stderr, "[AVX-TRACE] vcmpf enter VL=%u size=%u imm8=%u\\n", destVL, srcSize, imm8);
+            int _vRegs = destVL / sizeof(uint64_t);
+            int s1Base = 0;
+            int s2Base = _vRegs;
+            unsigned pred = imm8 & 0x1F;
+            for (int i = 0; i < _vRegs; i++) {
+                uint64_t raw1 = xc->getRegOperand(this, s1Base + i);
+                uint64_t raw2 = xc->getRegOperand(this, s2Base + i);
+                FloatInt a; a.ul = raw1;
+                FloatInt b; b.ul = raw2;
+                // default false -> 0x00000000 each lane chunk
+                bool lane0 = false; bool lane1 = false;
+                float f1a = a.f.f1, f2a = a.f.f2, f1b = b.f.f1, f2b = b.f.f2;
+                auto isnan = [&](float x){ return x != x; };
+                bool u0 = isnan(f1a) || isnan(f1b);
+                bool u1 = isnan(f2a) || isnan(f2b);
+                auto cmpLane = [&](int lane, float va, float vb){
+                    switch (pred) {
+                        case 0: return va == vb;
+                        case 1: return va <  vb;
+                        case 2: return va <= vb;
+                        case 3: return (isnan(va) || isnan(vb));
+                        case 4: return va != vb;
+                        case 5: return !(va < vb) || isnan(va) || isnan(vb);
+                        case 6: return !(va <= vb) || isnan(va) || isnan(vb);
+                        case 7: return !(isnan(va) || isnan(vb));
+                        default: return va == vb;
+                    }
+                };
+                lane0 = cmpLane(0, f1a, f1b);
+                lane1 = cmpLane(1, f2a, f2b);
+                struct { uint32_t i1; uint32_t i2; } out;
+                out.i1 = lane0 ? 0xFFFFFFFFu : 0u;
+                out.i2 = lane1 ? 0xFFFFFFFFu : 0u;
+                FloatInt dest;
+                dest.si.i1 = (int32_t)out.i1;
+                dest.si.i2 = (int32_t)out.i2;
+                xc->setRegOperand(this, i, dest.ul);
+            }
+        """
 }};
