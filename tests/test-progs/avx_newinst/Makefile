@@ -14,7 +14,7 @@ BIN     := avx_newinst_test
 all: $(BIN)
 
 $(BIN): $(OBJ)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 %.o: %.S
 	$(CC) $(CFLAGS_ASM) -c -o $@ $<
