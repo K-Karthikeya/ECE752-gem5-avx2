@@ -69,11 +69,11 @@ int main(void) {
             errors++;
         }
     }
-    // Check CMP: out_cmp[i] = (a[i] < b[i]) ? 1.0f : 0.0f (for VCMPPS LT)
+    // Check CMP (VCMPPS LT): produces all-ones (0xFFFFFFFF) for true, 0x00000000 for false
     for (int i = 0; i < 8; ++i) {
-        float expect = (a[i] < b[i]) ? 1.0f : 0.0f;
-        if (fabsf(out_cmp[i] - expect) > 1e-5f) {
-            fprintf(stderr, "CMP MISMATCH[%d]: got=%f expect=%f\n", i, out_cmp[i], expect);
+        uint32_t expect = (a[i] < b[i]) ? 0xFFFFFFFFu : 0x00000000u;
+        if (fbits(out_cmp[i]) != expect) {
+            fprintf(stderr, "CMP MISMATCH[%d]: got=0x%08" PRIx32 " expect=0x%08" PRIx32 "\n", i, fbits(out_cmp[i]), expect);
             errors++;
         }
     }
