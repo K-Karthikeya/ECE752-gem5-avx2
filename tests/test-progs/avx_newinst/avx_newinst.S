@@ -17,8 +17,9 @@ avx_newinst_test:
     vmovaps   (%rsi), %ymm1      # b
     vmovaps   (%rdx), %ymm2      # c
     # Semantics (231): dest = (dest * src2) + src1
-    # We want (a * b) + c, so src1=c (ymm2), src2=b (ymm1)
-    vfmadd231ps %ymm2, %ymm1, %ymm0  # ymm0 = (a * b) + c
+    # GAS AT&T encoding maps first src to r/m; to force register form, put src2 first.
+    # We want (a * b) + c → src2=b (ymm1), src1=c (ymm2)
+    vfmadd231ps %ymm1, %ymm2, %ymm0  # ymm0 = (a * b) + c
     vmovaps   %ymm0, (%rcx)      # out_fma
     # VSUBPS: out_sub[i] = a[i] - b[i]
     vmovaps   (%rdi), %ymm3
