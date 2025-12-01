@@ -140,16 +140,15 @@
                 default: Inst::PHMINPOSUW(Vdq, Wdq);
             }
             // VEX FMA3: VFMADD231PS (0F 38 B8 /r)
-            // Route by MODRM.MOD, but let specialization add suffixes.
-            // For memory, pass explicit M to avoid double-suffix expansion.
+            // Use Inst:: calls within WarnUnimpl format; route by MODRM.MOD.
             0xB8: decode VEX_L {
                 0x1: decode MODRM_MOD {
-                    0x3: VFMADD231PS_YMM_YMM(Vo, Wo);
-                    default: VFMADD231PS_YMM_M(Vo, M);
+                    0x3: Inst::VFMADD231PS_YMM_YMM(Vo, Wo);
+                    default: Inst::VFMADD231PS_YMM_M(Vo, M);
                 }
                 0x0: decode MODRM_MOD {
-                    0x3: VFMADD231PS_XMM_XMM(Vo, Wo);
-                    default: VFMADD231PS_XMM_M(Vo, M);
+                    0x3: Inst::VFMADD231PS_XMM_XMM(Vo, Wo);
+                    default: Inst::VFMADD231PS_XMM_M(Vo, M);
                 }
             }
             default: Inst::UD2();
