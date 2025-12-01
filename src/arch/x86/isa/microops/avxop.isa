@@ -245,19 +245,30 @@ let {{
         auto baseDest = dest;
         auto baseSrc1 = src1;
         auto baseSrc2 = src2;
+
+        fprintf(stderr,
+            "[AVX-RAW] FMA ctor inst=%s destBase=%u src1Base=%u src2Base=%u vRegs=%u\n",
+            _instMnem, (unsigned)baseDest, (unsigned)baseSrc1, (unsigned)baseSrc2, (unsigned)vRegs);
+
         // Treat dest as third source (accumulator) for 231 form.
         _numSrcRegs = 3 * vRegs;
         // src1 lanes
         for (int i = 0; i < vRegs; ++i) {
-            setSrcRegIdx(i, RegId(floatRegClass, baseSrc1 + i));
+            unsigned s1Idx = baseSrc1 + i;
+            setSrcRegIdx(i, RegId(floatRegClass, s1Idx));
+            fprintf(stderr, "[AVX-SRCMAP-FMA] lane=%d src1=%u\n", i, s1Idx);
         }
         // src2 lanes
         for (int i = 0; i < vRegs; ++i) {
-            setSrcRegIdx(vRegs + i, RegId(floatRegClass, baseSrc2 + i));
+            unsigned s2Idx = baseSrc2 + i;
+            setSrcRegIdx(vRegs + i, RegId(floatRegClass, s2Idx));
+            fprintf(stderr, "[AVX-SRCMAP-FMA] lane=%d src2=%u\n", i, s2Idx);
         }
         // dest (original) lanes as third source
         for (int i = 0; i < vRegs; ++i) {
-            setSrcRegIdx(2 * vRegs + i, RegId(floatRegClass, baseDest + i));
+            unsigned dIdx = baseDest + i;
+            setSrcRegIdx(2 * vRegs + i, RegId(floatRegClass, dIdx));
+            fprintf(stderr, "[AVX-SRCMAP-FMA] lane=%d acc =%u\n", i, dIdx);
         }
         """
 
@@ -286,8 +297,6 @@ let {{
                 bool lane0 = false; bool lane1 = false;
                 float f1a = a.f.f1, f2a = a.f.f2, f1b = b.f.f1, f2b = b.f.f2;
                 auto isnan = [&](float x){ return x != x; };
-                bool u0 = isnan(f1a) || isnan(f1b);
-                bool u1 = isnan(f2a) || isnan(f2b);
                 auto cmpLane = [&](int lane, float va, float vb){
                     switch (pred) {
                         case 0: return va == vb;
