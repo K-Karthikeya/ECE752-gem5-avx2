@@ -133,9 +133,10 @@ let {{
     class varithp(AVXOp):
         abstract = True
         srcType = 'AVXOpBase::SrcType::RegReg'
-        def __init__(self, dest, src1, src2, size, VL):
+        def __init__(self, dest, src1, src2, size, VL, imm8=0, ext=0):
             super().__init__(dest=dest, src1=src1, src2=src2,
-                             destSize=size, destVL=VL, srcSize=size, srcVL=VL)
+                             destSize=size, destVL=VL, srcSize=size, srcVL=VL,
+                             imm8=imm8, ext=ext)
         constructorCode = """
         // Raw decode field dump before mapping
         fprintf(stderr,
