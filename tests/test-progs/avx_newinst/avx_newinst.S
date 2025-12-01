@@ -10,11 +10,13 @@ avx_newinst_test:
     # 7th & 8th args are on stack at [rsp+8] and [rsp+16] respectively on entry.
     mov     8(%rsp), %r10       # r10 = out_div
     mov     16(%rsp), %r11      # r11 = out_cmp
-    # VFMADD231PS: out_fma[i] = a[i]*b[i] + c[i]
+    # VFMADD231PS: out_fma[i] = (a[i] * b[i]) + c[i]
     vmovaps   (%rdi), %ymm0      # a
     vmovaps   (%rsi), %ymm1      # b
     vmovaps   (%rdx), %ymm2      # c
-    vfmadd231ps %ymm1, %ymm2, %ymm0  # ymm0 = (ymm0 * ymm1) + ymm2 = a*b + c
+    # Semantics (231): dest = (dest * src2) + src1
+    # We want (a * b) + c, so src1=c (ymm2), src2=b (ymm1)
+    vfmadd231ps %ymm2, %ymm1, %ymm0  # ymm0 = (a * b) + c
     vmovaps   %ymm0, (%rcx)      # out_fma
     # VSUBPS: out_sub[i] = a[i] - b[i]
     vmovaps   (%rdi), %ymm3
