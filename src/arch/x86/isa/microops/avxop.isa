@@ -240,8 +240,7 @@ let {{
                              destSize=size, destVL=VL, srcSize=size, srcVL=VL)
         constructorCode = """
         // Fused op constructor mapping (three sources + dest).
-        fprintf(stderr,
-            "[AVX-FMA-DECODE] op=%#x type=%u modRM=%#x mod=%u reg=%u rm=%u VEX.L=%u VEX.vvvv=%u\n",
+        fprintf(stderr, "[AVX-FMA-DECODE] op=%#x type=%u modRM=%#x mod=%u reg=%u rm=%u VEX.L=%u VEX.vvvv=%u\n",
             (unsigned)_machInst.opcode.op,
             (unsigned)_machInst.opcode.type,
             (unsigned)(uint8_t)_machInst.modRM,
@@ -251,8 +250,7 @@ let {{
             (unsigned)_machInst.evex.l,
             (unsigned)_machInst.evex.v_extend);
 
-        fprintf(stderr,
-            "[AVX-FMA-SRCTYPE] srcType=%u (Non=0 Reg=1 RegReg=2 RegRegReg=3 Mem=4)\n",
+        fprintf(stderr, "[AVX-FMA-SRCTYPE] srcType=%u (Non=0 Reg=1 RegReg=2 RegRegReg=3 Mem=4)\n",
             (unsigned)this->srcType);
 
         this->addAVXDestRegs();
