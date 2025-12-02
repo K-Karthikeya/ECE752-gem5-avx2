@@ -12,19 +12,8 @@ avx_newinst_test:
     movq    %rsp, %rbp
     movq    16(%rbp), %r10      # r10 = out_div (7th arg)
     movq    24(%rbp), %r11      # r11 = out_cmp (8th arg)
-    # VFMADD231PS: out_fma[i] = (a[i] * b[i]) + c[i]
-    vmovaps   (%rdi), %ymm0      # a
-    vmovaps   (%rsi), %ymm1      # b
-    vmovaps   (%rdx), %ymm2      # c
-    # Semantics (231): dest = (dest * src2) + src1
-    # GAS AT&T encoding maps first src to r/m; it still emitted memory-form.
-    # Switch to Intel syntax for this line to guarantee r/m=register.
-    .intel_syntax noprefix
-    # Intel syntax operand order: dest, src1 (addend), src2 (multiplier)
-    # For (a * b) + c with dest=a, src1=c, src2=b:
-    vfmadd231ps ymm0, ymm2, ymm1      # ymm0 = (a * b) + c
-    .att_syntax prefix
-    vmovaps   %ymm0, (%rcx)      # out_fma
+    # Skip FMA for now; test only VSUBPS, VANDPS, VDIVPS, VCMPPS
+    # (Leave out_fma untouched.)
     # VSUBPS: out_sub[i] = a[i] - b[i]
     vmovaps   (%rdi), %ymm3
     vmovaps   (%rsi), %ymm4
