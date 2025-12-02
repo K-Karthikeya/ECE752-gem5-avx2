@@ -240,20 +240,20 @@ let {{
                              destSize=size, destVL=VL, srcSize=size, srcVL=VL)
         constructorCode = """
         // Fused op constructor mapping (three sources + dest).
-        fprintf(stderr, "[AVX-FMA-DECODE]\n");
-        fprintf(stderr, "  op=%#x type=%u modRM=%#x mod=%u reg=%u rm=%u VEX.L=%u VEX.vvvv=%u\n",
-            (unsigned)_machInst.opcode.op,
-            (unsigned)_machInst.opcode.type,
-            (unsigned)(uint8_t)_machInst.modRM,
-            (unsigned)_machInst.modRM.mod,
-            (unsigned)_machInst.modRM.reg,
-            (unsigned)_machInst.modRM.rm,
-            (unsigned)_machInst.evex.l,
-            (unsigned)_machInst.evex.v_extend);
+        std::cerr << "[AVX-FMA-DECODE]" << std::endl;
+        std::cerr << "  op=0x" << std::hex << (unsigned)_machInst.opcode.op << std::dec
+              << " type=" << (unsigned)_machInst.opcode.type
+              << " modRM=0x" << std::hex << (unsigned)(uint8_t)_machInst.modRM << std::dec
+              << " mod=" << (unsigned)_machInst.modRM.mod
+              << " reg=" << (unsigned)_machInst.modRM.reg
+              << " rm=" << (unsigned)_machInst.modRM.rm
+              << " VEX.L=" << (unsigned)_machInst.evex.l
+              << " VEX.vvvv=" << (unsigned)_machInst.evex.v_extend
+              << std::endl;
 
-        fprintf(stderr, "[AVX-FMA-SRCTYPE]\n");
-        fprintf(stderr, "  srcType=%u (Non=0 Reg=1 RegReg=2 RegRegReg=3 Mem=4)\n",
-            (unsigned)this->srcType);
+        std::cerr << "[AVX-FMA-SRCTYPE]" << std::endl;
+        std::cerr << "  srcType=" << (unsigned)this->srcType
+              << " (Non=0 Reg=1 RegReg=2 RegRegReg=3 Mem=4)" << std::endl;
 
         this->addAVXDestRegs();
         auto vRegs = destVL / sizeof(uint64_t);
