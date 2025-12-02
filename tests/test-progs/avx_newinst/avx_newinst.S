@@ -17,9 +17,11 @@ avx_newinst_test:
     vmovaps   (%rsi), %ymm1      # b
     vmovaps   (%rdx), %ymm2      # c
     # Semantics (231): dest = (dest * src2) + src1
-    # GAS AT&T encoding maps first src to r/m; to force register form, put src2 first.
-    # We want (a * b) + c → src2=b (ymm1), src1=c (ymm2)
-    vfmadd231ps %ymm1, %ymm2, %ymm0  # ymm0 = (a * b) + c
+    # GAS AT&T encoding maps first src to r/m; it still emitted memory-form.
+    # Switch to Intel syntax for this line to guarantee r/m=register.
+    .intel_syntax noprefix
+    vfmadd231ps ymm0, ymm1, ymm2      # ymm0 = (a * b) + c
+    .att_syntax prefix
     vmovaps   %ymm0, (%rcx)      # out_fma
     # VSUBPS: out_sub[i] = a[i] - b[i]
     vmovaps   (%rdi), %ymm3
