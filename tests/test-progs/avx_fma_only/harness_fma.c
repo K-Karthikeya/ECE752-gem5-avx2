@@ -20,7 +20,7 @@ int main(void){
 
     avx_fma_test(a,b,c,out);
 
-    int errs=0; for(int i=0;i<N;i++){ float exp = a[i]*b[i]+c[i]; if(fabsf(out[i]-exp)>1e-5f){
+    int errs=0; for(int i=0;i<N;i++){ float exp = c[i]*b[i]+a[i]; if(fabsf(out[i]-exp)>1e-5f){
             fprintf(stderr,"FMA mismatch lane %d: got=%f (0x%08" PRIx32 ") exp=%f (0x%08" PRIx32 ")\n", i,out[i],bits(out[i]),exp,bits(exp)); errs++; }
     }
 

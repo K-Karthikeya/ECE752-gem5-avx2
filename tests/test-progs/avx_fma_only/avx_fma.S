@@ -12,10 +12,9 @@ avx_fma_test:
     vmovaps ymm0, [rdi]   # a -> dest (accumulator)
     vmovaps ymm1, [rsi]   # b -> multiplier src2
     vmovaps ymm2, [rdx]   # c -> addend src1 (vvvv)
-    # Harness expects: out[i] = a[i] * b[i] + c[i]
-    # Use VFMADD213PS which computes: dest = (dest * src1) + src2
-    # Operand order (Intel syntax): dest, src1 (multiplier=b), src2 (addend=c)
-    vfmadd213ps ymm0, ymm1, ymm2
+    # Use VFMADD231PS which computes: dest = (src1 * src2) + dest
+    # Operand order (Intel syntax): dest, src1 (addend=c), src2 (multiplier=b)
+    vfmadd231ps ymm0, ymm2, ymm1
     vmovaps [rcx], ymm0   # store result
     vzeroupper
     pop rbp
