@@ -144,12 +144,12 @@
             // specialization to register (_XMM_XMM) vs memory (_XMM_M).
             0xB8: decode VEX_L {
                 0x1: decode MODRM_MOD {
-                    0x3: Inst::VFMADD231PS_YMM_YMM(Vo, Wo);
-                    default: Inst::VFMADD231PS_YMM_YMM(Vo, Wo);
+                    0x3: { fprintf(stderr, "[DECODE-FMA] L=1 (YMM) MODRM.mod=3 -> reg variant\n"); Inst::VFMADD231PS_YMM_YMM(Vo, Wo); }
+                    default: { fprintf(stderr, "[DECODE-FMA] L=1 (YMM) MODRM.mod=%u -> mem variant\n", (unsigned)MODRM_MOD); Inst::VFMADD231PS_YMM_YMM(Vo, Wo); }
                 }
                 0x0: decode MODRM_MOD {
-                    0x3: Inst::VFMADD231PS_XMM_XMM(Vo, Wo);
-                    default: Inst::VFMADD231PS_XMM_XMM(Vo, Wo);
+                    0x3: { fprintf(stderr, "[DECODE-FMA] L=0 (XMM) MODRM.mod=3 -> reg variant\n"); Inst::VFMADD231PS_XMM_XMM(Vo, Wo); }
+                    default: { fprintf(stderr, "[DECODE-FMA] L=0 (XMM) MODRM.mod=%u -> mem variant\n", (unsigned)MODRM_MOD); Inst::VFMADD231PS_XMM_XMM(Vo, Wo); }
                 }
             }
             default: Inst::UD2();
