@@ -424,6 +424,14 @@ Decoder::State
 Decoder::processOpcode(ByteTable &immTable, ByteTable &modrmTable,
                        bool addrSizedImm)
 {
+      // Always print opcode + VEX summary to diagnose path selection
+      fprintf(stderr,
+          "[OPCODE] type=%u op=%#x | VEX_PRESENT=%u VEX_L=%u VEX_vvvv=%u\n",
+          (unsigned)emi.opcode.type,
+          (unsigned)emi.opcode.op,
+          (unsigned)emi.evex.vex_present,
+          (unsigned)emi.evex.l,
+          (unsigned)emi.evex.v);
     State nextState = ErrorState;
     const uint8_t opcode = emi.opcode.op;
 

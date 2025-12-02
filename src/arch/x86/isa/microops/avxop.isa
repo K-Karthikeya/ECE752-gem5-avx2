@@ -218,17 +218,17 @@ let {{
     class vsubf(varithp):
         opClass = 'SimdFloatAddOp'
         constructorCode = varithp.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vsubf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::FloatSub);'
+        code = 'fprintf(stderr, "[AVX-TRACE] vsubf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatSub); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); fprintf(stderr, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
 
     class vandf(varithp):
         opClass = 'SimdAddOp'
         constructorCode = varithp.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vandf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntAnd);'
+        code = 'fprintf(stderr, "[AVX-TRACE] vandf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::IntAnd); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); fprintf(stderr, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
 
     class vdivf(varithp):
         opClass = 'SimdFloatDivOp'
         constructorCode = varithp.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vdivf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::FloatDiv);'
+        code = 'fprintf(stderr, "[AVX-TRACE] vdivf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatDiv); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); fprintf(stderr, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
 
     # Fused multiply-add (231 form): dest = (src2 * src1) + dest.
     # We implement a dedicated fused microop base to map three sources (src1, src2, dest-original).
@@ -245,6 +245,12 @@ let {{
         auto baseDest = dest;
         auto baseSrc1 = src1;
         auto baseSrc2 = src2;
+
+        // Print VEX summary (vvvv and L) to correlate with operand mapping
+        fprintf(stderr,
+            "[AVX-VEX] vvvv=%u L=%u\n",
+            (unsigned)_machInst.evex.v_extend,
+            (unsigned)_machInst.evex.l);
 
         fprintf(stderr,
             "[AVX-RAW] FMA ctor inst=%s destBase=%u src1Base=%u src2Base=%u vRegs=%u\\n",
@@ -275,7 +281,7 @@ let {{
     class vfmadd231f(vfused):
         opClass = 'SimdFloatAddOp'
         constructorCode = vfused.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vfmadd231f enter VL=%u size=%u\\n", destVL, srcSize); this->doFusedPackedBinaryOp(xc, BinaryOp::FloatMul, BinaryOp::FloatAdd);'
+        code = 'fprintf(stderr, "[AVX-TRACE] vfmadd231f enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); int _accBase = 2 * _vRegs; for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); uint64_t _pre_acc = xc->getRegOperand(this, _accBase + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx pre_acc=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2, (unsigned long long)_pre_acc); } this->doFusedPackedBinaryOp(xc, BinaryOp::FloatMul, BinaryOp::FloatAdd); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); fprintf(stderr, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
 
     # Simple packed compare (VCMPPS). For now implement EQ predicate only ignoring imm8.
     class vcmpf(varithp):
