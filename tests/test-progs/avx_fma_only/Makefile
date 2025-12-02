@@ -28,12 +28,10 @@ run: $(BIN)
 
 # Disassembly helpers (Intel syntax)
 disasm-bin: $(BIN)
-	$(OBJDUMP) -d -M intel $(BIN) > $(BIN).disasm.txt
-	@echo "Wrote $(BIN).disasm.txt"
+	$(OBJDUMP) -d -M intel $(BIN) 
 
 disasm-obj: $(OBJ)
-	$(OBJDUMP) -d -M intel avx_fma.o > avx_fma.o.disasm.txt
-	@echo "Wrote avx_fma.o.disasm.txt"
+	$(OBJDUMP) -d -M intel avx_fma.o\
 
 clean:
 	$(RM) -f $(OBJ) $(BIN)
