@@ -248,7 +248,7 @@ let {{
 
         // Print VEX summary (vvvv and L) to correlate with operand mapping
         fprintf(stderr,
-            "[AVX-VEX] vvvv=%u L=%u\n",
+            "[AVX-VEX] vvvv=%u L=%u\\n",
             (unsigned)_machInst.evex.v_extend,
             (unsigned)_machInst.evex.l);
 
