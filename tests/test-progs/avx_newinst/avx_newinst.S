@@ -20,7 +20,9 @@ avx_newinst_test:
     # GAS AT&T encoding maps first src to r/m; it still emitted memory-form.
     # Switch to Intel syntax for this line to guarantee r/m=register.
     .intel_syntax noprefix
-    vfmadd231ps ymm0, ymm1, ymm2      # ymm0 = (a * b) + c
+    # Intel syntax operand order: dest, src1 (addend), src2 (multiplier)
+    # For (a * b) + c with dest=a, src1=c, src2=b:
+    vfmadd231ps ymm0, ymm2, ymm1      # ymm0 = (a * b) + c
     .att_syntax prefix
     vmovaps   %ymm0, (%rcx)      # out_fma
     # VSUBPS: out_sub[i] = a[i] - b[i]
