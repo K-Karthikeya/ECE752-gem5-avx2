@@ -1,32 +1,25 @@
 microcode = '''
-def macroop VMOVAPS_XMM_M {
-    ldfp128 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
+def macroop VMOVDDUP_XMM_M {
+    ldfp128 ufp0, seg, sib, "DISPLACEMENT", dataSize=8
+    vdupf dest=xmm0, src=ufp0, lane=0, size=8, VL=16
     vclear dest=xmm2, destVL=16
 };
-def macroop VMOVAPS_XMM_P {
+def macroop VMOVDDUP_XMM_P {
     rdip t7
-    ldfp128 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
+    ldfp128 ufp0, seg, riprel, "DISPLACEMENT", dataSize=8
+    vdupf dest=xmm0, src=ufp0, lane=0, size=8, VL=16
     vclear dest=xmm2, destVL=16
 };
-def macroop VMOVAPS_M_XMM_M {
-    stfp128 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
+def macroop VMOVDDUP_XMM_XMM {
+    vdupf dest=xmm0, src=xmmrm, lane=0, size=8, VL=16
+    vclear dest=xmm2, destVL=16
 };
-def macroop VMOVAPS_M_XMM_P {
-    rdip t7
-    stfp128 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
+def macroop VMOVDDUP_YMM_M {
+    ldfp256 ufp0, seg, sib, "DISPLACEMENT", dataSize=8
+    vdupf_half dest=xmm0, src=ufp0, size=8, VL=32
 };
-def macroop VMOVAPS_YMM_M {
-    ldfp256 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
+def macroop VMOVDDUP_YMM_YMM {
+    vdupf_half dest=xmm0, src=xmmrm, size=8, VL=32
 };
-def macroop VMOVAPS_YMM_P {
-    rdip t7
-    ldfp256 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
-};
-def macroop VMOVAPS_M_YMM_M {
-    stfp256 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
-};
-def macroop VMOVAPS_M_YMM_P {
-    rdip t7
-    stfp256 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
-};
+
 '''
