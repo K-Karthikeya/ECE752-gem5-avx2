@@ -5,7 +5,7 @@ CFLAGS := -Wall -Wextra -std=c11
 CFLAGS_ASM := -mavx -mavx2 -mfma
 # Disable AVX/VEX in C completely - use -O0 to prevent any compiler optimizations
 # that might emit VEX-encoded instructions. The C harness is just test scaffolding.
-CFLAGS_NOAVX := -O0 -march=x86-64 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-avx512f -mno-sse2avx -fno-tree-vectorize
+CFLAGS_NOAVX := -march=x86-64 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-avx512f -mno-sse2avx -fno-tree-vectorize
 LDFLAGS :=
 
 SRC := avx_harness.c
