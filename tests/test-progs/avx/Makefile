@@ -1,9 +1,11 @@
 CC := gcc
-# Assembly files need AVX/FMA; C harness should avoid emitting AVX to
-# prevent unsupported VEX ops in gem5 decoder.
+# Assembly files need AVX/FMA; C harness must avoid emitting AVX/VEX
+# to prevent unsupported VEX ops in gem5 decoder.
 CFLAGS := -O2 -Wall -Wextra -std=c11
 CFLAGS_ASM := -mavx -mavx2 -mfma
-CFLAGS_NOAVX := -mno-avx -mno-avx2 -mfma
+# Disable AVX/VEX in C, and also turn off auto-vectorization that can
+# choose AVX encodings even for SSE ops on some toolchains.
+CFLAGS_NOAVX := -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-avx512f -mno-sse2avx -fno-tree-vectorize
 LDFLAGS :=
 
 SRC := avx_harness.c
