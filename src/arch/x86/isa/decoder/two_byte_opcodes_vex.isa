@@ -10,18 +10,53 @@
         // The ModRM byte is always present; we parse it to populate env.reg and
         // env.regm distinctly (needed so xmm0 dest and xmm0m src2 differ).
         // gem5 treats all reg-reg forms as implicit R forms (no M operand).
-        0x58: decode VEX_L {
-            // Reg-reg: use Vo (XMM reg via ModRM.reg) and Wo (XMM reg/mem via ModRM.r/m)
-            0x1: VADDPS_YMM_YMM(Vo, Wo);
-            0x0: VADDPS_XMM_XMM(Vo, Wo);
+        // 0x58 ADD packed: PS (pp=00), PD (pp=01)
+        0x58: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x1: VADDPS_YMM_YMM(Vo, Wo);
+                0x0: VADDPS_XMM_XMM(Vo, Wo);
+            }
+            0x1: decode VEX_L {
+                0x1: VADDPD_YMM_YMM(Vo, Wo);
+                0x0: VADDPD_XMM_XMM(Vo, Wo);
+            }
         }
-        0x59: decode VEX_L {
-            0x1: VMULPS_YMM_YMM(Vo, Wo);
-            0x0: VMULPS_XMM_XMM(Vo, Wo);
+        // 0x59 MUL packed: PS (pp=00), PD (pp=01)
+        0x59: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x1: VMULPS_YMM_YMM(Vo, Wo);
+                0x0: VMULPS_XMM_XMM(Vo, Wo);
+            }
+            0x1: decode VEX_L {
+                0x1: VMULPD_YMM_YMM(Vo, Wo);
+                0x0: VMULPD_XMM_XMM(Vo, Wo);
+            }
         }
         0x57: decode VEX_L {
             0x1: VXORPS_YMM_YMM(Vo, Wo);
             0x0: VXORPS_XMM_XMM(Vo, Wo);
+        }
+        // 0x5C SUB packed: PS (pp=00), PD (pp=01)
+        0x5C: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x1: VSUBPS_YMM_YMM(Vo, Wo);
+                0x0: VSUBPS_XMM_XMM(Vo, Wo);
+            }
+            0x1: decode VEX_L {
+                0x1: VSUBPD_YMM_YMM(Vo, Wo);
+                0x0: VSUBPD_XMM_XMM(Vo, Wo);
+            }
+        }
+        // 0x5E DIV packed: PS (pp=00), PD (pp=01)
+        0x5E: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x1: VDIVPS_YMM_YMM(Vo, Wo);
+                0x0: VDIVPS_XMM_XMM(Vo, Wo);
+            }
+            0x1: decode VEX_L {
+                0x1: VDIVPD_YMM_YMM(Vo, Wo);
+                0x0: VDIVPD_XMM_XMM(Vo, Wo);
+            }
         }
         // Load from memory (M operand triggers doModRM via specializeInst)
         0x10: decode VEX_L {

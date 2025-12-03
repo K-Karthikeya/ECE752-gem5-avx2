@@ -93,3 +93,5 @@ def bitfield MODE_SUBMODE mode.submode;
 def bitfield VEX_PRESENT evex.vex_present;
 def bitfield VEX_V evex.v;
 def bitfield VEX_L evex.l;
+// VEX.pp encodes legacy SIMD prefixes: 00 = none (PS), 01 = 66h (PD)
+def bitfield VEX_PP evex.pp;
