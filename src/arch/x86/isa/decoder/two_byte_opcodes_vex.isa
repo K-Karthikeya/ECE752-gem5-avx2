@@ -36,6 +36,21 @@
             0x1: VXORPS_YMM_YMM(Vo, Wo);
             0x0: VXORPS_XMM_XMM(Vo, Wo);
         }
+        // 0x12 MOVDDUP: duplicate low double(s) within 128-bit lanes (F2 prefix)
+        // VEX encoding uses pp=0b11 (F2)
+        0x12: decode VEX_PP {
+            0x3: decode VEX_L {
+                0x1: decode MODRM_MOD {
+                    0x3: VMOVDDUP_YMM_YMM(Vo, Wo);
+                    default: VMOVDDUP_YMM_M(M);
+                }
+                0x0: decode MODRM_MOD {
+                    0x3: VMOVDDUP_XMM_XMM(Vo, Wo);
+                    default: VMOVDDUP_XMM_M(M);
+                }
+            }
+            default: UD2();
+        }
         // 0x5C SUB packed: PS (pp=00), PD (pp=01)
         0x5C: decode VEX_PP {
             0x0: decode VEX_L {
