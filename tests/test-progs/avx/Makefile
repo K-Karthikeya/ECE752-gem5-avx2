@@ -1,5 +1,9 @@
 CC := gcc
-CFLAGS := -O2 -Wall -Wextra -std=c11 -mavx -mavx2 -mfma
+# Assembly files need AVX/FMA; C harness should avoid emitting AVX to
+# prevent unsupported VEX ops in gem5 decoder.
+CFLAGS := -O2 -Wall -Wextra -std=c11
+CFLAGS_ASM := -mavx -mavx2 -mfma
+CFLAGS_NOAVX := -mno-avx -mno-avx2 -mfma
 LDFLAGS :=
 
 SRC := avx_harness.c
@@ -22,13 +26,13 @@ BIN := avx_tests
 all: $(BIN)
 
 $(BIN): $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+       $(CC) $(CFLAGS) $(CFLAGS_ASM) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+       $(CC) $(CFLAGS) $(CFLAGS_NOAVX) -c -o $@ $<
 
 %.o: %.S
-	$(CC) $(CFLAGS) -c -o $@ $<
+       $(CC) $(CFLAGS) $(CFLAGS_ASM) -c -o $@ $<
 
 clean:
 	rm -f $(OBJ) $(BIN)
