@@ -29,13 +29,13 @@ BIN := avx_tests
 all: $(BIN)
 
 $(BIN): $(OBJ)
-  $(CC) $(CFLAGS) $(CFLAGS_ASM) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(CFLAGS_ASM) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
-  $(CC) $(CFLAGS) $(CFLAGS_NOAVX) -c -o $@ $<
+	$(CC) $(CFLAGS) $(CFLAGS_NOAVX) -c -o $@ $<
 
 %.o: %.S
-  $(CC) $(CFLAGS) $(CFLAGS_ASM) -c -o $@ $<
+	$(CC) $(CFLAGS) $(CFLAGS_ASM) -c -o $@ $<
 
 clean:
 	rm -f $(OBJ) $(BIN)
