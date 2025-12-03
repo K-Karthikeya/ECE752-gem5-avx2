@@ -158,6 +158,10 @@ protected:
   };
 
   enum BinaryOp {
+    DoubleAdd,
+    DoubleSub,
+    DoubleMul,
+    DoubleDiv,
     FloatAdd,
     FloatSub,
     FloatMul,
