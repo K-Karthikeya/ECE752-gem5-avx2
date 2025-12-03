@@ -6,8 +6,7 @@ CFLAGS_ASM := -mavx -mavx2 -mfma
 # Disable AVX/VEX in C, and also turn off auto-vectorization that can
 # choose AVX encodings even for SSE ops on some toolchains.
 # Force baseline x86-64 arch to prevent any VEX encoding.
-# Use -O1 instead of -O2 to reduce aggressive optimizations that emit VEX.
-CFLAGS_NOAVX := -O1 -march=x86-64 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-avx512f -mno-sse2avx -fno-tree-vectorize -mprefer-vector-width=none
+CFLAGS_NOAVX := -march=x86-64 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-avx512f -mno-sse2avx -fno-tree-vectorize
 LDFLAGS :=
 
 SRC := avx_harness.c
