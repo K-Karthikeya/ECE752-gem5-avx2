@@ -8,3 +8,6 @@ avx_ldstfp_128:
     vmovups xmm1, XMMWORD PTR [rdi]
     vmovups XMMWORD PTR [rsi], xmm1
     ret
+
+    # Declare non-executable stack note to silence linker warning
+    .section .note.GNU-stack,"",@progbits

@@ -7,3 +7,5 @@ avx_ldstfp_256:
     vmovups ymm1, YMMWORD PTR [rdi]
     vmovups YMMWORD PTR [rsi], ymm1
     ret
+    # Declare non-executable stack note to silence linker warning
+    .section .note.GNU-stack,"",@progbits
