@@ -1,5 +1,7 @@
 microcode = '''
-# FMA 231: dest = (src2 * src1) + dest. Use fused microop vfmadd231f.
+# FMA 231: dest = dest * vvvv + reg
+# Microop computes: (pos0 * posN) + pos2N
+# Map: pos0=dest(accumulator), posN=src1(vvvv), pos2N=src2(reg)
 
 # 128-bit width (VEX.L=0); reg-reg and reg/mem forms
 def macroop VFMADD231PS_128_XMM_XMM {
