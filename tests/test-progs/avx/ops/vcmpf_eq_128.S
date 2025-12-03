@@ -7,3 +7,6 @@ avx_vcmpf_eq_128:
     vcmpps xmm2, xmm0, xmm1, 0x00   # equal
     vmovups XMMWORD PTR [rdx], xmm2 # store mask lanes (all-ones or zeros)
     ret
+
+    # Declare non-executable stack note to silence linker warning
+    .section .note.GNU-stack,"",@progbits

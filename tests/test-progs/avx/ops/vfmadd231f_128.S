@@ -9,3 +9,6 @@ avx_vfmadd231f_128:
     vfmadd231ps xmm0, xmm2, xmm1
     vmovups XMMWORD PTR [rcx], xmm0
     ret
+
+    # Declare non-executable stack note to silence linker warning
+    .section .note.GNU-stack,"",@progbits

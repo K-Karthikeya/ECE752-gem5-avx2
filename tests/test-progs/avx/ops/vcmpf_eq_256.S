@@ -7,3 +7,6 @@ avx_vcmpf_eq_256:
     vcmpps ymm2, ymm0, ymm1, 0x00   # equal
     vmovups YMMWORD PTR [rdx], ymm2 # store mask lanes (all-ones or zeros)
     ret
+
+    # Declare non-executable stack note to silence linker warning
+    .section .note.GNU-stack,"",@progbits

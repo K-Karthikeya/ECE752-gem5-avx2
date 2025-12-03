@@ -7,3 +7,6 @@ avx_vaddf_128:
     vaddps xmm2, xmm0, xmm1
     vmovups XMMWORD PTR [rdx], xmm2
     ret
+
+    # Declare non-executable stack note to silence linker warning
+    .section .note.GNU-stack,"",@progbits

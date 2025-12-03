@@ -6,3 +6,6 @@ avx_vandf_256:
     vpand ymm2, ymm0, ymm1
     vmovups YMMWORD PTR [rdx], ymm2
     ret
+
+    # Declare non-executable stack note to silence linker warning
+    .section .note.GNU-stack,"",@progbits
