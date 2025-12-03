@@ -120,7 +120,7 @@ let {{
         def __init__(self, dest, destVL):
             super().__init__(dest=dest, destVL=destVL, destSize=destVL)
         constructorCode = """
-            fprintf(stderr, "[VCLEAR-CONSTRUCT] dest=%u destVL=%u\\n", 
+            DPRINTF(AVXVerbose, "[VCLEAR-CONSTRUCT] dest=%u destVL=%u\\n", 
                     (unsigned)dest, (unsigned)destVL);
             // Use the standard AVX destination register setup instead of manual manipulation
             this->addAVXDestRegs();
@@ -139,7 +139,7 @@ let {{
                              imm8=imm8, ext=ext)
         constructorCode = """
         // Raw decode field dump before mapping
-        fprintf(stderr,
+        DPRINTF(AVXVerbose,
             "[AVX-RAW] inst=%s opcodeType=%u modrm=%#x mod=%u reg=%u rm=%u vvvv=%u L=%u evex=%#x\\n",
             _instMnem,
             (unsigned)_machInst.opcode.type,
@@ -151,7 +151,7 @@ let {{
             (unsigned)_machInst.evex.l,
             (unsigned)(uint16_t)_machInst.evex);
 
-        fprintf(stderr,
+        DPRINTF(AVXVerbose,
             "[AVX-RAW] ctor RegIds dest=%u src1=%u src2=%u\\n",
             (unsigned)dest, (unsigned)src1, (unsigned)src2);
 
@@ -176,7 +176,7 @@ let {{
         auto baseSrc1 = src1;   // first chunk of src1 vector
         auto baseSrc2 = src2;   // first chunk of src2 vector
 
-        fprintf(stderr,
+        DPRINTF(AVXVerbose,
             "[AVX-SRCMAP] inst=%s destBase=%u src1Base=%u src2Base=%u vRegs=%u (fixed)\\n",
             _instMnem,
             (unsigned)baseDest, (unsigned)baseSrc1, (unsigned)baseSrc2, (unsigned)vRegs);
@@ -188,7 +188,7 @@ let {{
             unsigned dIdx = baseDest + i;
             unsigned s1Idx = baseSrc1 + i;
             unsigned s2Idx = baseSrc2 + i;
-            fprintf(stderr,
+            DPRINTF(AVXVerbose,
                 "[AVX-SRCMAP] lane=%d destIdx=%u src1Idx=%u src2Idx=%u (fixed)\\n",
                 i, dIdx, s1Idx, s2Idx);
             setSrcRegIdx(i, RegId(floatRegClass, s1Idx));
@@ -202,33 +202,33 @@ let {{
     class vaddf(varithp):
         opClass = 'SimdFloatAddOp'
         constructorCode = varithp.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vaddf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatAdd);'
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vaddf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); DPRINTF(AVXVerbose, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatAdd);'
 
     class vmulf(varithp):
         opClass = 'SimdFloatMultOp'
         constructorCode = varithp.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vmulf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatMul);'
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vmulf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); DPRINTF(AVXVerbose, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatMul);'
 
     class vxorf(varithp):
         opClass = 'SimdAddOp'
         constructorCode = varithp.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vxorf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::IntXor);'
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vxorf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); DPRINTF(AVXVerbose, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::IntXor);'
 
     # New arithmetic/logic microops required for VSUBPS, VANDPS, VDIVPS, VFMADD231PS, VCMPPS
     class vsubf(varithp):
         opClass = 'SimdFloatAddOp'
         constructorCode = varithp.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vsubf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatSub); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); fprintf(stderr, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vsubf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); DPRINTF(AVXVerbose, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatSub); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); DPRINTF(AVXVerbose, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
 
     class vandf(varithp):
         opClass = 'SimdAddOp'
         constructorCode = varithp.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vandf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::IntAnd); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); fprintf(stderr, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vandf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); DPRINTF(AVXVerbose, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::IntAnd); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); DPRINTF(AVXVerbose, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
 
     class vdivf(varithp):
         opClass = 'SimdFloatDivOp'
         constructorCode = varithp.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vdivf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatDiv); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); fprintf(stderr, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vdivf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); DPRINTF(AVXVerbose, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatDiv); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); DPRINTF(AVXVerbose, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
 
     # Fused multiply-add (231 form): dest = (src2 * src1) + dest.
     # We implement a dedicated fused microop base to map three sources (src1, src2, dest-original).
@@ -240,20 +240,18 @@ let {{
                              destSize=size, destVL=VL, srcSize=size, srcVL=VL)
         constructorCode = """
         // Fused op constructor mapping (three sources + dest).
-        std::cerr << "[AVX-FMA-DECODE]" << std::endl;
-        std::cerr << "  op=0x" << std::hex << (unsigned)_machInst.opcode.op << std::dec
-              << " type=" << (unsigned)_machInst.opcode.type
-              << " modRM=0x" << std::hex << (unsigned)(uint8_t)_machInst.modRM << std::dec
-              << " mod=" << (unsigned)_machInst.modRM.mod
-              << " reg=" << (unsigned)_machInst.modRM.reg
-              << " rm=" << (unsigned)_machInst.modRM.rm
-              << " VEX.L=" << (unsigned)_machInst.evex.l
-              << " VEX.vvvv=" << (unsigned)_machInst.evex.v_extend
-              << std::endl;
+        DPRINTF(AVXVerbose, "[AVX-FMA-DECODE] op=0x%x type=%u modRM=0x%x mod=%u reg=%u rm=%u VEX.L=%u VEX.vvvv=%u\\n",
+            (unsigned)_machInst.opcode.op,
+            (unsigned)_machInst.opcode.type,
+            (unsigned)(uint8_t)_machInst.modRM,
+            (unsigned)_machInst.modRM.mod,
+            (unsigned)_machInst.modRM.reg,
+            (unsigned)_machInst.modRM.rm,
+            (unsigned)_machInst.evex.l,
+            (unsigned)_machInst.evex.v_extend);
 
-        std::cerr << "[AVX-FMA-SRCTYPE]" << std::endl;
-        std::cerr << "  srcType=" << (unsigned)this->srcType
-              << " (Non=0 Reg=1 RegReg=2 RegRegReg=3 Mem=4)" << std::endl;
+        DPRINTF(AVXVerbose, "[AVX-FMA-SRCTYPE] srcType=%u (Non=0 Reg=1 RegReg=2 RegRegReg=3 Mem=4)\\n",
+            (unsigned)this->srcType);
 
         this->addAVXDestRegs();
         auto vRegs = destVL / sizeof(uint64_t);
@@ -262,12 +260,12 @@ let {{
         auto baseSrc2 = src2;
 
         // Print VEX summary (vvvv and L) to correlate with operand mapping
-        fprintf(stderr,
+        DPRINTF(AVXVerbose,
             "[AVX-VEX] vvvv=%u L=%u\\n",
             (unsigned)_machInst.evex.v_extend,
             (unsigned)_machInst.evex.l);
 
-        fprintf(stderr,
+        DPRINTF(AVXVerbose,
             "[AVX-RAW] FMA ctor inst=%s destBase=%u src1Base=%u src2Base=%u vRegs=%u\\n",
             _instMnem, (unsigned)baseDest, (unsigned)baseSrc1, (unsigned)baseSrc2, (unsigned)vRegs);
 
@@ -277,26 +275,26 @@ let {{
         for (int i = 0; i < vRegs; ++i) {
             unsigned s1Idx = baseSrc1 + i;
             setSrcRegIdx(i, RegId(floatRegClass, s1Idx));
-            fprintf(stderr, "[AVX-SRCMAP-FMA] lane=%d src1=%u\\n", i, s1Idx);
+            DPRINTF(AVXVerbose, "[AVX-SRCMAP-FMA] lane=%d src1=%u\\n", i, s1Idx);
         }
         // src2 lanes
         for (int i = 0; i < vRegs; ++i) {
             unsigned s2Idx = baseSrc2 + i;
             setSrcRegIdx(vRegs + i, RegId(floatRegClass, s2Idx));
-            fprintf(stderr, "[AVX-SRCMAP-FMA] lane=%d src2=%u\\n", i, s2Idx);
+            DPRINTF(AVXVerbose, "[AVX-SRCMAP-FMA] lane=%d src2=%u\\n", i, s2Idx);
         }
         // dest (original) lanes as third source
         for (int i = 0; i < vRegs; ++i) {
             unsigned dIdx = baseDest + i;
             setSrcRegIdx(2 * vRegs + i, RegId(floatRegClass, dIdx));
-            fprintf(stderr, "[AVX-SRCMAP-FMA] lane=%d acc =%u\\n", i, dIdx);
+            DPRINTF(AVXVerbose, "[AVX-SRCMAP-FMA] lane=%d acc =%u\\n", i, dIdx);
         }
         """
 
     class vfmadd231f(vfused):
         opClass = 'SimdFloatAddOp'
         constructorCode = vfused.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vfmadd231f enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); int _accBase = 2 * _vRegs; for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); uint64_t _pre_acc = xc->getRegOperand(this, _accBase + _i); fprintf(stderr, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx pre_acc=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2, (unsigned long long)_pre_acc); } this->doFusedPackedBinaryOp(xc, BinaryOp::FloatMul, BinaryOp::FloatAdd); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); fprintf(stderr, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vfmadd231f enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); int _accBase = 2 * _vRegs; for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); uint64_t _pre_acc = xc->getRegOperand(this, _accBase + _i); DPRINTF(AVXVerbose, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx pre_acc=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2, (unsigned long long)_pre_acc); } this->doFusedPackedBinaryOp(xc, BinaryOp::FloatMul, BinaryOp::FloatAdd); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _post = xc->getRegOperand(this, _i); DPRINTF(AVXVerbose, "[AVX-POST] lane=%d post=%#016llx\\n", _i, (unsigned long long)_post); }'
 
     # Simple packed compare (VCMPPS). For now implement EQ predicate only ignoring imm8.
     class vcmpf(varithp):
@@ -304,7 +302,7 @@ let {{
         constructorCode = varithp.constructorCode
         # Implements VCMPPS predicates using imm8 (lower 5 bits). Basic set 0-7 per Intel: EQ, LT, LE, UNORD, NEQ, NLT (GE), NLE (GT), ORD.
         code = """
-            fprintf(stderr, "[AVX-TRACE] vcmpf enter VL=%u size=%u ext=%u\\n", destVL, srcSize, ext);
+            DPRINTF(AVXVerbose, "[AVX-TRACE] vcmpf enter VL=%u size=%u ext=%u\\n", destVL, srcSize, ext);
             int _vRegs = destVL / sizeof(uint64_t);
             int s1Base = 0;
             int s2Base = _vRegs;

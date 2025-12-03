@@ -106,6 +106,9 @@ SimObject('X86CPU.py', sim_objects=[], tags=['x86 isa'])
 
 DebugFlag('LocalApic', "Local APIC debugging", tags=['x86 isa'])
 DebugFlag('X86', "Generic X86 ISA debugging", tags=['x86 isa'])
+# AVX-specific verbose logging (used by AVX microops and constructor traces)
+# Enable via `--debug-flags=AVXVerbose` (or add to gem5 bridge control).
+DebugFlag('AVXVerbose', "Verbose AVX/decoder debug", tags=['x86 isa'])
 DebugFlag('ACPI', "ACPI debugging", tags=['x86 isa'])
 
 python_files = (

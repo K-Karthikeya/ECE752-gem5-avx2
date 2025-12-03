@@ -41,6 +41,7 @@
 #include "arch/x86/insts/static_inst.hh"
 #include "arch/x86/pcstate.hh"
 #include "base/compiler.hh"
+#include "debug/AVXVerbose.hh"
 
 namespace gem5
 {
@@ -121,7 +122,7 @@ class X86MicroopBase : public X86StaticInst
     // Instrument size propagation to catch microops that corrupt state.
     void size(size_t newSize) override
     {
-        fprintf(stderr, "[MICROOP-SIZE] mnem=%s instMnem=%s flagsFirst=%d flagsLast=%d newSize=%zu this=%p\n",
+        DPRINTF(AVXVerbose, "[MICROOP-SIZE] mnem=%s instMnem=%s flagsFirst=%d flagsLast=%d newSize=%zu this=%p\n",
                 mnemonic, instMnem, (int)flags[IsFirstMicroop], (int)flags[IsLastMicroop], newSize, (void*)this);
         X86StaticInst::size(newSize);
     }

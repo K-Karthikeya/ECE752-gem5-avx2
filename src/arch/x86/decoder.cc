@@ -34,6 +34,7 @@
 #include "base/types.hh"
 #include "debug/Decode.hh"
 #include "debug/Decoder.hh"
+#include "debug/AVXVerbose.hh"
 
 namespace gem5
 {
@@ -425,8 +426,8 @@ Decoder::processOpcode(ByteTable &immTable, ByteTable &modrmTable,
                        bool addrSizedImm)
 {
       // Always print opcode + VEX summary to diagnose path selection
-      fprintf(stderr,
-          "[OPCODE] type=%u op=%#x | VEX_PRESENT=%u VEX_L=%u VEX_vvvv=%u\n",
+      DPRINTF(AVXVerbose,
+          "[OPCODE] type=%u op=%#x | VEX_PRESENT=%u VEX_L=%u VEX_vvvv=%u\\n",
           (unsigned)emi.opcode.type,
           (unsigned)emi.opcode.op,
           (unsigned)emi.evex.vex_present,
@@ -494,7 +495,7 @@ Decoder::doModRMState(uint8_t nextByte)
     State nextState = ErrorState;
     ModRM modRM = nextByte;
         // Always print detailed ModRM info to stderr for debugging specialization
-        fprintf(stderr, "[MODRM] byte=%#x mod=%u reg=%u rm=%u | REX_B=%u VEX_L=%u opcodeType=%u op=%#x\n",
+        DPRINTF(AVXVerbose, "[MODRM] byte=%#x mod=%u reg=%u rm=%u | REX_B=%u VEX_L=%u opcodeType=%u op=%#x\\n",
           nextByte,
           (unsigned)modRM.mod, (unsigned)modRM.reg, (unsigned)modRM.rm,
           (unsigned)emi.rex.b, (unsigned)emi.evex.l,

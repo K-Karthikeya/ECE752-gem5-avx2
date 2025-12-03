@@ -512,7 +512,7 @@ let {{
 
     defineMicroLoadOp('Ldfp', code='''
         FpData_uqw = Mem;
-        fprintf(stderr, "[LDFP-EXEC] loaded=%#016llx dest=FloatReg %u\\n",
+        DPRINTF(AVXVerbose, "[LDFP-EXEC] loaded=%#016llx dest=FloatReg %u\\n",
                 (unsigned long long)Mem,
                 (unsigned)destRegIdx(0).index());
     ''', big=False, is_float=True)
@@ -521,7 +521,7 @@ let {{
     defineMicroLoadOp('ldfp128', code='''
         FpData0_uqw = Mem_u2qw[0];
         FpData1_uqw = Mem_u2qw[1];
-        fprintf(stderr, "[LDFP128-EXEC] loaded0=%#016llx loaded1=%#016llx destBase=FloatReg %u\\n",
+        DPRINTF(AVXVerbose, "[LDFP128-EXEC] loaded0=%#016llx loaded1=%#016llx destBase=FloatReg %u\\n",
                 (unsigned long long)FpData0_uqw,
                 (unsigned long long)FpData1_uqw,
                 (unsigned)destRegIdx(0).index());
@@ -531,7 +531,7 @@ let {{
         FpData1_uqw = Mem_u4qw[1];
         FpData2_uqw = Mem_u4qw[2];
         FpData3_uqw = Mem_u4qw[3];
-        fprintf(stderr, "[LDFP256-EXEC] loaded0=%#016llx loaded1=%#016llx loaded2=%#016llx loaded3=%#016llx destBase=FloatReg %u\\n",
+        DPRINTF(AVXVerbose, "[LDFP256-EXEC] loaded0=%#016llx loaded1=%#016llx loaded2=%#016llx loaded3=%#016llx destBase=FloatReg %u\\n",
                 (unsigned long long)FpData0_uqw,
                 (unsigned long long)FpData1_uqw,
                 (unsigned long long)FpData2_uqw,
@@ -672,7 +672,7 @@ let {{
     defineMicroStoreOp('Stul', 'Mem = PData;', mem_flags="Request::LOCKED_RMW")
 
     defineMicroStoreOp('Stfp', code='''
-        fprintf(stderr, "[STFP-EXEC] src=FloatReg %u value=%#016llx\\n",
+        DPRINTF(AVXVerbose, "[STFP-EXEC] src=FloatReg %u value=%#016llx\\n",
                 (unsigned)srcRegIdx(0).index(),
                 (unsigned long long)FpData_uqw);
         Mem = FpData_uqw;
@@ -682,7 +682,7 @@ let {{
     defineMicroStoreOp('stfp128', code='''
         Mem_u2qw[0] = FpData0_uqw;
         Mem_u2qw[1] = FpData1_uqw;
-        fprintf(stderr, "[STFP128-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx\\n",
+        DPRINTF(AVXVerbose, "[STFP128-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx\\n",
                 (unsigned)srcRegIdx(0).index(),
                 (unsigned long long)FpData0_uqw,
                 (unsigned long long)FpData1_uqw);
@@ -692,7 +692,7 @@ let {{
         Mem_u4qw[1] = FpData1_uqw;
         Mem_u4qw[2] = FpData2_uqw;
         Mem_u4qw[3] = FpData3_uqw;
-        fprintf(stderr, "[STFP256-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx stored2=%#016llx stored3=%#016llx\\n",
+        DPRINTF(AVXVerbose, "[STFP256-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx stored2=%#016llx stored3=%#016llx\\n",
                 (unsigned)srcRegIdx(0).index(),
                 (unsigned long long)FpData0_uqw,
                 (unsigned long long)FpData1_uqw,

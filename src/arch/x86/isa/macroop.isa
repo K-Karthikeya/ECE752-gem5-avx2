@@ -118,7 +118,7 @@ def template MacroConstructor {{
             : %(base_class)s("%(mnemonic)s", machInst, %(num_microops)s, _env)
         {
             // Debug: entering macroop constructor for this instruction.
-            fprintf(stderr, "[MACRO-CTOR] class=%(class_name)s mnemonic=%(mnemonic)s numMicroops=%(num_microops)s\n");
+            DPRINTF(AVXVerbose, "[MACRO-CTOR] class=%(class_name)s mnemonic=%(mnemonic)s numMicroops=%(num_microops)s\n");
             %(adjust_env)s;
             %(adjust_imm)s;
             %(adjust_disp)s;
@@ -250,10 +250,10 @@ let {{
                     'microops[%d] = %s;\n' % (micropc, op.getAllocator(flags))
                 # Safe, fully specified printf (two arguments: index, pointer)
                 allocMicroops += \
-                    'fprintf(stderr, "[MACROOP-ALLOC] allocated[%%d]=%%p\\n", %d, (void*)microops[%d].get());\n' % (micropc, micropc)
+                    'DPRINTF(AVXVerbose, "[MACROOP-ALLOC] allocated[%%d]=%%p\\n", %d, (void*)microops[%d].get());\n' % (micropc, micropc)
                 # Defensive: panic early if allocation returned a null RefCountingPtr (index + block name)
                 allocMicroops += \
-                    'if (!microops[%d]) { fprintf(stderr, "[MACROOP-ALLOC] NULL microop[%%d] in %%s\\n", %d, macrocodeBlock); panic("NULL microop in %%s", macrocodeBlock); }\n' % (micropc, micropc)
+                    'if (!microops[%d]) { DPRINTF(AVXVerbose, "[MACROOP-ALLOC] NULL microop[%%d] in %%s\\n", %d, macrocodeBlock); panic("NULL microop in %%s", macrocodeBlock); }\n' % (micropc, micropc)
                 micropc += 1
             if env.useStackSize:
                 useStackSize = "true"

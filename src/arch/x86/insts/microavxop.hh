@@ -14,6 +14,7 @@
 #include "base/cprintf.hh"
 #include "cpu/exec_context.hh"
 #include "cpu/reg_class.hh"
+#include "debug/AVXVerbose.hh"
 
 namespace gem5 { namespace X86ISA {
 
@@ -31,7 +32,7 @@ public:
 
   // Ensure we see size() calls for AVX microops specifically.
   void size(size_t newSize) override {
-    fprintf(stderr, "[AVXOP-SIZE] inst=%s micro=%s this=%p newSize=%zu\n",
+    DPRINTF(AVXVerbose, "[AVXOP-SIZE] inst=%s micro=%s this=%p newSize=%zu\n",
             instMnem, mnemonic, (void*)this, newSize);
     X86MicroopBase::size(newSize);
   }
@@ -73,7 +74,7 @@ protected:
     _numSrcRegs = 0;
     _numDestRegs = 0;
     for (auto &c : _numTypedDestRegs) { c = 0; }
-    fprintf(stderr, "[AVX-CONSTRUCT] mnem=%s destVL=%u srcVL=%u dest=%u src1=%u src2=%u\n",
+    DPRINTF(AVXVerbose, "[AVX-CONSTRUCT] mnem=%s destVL=%u srcVL=%u dest=%u src1=%u src2=%u\n",
             _mnem, destVL, srcVL, dest, src1, src2);
     assert((destVL % sizeof(uint64_t) == 0) && "Invalid destVL.\n");
     assert((srcVL % sizeof(uint64_t) == 0) && "Invalid srcVL.\n");
@@ -274,8 +275,8 @@ protected:
       auto d = this->calcPackedBinaryOp(s1, s2, op);
       if (op == BinaryOp::FloatAdd) {
         // Each 64-bit chunk carries two 32-bit floats in order {f1,f2}.
-        fprintf(stderr,
-          "[AVX-TRACE] add chunk=%d raw_s1=%#016llx raw_s2=%#016llx f1={%g,%g} f2={%g,%g} result={%g,%g}\n",
+        DPRINTF(AVXVerbose,
+          "[AVX-TRACE] add chunk=%d raw_s1=%#016llx raw_s2=%#016llx f1={%g,%g} f2={%g,%g} result={%g,%g}\\n",
           i,
           (unsigned long long)s1.ul,
           (unsigned long long)s2.ul,
@@ -283,8 +284,8 @@ protected:
           s2.f.f1, s2.f.f2,
           d.f.f1, d.f.f2);
       } else if (op == BinaryOp::FloatMul) {
-        fprintf(stderr,
-          "[AVX-TRACE] mul chunk=%d raw_s1=%#016llx raw_s2=%#016llx f1={%g,%g} f2={%g,%g} result={%g,%g}\n",
+        DPRINTF(AVXVerbose,
+          "[AVX-TRACE] mul chunk=%d raw_s1=%#016llx raw_s2=%#016llx f1={%g,%g} f2={%g,%g} result={%g,%g}\\n",
           i,
           (unsigned long long)s1.ul,
           (unsigned long long)s2.ul,
@@ -293,8 +294,8 @@ protected:
           d.f.f1, d.f.f2);
       } else if (op == BinaryOp::IntXor) {
         // For XOR, print raw hex values before/after.
-        fprintf(stderr,
-          "[AVX-TRACE] xor chunk=%d raw_s1=%#016llx raw_s2=%#016llx result_raw=%#016llx\n",
+        DPRINTF(AVXVerbose,
+          "[AVX-TRACE] xor chunk=%d raw_s1=%#016llx raw_s2=%#016llx result_raw=%#016llx\\n",
           i,
           (unsigned long long)s1.ul,
           (unsigned long long)s2.ul,
@@ -348,13 +349,13 @@ protected:
   // A helper function to add dest regs.
   inline void addAVXDestRegs() {
     auto vDestRegs = destVL / sizeof(uint64_t);
-    fprintf(stderr, "[AVX-DESTREGS] destVL=%u vDestRegs=%zu dest=%u\n", 
+    DPRINTF(AVXVerbose, "[AVX-DESTREGS] destVL=%u vDestRegs=%zu dest=%u\n", 
             destVL, vDestRegs, dest);
     assert(vDestRegs <= NumXMMSubRegs && "DestVL overflow.");
     _numDestRegs = vDestRegs;
     _numTypedDestRegs[FloatRegClass] = vDestRegs;
     for (int i = 0; i < vDestRegs; i++) {
-      fprintf(stderr, "[AVX-DESTREGS]   reg[%d] = FloatReg %u\n", i, dest + i);
+      DPRINTF(AVXVerbose, "[AVX-DESTREGS]   reg[%d] = FloatReg %u\n", i, dest + i);
       setDestRegIdx(i, RegId(floatRegClass, dest + i));
     }
   }
