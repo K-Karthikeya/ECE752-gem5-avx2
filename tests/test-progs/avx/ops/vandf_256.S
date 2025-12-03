@@ -3,7 +3,7 @@
 avx_vandf_256:
     vmovups ymm0, YMMWORD PTR [rdi]
     vmovups ymm1, YMMWORD PTR [rsi]
-    vpand ymm2, ymm0, ymm1
+    vandps ymm2, ymm0, ymm1
     vmovups YMMWORD PTR [rdx], ymm2
     ret
 

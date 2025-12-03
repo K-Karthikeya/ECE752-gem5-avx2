@@ -3,7 +3,7 @@
 avx_vandf_128:
     vmovups xmm0, XMMWORD PTR [rdi]
     vmovups xmm1, XMMWORD PTR [rsi]
-    vpand xmm2, xmm0, xmm1
+    vandps xmm2, xmm0, xmm1
     vmovups XMMWORD PTR [rdx], xmm2
     ret
 
