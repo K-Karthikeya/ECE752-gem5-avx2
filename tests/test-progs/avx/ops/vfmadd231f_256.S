@@ -5,6 +5,8 @@ avx_vfmadd231f_256:
     vmovups ymm0, YMMWORD PTR [rdi]
     vmovups ymm1, YMMWORD PTR [rsi]
     vmovups ymm2, YMMWORD PTR [rdx]
-    vfmadd231ps ymm0, ymm1, ymm2   ; ymm0 = ymm0 * ymm1 + ymm2
+    # We want out = a*b + c. For 231 form: dest = dest*src3 + src2.
+    # So use src3=b (ymm1) and src2=c (ymm2):
+    vfmadd231ps ymm0, ymm2, ymm1
     vmovups YMMWORD PTR [rcx], ymm0
     ret

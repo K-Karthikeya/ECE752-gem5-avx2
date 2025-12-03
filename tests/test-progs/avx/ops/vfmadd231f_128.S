@@ -5,6 +5,7 @@ avx_vfmadd231f_128:
     vmovups xmm0, XMMWORD PTR [rdi]
     vmovups xmm1, XMMWORD PTR [rsi]
     vmovups xmm2, XMMWORD PTR [rdx]
-    vfmadd231ps xmm0, xmm1, xmm2   # xmm0 = xmm0 * xmm1 + xmm2
+    # For 231 form: dest = dest*src3 + src2. Choose src3=b, src2=c.
+    vfmadd231ps xmm0, xmm2, xmm1
     vmovups XMMWORD PTR [rcx], xmm0
     ret
