@@ -4,6 +4,7 @@ def macroop VADDPS_XMM_XMM {
     vaddf dest=xmm0, src1=xmm0v, src2=xmmrm, size=4, VL=16
     vclear dest=xmm2, destVL=16
     #trial
+    #trial1
 };
 def macroop VADDPS_XMM_XMM_XMM_XMM {
     vaddf dest=xmm0, src1=xmm0v, src2=xmmrm, size=4, VL=16
