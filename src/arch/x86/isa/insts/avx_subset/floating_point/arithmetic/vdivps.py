@@ -14,14 +14,14 @@ def macroop VDIVPS_128_XMM_P {
     vclear dest=xmm2, destVL=16
 };
 
-def macroop VDIVPS_256_YMM_YMM {
+def macroop VDIVPS_256_XMM_XMM {
     vdivf dest=xmm0, src1=xmm0v, src2=xmmrm, size=4, VL=32
 };
-def macroop VDIVPS_256_YMM_M {
+def macroop VDIVPS_256_XMM_M {
     ldfp256 ufp0, seg, sib, "DISPLACEMENT", dataSize=8
     vdivf dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=32
 };
-def macroop VDIVPS_256_YMM_P {
+def macroop VDIVPS_256_XMM_P {
     ldfp256 ufp0, seg, sib, "DISPLACEMENT", dataSize=8
     vdivf dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=32
 };
