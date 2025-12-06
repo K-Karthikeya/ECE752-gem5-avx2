@@ -58,6 +58,16 @@
             0x1: VMOVUPS_M_YMM(M);
             0x0: VMOVUPS_M_XMM(M);
         }
+        // VMOVSLDUP (0x12, VEX)
+        0x12: decode VEX_L {
+            0x1: VMOVSLDUP_YMM_YMM(Vo, Wo);
+            0x0: VMOVSLDUP_XMM_XMM(Vo, Wo);
+        }
+        // VMOVSHDUP (0x16, VEX)
+        0x16: decode VEX_L {
+            0x1: VMOVSHDUP_YMM_YMM(Vo, Wo);
+            0x0: VMOVSHDUP_XMM_XMM(Vo, Wo);
+        }
         0x28: decode VEX_L {
             0x1: VMOVAPS_YMM(M);
             0x0: VMOVAPS_XMM(M);

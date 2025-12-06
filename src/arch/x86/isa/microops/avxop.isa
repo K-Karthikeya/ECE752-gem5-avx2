@@ -240,6 +240,68 @@ let {{
         constructorCode = varithp.constructorCode
         code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vmaxf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::FloatMax);'
 
+    # Unary base for dup/broadcast
+    class vunary(AVXOp):
+        abstract = True
+        srcType = 'AVXOpBase::SrcType::Reg'
+        def __init__(self, dest, src1, size, VL):
+            super().__init__(dest=dest, src1=src1, destSize=size, destVL=VL,
+                             srcSize=size, srcVL=VL)
+        constructorCode = """
+            DPRINTF(AVXVerbose, "[AVX-UNARY] inst=%s dest=%u src1=%u VL=%u\\n",
+                 _instMnem, (unsigned)dest, (unsigned)src1, (unsigned)destVL);
+            this->addAVXDestRegs();
+            auto vRegs = destVL / sizeof(uint64_t);
+            auto baseSrc1 = src1;
+            _numSrcRegs = vRegs;
+            for (int i = 0; i < vRegs; ++i) {
+                setSrcRegIdx(i, RegId(floatRegClass, baseSrc1 + i));
+            }
+        """
+
+    class vmovsldup(vunary):
+        opClass = 'SimdMiscOp'
+        constructorCode = vunary.constructorCode
+        code = """
+            int vRegs = destVL / sizeof(uint64_t);
+            for (int i = 0; i < vRegs; i++) {
+                FloatInt src; src.ul = xc->getRegOperand(this, i);
+                FloatInt dest;
+                dest.f.f1 = src.f.f1;  // duplicate low float
+                dest.f.f2 = src.f.f1;
+                xc->setRegOperand(this, i, dest.ul);
+            }
+        """
+
+    class vmovshdup(vunary):
+        opClass = 'SimdMiscOp'
+        constructorCode = vunary.constructorCode
+        code = """
+            int vRegs = destVL / sizeof(uint64_t);
+            for (int i = 0; i < vRegs; i++) {
+                FloatInt src; src.ul = xc->getRegOperand(this, i);
+                FloatInt dest;
+                dest.f.f1 = src.f.f2;  // duplicate high float
+                dest.f.f2 = src.f.f2;
+                xc->setRegOperand(this, i, dest.ul);
+            }
+        """
+
+    class vbroadcastf(vunary):
+        opClass = 'SimdMiscOp'
+        constructorCode = vunary.constructorCode
+        code = """
+            int vRegs = destVL / sizeof(uint64_t);
+            FloatInt src; src.ul = xc->getRegOperand(this, 0);
+            float scalarVal = src.f.f1;  // take low float
+            for (int i = 0; i < vRegs; i++) {
+                FloatInt dest;
+                dest.f.f1 = scalarVal;
+                dest.f.f2 = scalarVal;
+                xc->setRegOperand(this, i, dest.ul);
+            }
+        """
+
 
     # Fused multiply-add (231 form): dest = (src2 * src1) + dest.
     # We implement a dedicated fused microop base to map three sources (src1, src2, dest-original).

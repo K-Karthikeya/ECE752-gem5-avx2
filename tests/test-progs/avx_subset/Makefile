@@ -5,9 +5,8 @@
 #   make clean      -> remove artifacts
 
 CC ?= gcc
-# Separate flags for ASM vs C so the harness does NOT use AVX (prevents VEX scalar v* ops).
-# - ASM: keep -mavx so the explicit AVX mnemonics assemble as VEX.
-# - C:   use -mno-avx and disable vectorization/builtins to avoid emitting unsupported AVX.
+# Separate flags for ASM vs C so the harness does NOT use AVX (prevents compiler from
+# emitting unexpected VEX instructions). The assembly contains the explicit AVX ops we test.
 CFLAGS_ASM ?= -O2 -mavx -Wall -Wextra
 CFLAGS_C   ?= -O2 -mno-avx -mno-sse2avx -Wall -Wextra -fno-tree-vectorize -fno-builtin
 LDFLAGS ?= 
@@ -35,10 +34,10 @@ run: $(BIN)
 
 disasm: $(BIN)
 	@echo "== Expected AVX mnemonics present (by name) =="
-	objdump -d $(BIN) | grep -Ei "\b(vmovups|vmovaps|vaddps|vmulps|vxorps|vzeroupper)\b" || true
+	objdump -d $(BIN) | grep -Ei "\b(vmovups|vmovaps|vaddps|vmulps|vxorps|vzeroupper|vminps|vmaxps|vmovsldup|vmovshdup|vbroadcastss)\b" || true
 	@echo "\n== Any other V* vector mnemonics (should be empty) =="
 	objdump -d $(BIN) | grep -Ei "\bv[a-z0-9_]+\b" | \
-	  grep -Evi "\b(vmovups|vmovaps|vaddps|vmulps|vxorps|vzeroupper)\b" || true
+	  grep -Evi "\b(vmovups|vmovaps|vaddps|vmulps|vxorps|vzeroupper|vminps|vmaxps|vmovsldup|vmovshdup|vbroadcastss)\b" || true
 	@echo "\n(If lines appear above, the compiler emitted extra AVX/VEX instructions.\nAdjust CFLAGS or lower optimization.)"
 
 clean:
