@@ -230,6 +230,17 @@ let {{
         constructorCode = varithp.constructorCode
         code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vdivf enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); DPRINTF(AVXVerbose, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::FloatDiv);'
 
+    class vminf(varithp):
+        opClass = 'SimdFloatAddOp'
+        constructorCode = varithp.constructorCode
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vminf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::FloatMin);'
+
+    class vmaxf(varithp):
+        opClass = 'SimdFloatAddOp'
+        constructorCode = varithp.constructorCode
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vmaxf enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::FloatMax);'
+
+
     # Fused multiply-add (231 form): dest = (src2 * src1) + dest.
     # We implement a dedicated fused microop base to map three sources (src1, src2, dest-original).
     class vfused(AVXOp):

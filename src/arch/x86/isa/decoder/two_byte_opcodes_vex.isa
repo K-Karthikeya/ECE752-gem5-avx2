@@ -38,6 +38,16 @@
             0x1: VDIVPS_YMM_YMM(Vo, Wo);
             0x0: VDIVPS_XMM_XMM(Vo, Wo);
         }
+        // VMINPS (0x5D)
+        0x5D: decode VEX_L {
+            0x1: VMINPS_YMM_YMM(Vo, Wo);
+            0x0: VMINPS_XMM_XMM(Vo, Wo);
+        }
+        // VMAXPS (0x5F)
+        0x5F: decode VEX_L {
+            0x1: VMAXPS_YMM_YMM(Vo, Wo);
+            0x0: VMAXPS_XMM_XMM(Vo, Wo);
+        }
         // Load from memory (M operand triggers doModRM via specializeInst)
         0x10: decode VEX_L {
             0x1: VMOVUPS_YMM(M);
