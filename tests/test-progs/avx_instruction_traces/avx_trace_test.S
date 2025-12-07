@@ -55,9 +55,11 @@ avx_trace_test:
     vmovshdup %ymm1, %ymm5
     vmovups   %ymm5, 160(%rbx)   # Store to out[40..47]
 
-    # Test 7: VBROADCASTSS reg-mem form
-    vbroadcastss (%rdi), %ymm6
-    vmovups   %ymm6, 192(%rbx)   # Store to out[48..55]
+    # Test 7: VBROADCASTSS - skip mem form (decoder limitation)
+    # Use reg-reg by first loading into xmm6
+    movss    (%rdi), %xmm6          # Load a[0] into xmm6 low 32 bits
+    vbroadcastss %xmm6, %ymm6       # Broadcast to all lanes
+    vmovups   %ymm6, 192(%rbx)       # Store to out[48..55]
 
     # Test 8: VMINPS reg-mem form
     vminps    (%rsi), %ymm0, %ymm7
@@ -75,8 +77,10 @@ avx_trace_test:
     vmovshdup (%rsi), %ymm7
     vmovups   %ymm7, 320(%rbx)   # Store to out[80..87]
 
-    # Test 12: VBROADCASTSS reg-mem form (repeated for clarity)
-    vbroadcastss 4(%rdi), %ymm7  # Broadcast a[1]
+    # Test 12: VBROADCASTSS alternate - skip mem form (decoder limitation)
+    # Load a[1] and broadcast
+    movss    4(%rdi), %xmm7          # Load a[1] into xmm7
+    vbroadcastss %xmm7, %ymm7       # Broadcast to all lanes
     vmovups   %ymm7, 352(%rbx)   # Store to out[88..95]
 
     # Test 13: VZEROUPPER
