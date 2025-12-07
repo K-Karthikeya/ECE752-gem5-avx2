@@ -11,14 +11,17 @@ CFLAGS_HARNESS = -O0 -Wall -Wextra -g \
 LDFLAGS = -lm
 
 TARGET = avx_trace_test
-OBJS = avx_trace_test.o avx_trace_harness.o
+OBJS = avx_trace_start.o avx_trace_test.o avx_trace_harness.o
 
 .PHONY: all clean run disasm check
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDFLAGS)
+	$(CC) -nostartfiles -o $@ $(OBJS) $(LDFLAGS)
+
+avx_trace_start.o: avx_trace_start.S
+	$(CC) $(ASFLAGS_AVX) -c $< -o $@
 
 avx_trace_test.o: avx_trace_test.S
 	$(CC) $(ASFLAGS_AVX) -c $< -o $@
