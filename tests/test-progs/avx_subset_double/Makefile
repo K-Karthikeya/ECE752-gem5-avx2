@@ -11,7 +11,7 @@ CFLAGS_ASM ?= $(CCFLAGS_COMMON) -mavx
 CFLAGS_C   ?= $(CCFLAGS_COMMON) -mno-avx -mno-sse2avx -fno-tree-vectorize -fno-builtin
 LDFLAGS ?= 
 
-SRC_ASM := avx_subset.S
+SRC_ASM := avx_subset_double.S
 SRC_C   := harness.c
 OBJ     := $(SRC_ASM:.S=.o) $(SRC_C:.c=.o)
 BIN     := avx_subset_double_test

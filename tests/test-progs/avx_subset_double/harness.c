@@ -30,8 +30,9 @@ int main(void) {
     double *b   = (double*)aligned_alloc(32, 32);
     // out needs space for 16 doubles (4 groups * 4 lanes)
     double *out = (double*)aligned_alloc(32, 32 * 4);
-    // tmp needs space for 6 doubles (2 for xmm, 4 for ymm)
-    double *tmp = (double*)aligned_alloc(32, 32);
+    // tmp needs space for 6 doubles (2 for xmm, 4 for ymm) => 48 bytes.
+    // Allocate 64 bytes to keep 32-byte alignment and avoid array-bounds issues.
+    double *tmp = (double*)aligned_alloc(32, 64);
     if (!a || !b || !out || !tmp) {
         fprintf(stderr, "Allocation failed\n");
         return 2;
