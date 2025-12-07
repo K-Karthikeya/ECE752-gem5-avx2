@@ -8,9 +8,10 @@ GEM5_ROOT="../../.."
 GEM5_BIN="${GEM5_ROOT}/build/X86/gem5.opt"
 CONFIG_SCRIPT="${GEM5_ROOT}/configs/example/se.py"
 TEST_BINARY="./avx_trace_test"
-OUTPUT_DIR="./trace_output"
+# Use an absolute output dir so gem5 can write the debug file
+OUTPUT_DIR="$(pwd)/trace_output"
 
-# Create output directory
+# Create output directory (used as gem5 outdir)
 mkdir -p "${OUTPUT_DIR}"
 
 echo "=== AVX Instruction Trace Test Runner ==="
@@ -38,8 +39,9 @@ echo ""
 # Run with full execution trace
 echo "Running test with execution trace..."
 "${GEM5_BIN}" \
+    --outdir="${OUTPUT_DIR}" \
     --debug-flags=Exec,AVXVerbose \
-    --debug-file="${OUTPUT_DIR}/trace.txt" \
+    --debug-file="trace.txt" \
     "${CONFIG_SCRIPT}" \
     -c "${TEST_BINARY}" \
     > "${OUTPUT_DIR}/gem5_stdout.txt" 2>&1
