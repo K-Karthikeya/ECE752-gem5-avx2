@@ -6,7 +6,8 @@
 # Configuration
 GEM5_ROOT="../../.."
 GEM5_BIN="${GEM5_ROOT}/build/X86/gem5.opt"
-CONFIG_SCRIPT="${GEM5_ROOT}/configs/example/se.py"
+# Use the deprecated path because configs/example/se.py was moved
+CONFIG_SCRIPT="${GEM5_ROOT}/configs/deprecated/example/se.py"
 TEST_BINARY="./avx_trace_test"
 # Use an absolute output dir so gem5 can write the debug file
 OUTPUT_DIR="$(pwd)/trace_output"

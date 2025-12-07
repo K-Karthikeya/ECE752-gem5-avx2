@@ -4,7 +4,8 @@
 # Configuration
 $GEM5_ROOT = "..\..\..\"
 $GEM5_BIN = Join-Path $GEM5_ROOT "build\X86\gem5.opt.exe"
-$CONFIG_SCRIPT = Join-Path $GEM5_ROOT "configs\example\se.py"
+# configs/example/se.py moved; use deprecated path
+$CONFIG_SCRIPT = Join-Path $GEM5_ROOT "configs\deprecated\example\se.py"
 $TEST_BINARY = ".\avx_trace_test.exe"
 $OUTPUT_DIR = ".\trace_output"
 

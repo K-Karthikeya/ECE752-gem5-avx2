@@ -3,7 +3,11 @@
 #===========================================================================
 
 CC = gcc
-CFLAGS = -mavx2 -O2 -Wall -Wextra -g
+# Assembly needs AVX2 for the explicit instructions; harness should avoid emitting AVX/FMA
+ASFLAGS_AVX = -mavx2
+CFLAGS_HARNESS = -O0 -Wall -Wextra -g \
+	-mno-avx -mno-avx2 -mno-fma -mno-sse4.2 -mno-sse4.1 -mno-sse3 -mno-sse2 \
+	-mfpmath=387 -fno-tree-vectorize -fno-builtin
 LDFLAGS = -lm
 
 TARGET = avx_trace_test
@@ -14,13 +18,13 @@ OBJS = avx_trace_test.o avx_trace_harness.o
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
+	$(CC) -o $@ $(OBJS) $(LDFLAGS)
 
 avx_trace_test.o: avx_trace_test.S
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(ASFLAGS_AVX) -c $< -o $@
 
 avx_trace_harness.o: avx_trace_harness.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS_HARNESS) -c $< -o $@
 
 # Disassemble to verify AVX instructions
 disasm: $(TARGET)
