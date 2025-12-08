@@ -12,10 +12,16 @@ ASM := ops/vaddf_128.S ops/vaddf_256.S \
        ops/vsubf_128.S ops/vsubf_256.S \
        ops/vmulf_128.S ops/vmulf_256.S \
        ops/vdivf_128.S ops/vdivf_256.S \
+       ops/vminps_128.S ops/vminps_256.S \
+       ops/vmaxps_128.S ops/vmaxps_256.S \
        ops/vxorf_128.S ops/vxorf_256.S \
        ops/vandf_128.S ops/vandf_256.S \
        ops/vfmadd231f_128.S ops/vfmadd231f_256.S \
        ops/vcmpf_eq_128.S ops/vcmpf_eq_256.S \
+       ops/vmovsldup_128.S ops/vmovsldup_256.S \
+       ops/vmovshdup_128.S ops/vmovshdup_256.S \
+       ops/vbroadcastss_128.S ops/vbroadcastss_256.S \
+       ops/vmovddup_128.S ops/vmovddup_256.S \
        ops/vclear.S ops/ldstfp_128.S ops/ldstfp_256.S \
        ops/vpaddd_128.S ops/vpaddd_256.S \
        ops/vpand_128.S ops/vpand_256.S \

@@ -11,6 +11,10 @@ void avx_vmulf_128(const float *a, const float *b, float *out);
 void avx_vmulf_256(const float *a, const float *b, float *out);
 void avx_vdivf_128(const float *a, const float *b, float *out);
 void avx_vdivf_256(const float *a, const float *b, float *out);
+void avx_vminps_128(const float *a, const float *b, float *out);
+void avx_vminps_256(const float *a, const float *b, float *out);
+void avx_vmaxps_128(const float *a, const float *b, float *out);
+void avx_vmaxps_256(const float *a, const float *b, float *out);
 void avx_vxorf_128(const uint32_t *a, const uint32_t *b, uint32_t *out);
 void avx_vxorf_256(const uint32_t *a, const uint32_t *b, uint32_t *out);
 void avx_vandf_128(const uint32_t *a, const uint32_t *b, uint32_t *out);
@@ -19,6 +23,14 @@ void avx_vfmadd231f_128(const float *a, const float *b, const float *c, float *o
 void avx_vfmadd231f_256(const float *a, const float *b, const float *c, float *out);
 void avx_vcmpf_eq_128(const float *a, const float *b, uint32_t *mask_out);
 void avx_vcmpf_eq_256(const float *a, const float *b, uint32_t *mask_out);
+void avx_vmovsldup_128(const float *src, float *out);
+void avx_vmovsldup_256(const float *src, float *out);
+void avx_vmovshdup_128(const float *src, float *out);
+void avx_vmovshdup_256(const float *src, float *out);
+void avx_vbroadcastss_128(const float *src, float *out);
+void avx_vbroadcastss_256(const float *src, float *out);
+void avx_vmovddup_128(const double *src, double *out);
+void avx_vmovddup_256(const double *src, double *out);
 void avx_vclear_upper(void);
 void avx_ldstfp_128(float *mem, float *out);
 void avx_ldstfp_256(float *mem, float *out);
@@ -127,6 +139,49 @@ int main(void)
         avx_vcmpf_eq_128(ae, beq, mask);
         uint32_t exp_mask[4] = {0xFFFFFFFFu, 0x0u, 0xFFFFFFFFu, 0x0u};
         if (!check_vec_u32(mask, exp_mask, 4)) pass = 0; else printf("PASS vcmpf_eq_128\n");
+
+        // VMINPS 128-bit
+        float am[4] = {1.0f, -2.5f, 3.0f, -5.0f};
+        float bm[4] = {2.0f, -1.0f, 2.5f, -6.0f};
+        float exp_min[4];
+        for (int i = 0; i < 4; i++) exp_min[i] = (am[i] < bm[i]) ? am[i] : bm[i];
+        avx_vminps_128(am, bm, out);
+        if (!check_vec_f32(out, exp_min, 4)) pass = 0; else printf("PASS vminps_128\n");
+
+        // VMAXPS 128-bit
+        float exp_max[4];
+        for (int i = 0; i < 4; i++) exp_max[i] = (am[i] > bm[i]) ? am[i] : bm[i];
+        avx_vmaxps_128(am, bm, out);
+        if (!check_vec_f32(out, exp_max, 4)) pass = 0; else printf("PASS vmaxps_128\n");
+
+        // VMOVSLDUP 128-bit - duplicate low (lanes 0,0,2,2)
+        float sldup_src[4] = {1.0f, 2.0f, 3.0f, 4.0f};
+        float exp_sldup[4] = {1.0f, 1.0f, 3.0f, 3.0f};
+        avx_vmovsldup_128(sldup_src, out);
+        if (!check_vec_f32(out, exp_sldup, 4)) pass = 0; else printf("PASS vmovsldup_128\n");
+
+        // VMOVSHDUP 128-bit - duplicate high (lanes 1,1,3,3)
+        float exp_shdup[4] = {2.0f, 2.0f, 4.0f, 4.0f};
+        avx_vmovshdup_128(sldup_src, out);
+        if (!check_vec_f32(out, exp_shdup, 4)) pass = 0; else printf("PASS vmovshdup_128\n");
+
+        // VBROADCASTSS 128-bit
+        float broadcast_src = 3.14159f;
+        float exp_bcast[4] = {broadcast_src, broadcast_src, broadcast_src, broadcast_src};
+        avx_vbroadcastss_128(&broadcast_src, out);
+        if (!check_vec_f32(out, exp_bcast, 4)) pass = 0; else printf("PASS vbroadcastss_128\n");
+
+        // VMOVDDUP 128-bit - duplicate low double
+        double ddup_src[2] = {1.5, 2.5};
+        double ddup_out[2];
+        double exp_ddup[2] = {1.5, 1.5};
+        avx_vmovddup_128(ddup_src, ddup_out);
+        if (ddup_out[0] != exp_ddup[0] || ddup_out[1] != exp_ddup[1]) {
+            printf("FAIL vmovddup_128\n");
+            pass = 0;
+        } else {
+            printf("PASS vmovddup_128\n");
+        }
     }
 
     // 256-bit floats (8 lanes)
@@ -180,6 +235,54 @@ int main(void)
         avx_vcmpf_eq_256(ae, beq, mask);
         uint32_t exp_mask[8] = {0xFFFFFFFFu,0x0u,0xFFFFFFFFu,0x0u,0xFFFFFFFFu,0x0u,0x0u,0xFFFFFFFFu};
         if (!check_vec_u32(mask, exp_mask, 8)) pass = 0; else printf("PASS vcmpf_eq_256\n");
+
+        // VMINPS 256-bit
+        float am[8] = {1.0f, -2.5f, 3.0f, -5.0f, 7.0f, -8.5f, 9.0f, -10.0f};
+        float bm[8] = {2.0f, -1.0f, 2.5f, -6.0f, 6.5f, -9.0f, 8.5f, -9.5f};
+        float exp_min[8];
+        for (int i = 0; i < 8; i++) exp_min[i] = (am[i] < bm[i]) ? am[i] : bm[i];
+        avx_vminps_256(am, bm, out);
+        if (!check_vec_f32(out, exp_min, 8)) pass = 0; else printf("PASS vminps_256\n");
+
+        // VMAXPS 256-bit
+        float exp_max[8];
+        for (int i = 0; i < 8; i++) exp_max[i] = (am[i] > bm[i]) ? am[i] : bm[i];
+        avx_vmaxps_256(am, bm, out);
+        if (!check_vec_f32(out, exp_max, 8)) pass = 0; else printf("PASS vmaxps_256\n");
+
+        // VMOVSLDUP 256-bit - duplicate low (lanes 0,0,2,2,4,4,6,6)
+        float sldup_src[8] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
+        float exp_sldup[8] = {1.0f, 1.0f, 3.0f, 3.0f, 5.0f, 5.0f, 7.0f, 7.0f};
+        avx_vmovsldup_256(sldup_src, out);
+        if (!check_vec_f32(out, exp_sldup, 8)) pass = 0; else printf("PASS vmovsldup_256\n");
+
+        // VMOVSHDUP 256-bit - duplicate high (lanes 1,1,3,3,5,5,7,7)
+        float exp_shdup[8] = {2.0f, 2.0f, 4.0f, 4.0f, 6.0f, 6.0f, 8.0f, 8.0f};
+        avx_vmovshdup_256(sldup_src, out);
+        if (!check_vec_f32(out, exp_shdup, 8)) pass = 0; else printf("PASS vmovshdup_256\n");
+
+        // VBROADCASTSS 256-bit
+        float broadcast_src = 2.71828f;
+        float exp_bcast[8];
+        for (int i = 0; i < 8; i++) exp_bcast[i] = broadcast_src;
+        avx_vbroadcastss_256(&broadcast_src, out);
+        if (!check_vec_f32(out, exp_bcast, 8)) pass = 0; else printf("PASS vbroadcastss_256\n");
+
+        // VMOVDDUP 256-bit - duplicate low double of each 128-bit lane
+        double ddup_src[4] = {1.5, 2.5, 3.5, 4.5};
+        double ddup_out[4];
+        double exp_ddup[4] = {1.5, 1.5, 3.5, 3.5};
+        avx_vmovddup_256(ddup_src, ddup_out);
+        int ddup_ok = 1;
+        for (int i = 0; i < 4; i++) {
+            if (ddup_out[i] != exp_ddup[i]) ddup_ok = 0;
+        }
+        if (!ddup_ok) {
+            printf("FAIL vmovddup_256\n");
+            pass = 0;
+        } else {
+            printf("PASS vmovddup_256\n");
+        }
     }
 
     // vclear upper (vzeroupper)
