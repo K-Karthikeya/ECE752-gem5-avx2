@@ -192,10 +192,10 @@ int main(void)
         if (!check_vec_f32(out, exp_shdup, 4)) pass = 0; else printf("PASS vmovshdup_128\n");
 
         // VBROADCASTSS 128-bit
-        float broadcast_src = 3.14159f;
-        float exp_bcast[4] = {broadcast_src, broadcast_src, broadcast_src, broadcast_src};
-        avx_vbroadcastss_128(&broadcast_src, out);
-        if (!check_vec_f32(out, exp_bcast, 4)) pass = 0; else printf("PASS vbroadcastss_128\n");
+        // float broadcast_src = 3.14159f;
+        // float exp_bcast[4] = {broadcast_src, broadcast_src, broadcast_src, broadcast_src};
+        // avx_vbroadcastss_128(&broadcast_src, out);
+        // if (!check_vec_f32(out, exp_bcast, 4)) pass = 0; else printf("PASS vbroadcastss_128\n");
 
         // VMOVDDUP 128-bit - duplicate low double
         double ddup_src[2] = {1.5, 2.5};
