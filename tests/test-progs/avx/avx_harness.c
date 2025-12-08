@@ -228,7 +228,7 @@ int main(void)
         if (!check_vec_f64(outd, exp_muld, 2)) pass = 0; else printf("PASS vmuld_128\n");
 
         // VDIVPD 128-bit
-        double exp_divd[2] = {0.461538462, -1.833333333};
+        double exp_divd[2] = {1.5 / 3.25, -2.75 / 1.5};
         avx_vdivd_128(ad, bd, outd);
         if (!check_vec_f64(outd, exp_divd, 2)) pass = 0; else printf("PASS vdivd_128\n");
 
@@ -358,7 +358,7 @@ int main(void)
         if (!check_vec_f64(outd256, exp_muld256, 4)) pass = 0; else printf("PASS vmuld_256\n");
 
         // VDIVPD 256-bit
-        double exp_divd256[4] = {0.461538462, -1.833333333, -3.0, -2.2};
+        double exp_divd256[4] = {1.5 / 3.25, -2.75 / 1.5, 3.0 / -1.0, -5.5 / 2.5};
         avx_vdivd_256(ad256, bd256, outd256);
         if (!check_vec_f64(outd256, exp_divd256, 4)) pass = 0; else printf("PASS vdivd_256\n");
 
