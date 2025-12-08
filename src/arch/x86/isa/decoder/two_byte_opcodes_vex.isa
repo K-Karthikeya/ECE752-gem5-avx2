@@ -33,12 +33,32 @@
             0x1: VANDPS_256(Vo, Wo);
             0x0: VANDPS_128(Vo, Wo);
         }
+            // Integer arithmetic/logical packed ops (dword lanes)
+            0xFE: decode VEX_L {
+                // VPADDD (0F FE /r)
+                0x1: VPADDD_256(Vo, Wo);
+                0x0: VPADDD_128(Vo, Wo);
+            }
+            0xDB: decode VEX_L {
+                // VPANDD (0F DB /r)
+                0x1: VPANDD_256(Vo, Wo);
+                0x0: VPANDD_128(Vo, Wo);
+            }
         0x5E: decode VEX_L {
             // VDIVPS reg-reg
             0x1: VDIVPS_256(Vo, Wo);
             0x0: VDIVPS_128(Vo, Wo);
         }
         // Load from memory (M operand triggers doModRM via specializeInst)
+            // VMOVDQU (0F 6F /r) and VMOVDQU store (0F 7F /r)
+            0x6F: decode VEX_L {
+                0x1: VMOVDQU_256(M);
+                0x0: VMOVDQU_128(M);
+            }
+            0x7F: decode VEX_L {
+                0x1: VMOVDQU_M_256(M);
+                0x0: VMOVDQU_M_128(M);
+            }
         0x10: decode VEX_L {
             0x1: VMOVUPS_256(M);
             0x0: VMOVUPS_128(M);
