@@ -249,6 +249,9 @@ let {{
              srcSize=size, srcVL=size)
         constructorCode = """
             this->addAVXDestRegs();
+            // Broadcast only needs ONE source register
+            _numSrcRegs = 1;
+            setSrcRegIdx(0, RegId(floatRegClass, src1));
         """
         code = """
             auto vRegs = destVL / sizeof(uint64_t);
@@ -443,13 +446,27 @@ let {{
             }
         """
 
-    class vbroadcastf(vunary):
+    class vbroadcastf(AVXOp):
+        abstract = False
         opClass = 'SimdMiscOp'
-        constructorCode = vunary.constructorCode
+        srcType = 'AVXOpBase::SrcType::Reg'
+        def __init__(self, dest, src1, size, VL):
+            super().__init__(dest=dest, src1=src1, destSize=size, destVL=VL,
+                             srcSize=size, srcVL=VL)
+        constructorCode = """
+            DPRINTF(AVXVerbose, "[AVX-BROADCAST] inst=%s dest=%u src1=%u VL=%u\\n",
+                 _instMnem, (unsigned)dest, (unsigned)src1, (unsigned)destVL);
+            this->addAVXDestRegs();
+            // Broadcast only needs ONE source register (contains the scalar to broadcast)
+            _numSrcRegs = 1;
+            setSrcRegIdx(0, RegId(floatRegClass, src1));
+        """
         code = """
             int vRegs = destVL / sizeof(uint64_t);
             FloatInt src; src.ul = xc->getRegOperand(this, 0);
-            float scalarVal = src.f.f1;  // take low float
+            float scalarVal = src.f.f1;  // take low float from source
+            DPRINTF(AVXVerbose, "[VBROADCAST-EXEC] scalarVal=%f (0x%x) broadcasting to %d regs\\n",
+                scalarVal, src.ul, vRegs);
             for (int i = 0; i < vRegs; i++) {
                 FloatInt dest;
                 dest.f.f1 = scalarVal;

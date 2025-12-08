@@ -22,6 +22,11 @@ ASM := ops/vaddf_128.S ops/vaddf_256.S \
        ops/vmovshdup_128.S ops/vmovshdup_256.S \
        ops/vbroadcastss_128.S ops/vbroadcastss_256.S \
        ops/vmovddup_128.S ops/vmovddup_256.S \
+       ops/vaddd_128.S ops/vaddd_256.S \
+       ops/vsubd_128.S ops/vsubd_256.S \
+       ops/vmuld_128.S ops/vmuld_256.S \
+       ops/vdivd_128.S ops/vdivd_256.S \
+       ops/vbroadcastsd_128.S ops/vbroadcastsd_256.S \
        ops/vclear.S ops/ldstfp_128.S ops/ldstfp_256.S \
        ops/vpaddd_128.S ops/vpaddd_256.S \
        ops/vpand_128.S ops/vpand_256.S \

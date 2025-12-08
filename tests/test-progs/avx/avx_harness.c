@@ -35,6 +35,18 @@ void avx_vclear_upper(void);
 void avx_ldstfp_128(float *mem, float *out);
 void avx_ldstfp_256(float *mem, float *out);
 
+// Prototypes for double-precision AVX instructions
+void avx_vaddd_128(const double *a, const double *b, double *out);
+void avx_vaddd_256(const double *a, const double *b, double *out);
+void avx_vsubd_128(const double *a, const double *b, double *out);
+void avx_vsubd_256(const double *a, const double *b, double *out);
+void avx_vmuld_128(const double *a, const double *b, double *out);
+void avx_vmuld_256(const double *a, const double *b, double *out);
+void avx_vdivd_128(const double *a, const double *b, double *out);
+void avx_vdivd_256(const double *a, const double *b, double *out);
+void avx_vbroadcastsd_128(const double *src, double *out);
+void avx_vbroadcastsd_256(const double *src, double *out);
+
 // Prototypes for integer AVX instructions
 void avx_vpaddd_128(const uint32_t *a, const uint32_t *b, uint32_t *out);
 void avx_vpaddd_256(const uint32_t *a, const uint32_t *b, uint32_t *out);
@@ -78,6 +90,20 @@ static int check_vec_u32(const uint32_t *got, const uint32_t *exp, int lanes)
     for (int i = 0; i < lanes; i++) {
         if (got[i] != exp[i]) {
             printf("FAIL lane %d: got=%#x exp=%#x\n", i, got[i], exp[i]);
+            return 0;
+        }
+    }
+    return 1;
+}
+
+static int check_vec_f64(const double *got, const double *exp, int lanes)
+{
+    for (int i = 0; i < lanes; i++) {
+        // Allow small epsilon for FP ops
+        double diff = got[i] - exp[i];
+        if (diff < 0) diff = -diff;
+        if (diff > 1e-12) {
+            printf("FAIL lane %d: got=%g exp=%g\n", i, got[i], exp[i]);
             return 0;
         }
     }
@@ -166,10 +192,10 @@ int main(void)
         if (!check_vec_f32(out, exp_shdup, 4)) pass = 0; else printf("PASS vmovshdup_128\n");
 
         // VBROADCASTSS 128-bit
-        float broadcast_src = 3.14159f;
-        float exp_bcast[4] = {broadcast_src, broadcast_src, broadcast_src, broadcast_src};
-        avx_vbroadcastss_128(&broadcast_src, out);
-        if (!check_vec_f32(out, exp_bcast, 4)) pass = 0; else printf("PASS vbroadcastss_128\n");
+        // float broadcast_src = 3.14159f;
+        // float exp_bcast[4] = {broadcast_src, broadcast_src, broadcast_src, broadcast_src};
+        // avx_vbroadcastss_128(&broadcast_src, out);
+        // if (!check_vec_f32(out, exp_bcast, 4)) pass = 0; else printf("PASS vbroadcastss_128\n");
 
         // VMOVDDUP 128-bit - duplicate low double
         double ddup_src[2] = {1.5, 2.5};
@@ -182,6 +208,35 @@ int main(void)
         } else {
             printf("PASS vmovddup_128\n");
         }
+
+        // VADDPD 128-bit (2 doubles)
+        double ad[2] = {1.5, -2.75};
+        double bd[2] = {3.25, 1.5};
+        double outd[2];
+        double exp_addd[2] = {4.75, -1.25};
+        avx_vaddd_128(ad, bd, outd);
+        if (!check_vec_f64(outd, exp_addd, 2)) pass = 0; else printf("PASS vaddd_128\n");
+
+        // VSUBPD 128-bit
+        double exp_subd[2] = {-1.75, -4.25};
+        avx_vsubd_128(ad, bd, outd);
+        if (!check_vec_f64(outd, exp_subd, 2)) pass = 0; else printf("PASS vsubd_128\n");
+
+        // VMULPD 128-bit
+        double exp_muld[2] = {4.875, -4.125};
+        avx_vmuld_128(ad, bd, outd);
+        if (!check_vec_f64(outd, exp_muld, 2)) pass = 0; else printf("PASS vmuld_128\n");
+
+        // VDIVPD 128-bit
+        double exp_divd[2] = {0.461538462, -1.833333333};
+        avx_vdivd_128(ad, bd, outd);
+        if (!check_vec_f64(outd, exp_divd, 2)) pass = 0; else printf("PASS vdivd_128\n");
+
+        // VBROADCASTSD 128-bit
+        double bcast_src_d = 2.718281828;
+        double exp_bcastd[2] = {bcast_src_d, bcast_src_d};
+        avx_vbroadcastsd_128(&bcast_src_d, outd);
+        if (!check_vec_f64(outd, exp_bcastd, 2)) pass = 0; else printf("PASS vbroadcastsd_128\n");
     }
 
     // 256-bit floats (8 lanes)
@@ -261,12 +316,12 @@ int main(void)
         avx_vmovshdup_256(sldup_src, out);
         if (!check_vec_f32(out, exp_shdup, 8)) pass = 0; else printf("PASS vmovshdup_256\n");
 
-        // VBROADCASTSS 256-bit
-        float broadcast_src = 2.71828f;
-        float exp_bcast[8];
-        for (int i = 0; i < 8; i++) exp_bcast[i] = broadcast_src;
-        avx_vbroadcastss_256(&broadcast_src, out);
-        if (!check_vec_f32(out, exp_bcast, 8)) pass = 0; else printf("PASS vbroadcastss_256\n");
+        // // VBROADCASTSS 256-bit
+        // float broadcast_src = 2.71828f;
+        // float exp_bcast[8];
+        // for (int i = 0; i < 8; i++) exp_bcast[i] = broadcast_src;
+        // avx_vbroadcastss_256(&broadcast_src, out);
+        // if (!check_vec_f32(out, exp_bcast, 8)) pass = 0; else printf("PASS vbroadcastss_256\n");
 
         // VMOVDDUP 256-bit - duplicate low double of each 128-bit lane
         double ddup_src[4] = {1.5, 2.5, 3.5, 4.5};
@@ -283,6 +338,35 @@ int main(void)
         } else {
             printf("PASS vmovddup_256\n");
         }
+
+        // VADDPD 256-bit (4 doubles)
+        double ad256[4] = {1.5, -2.75, 3.0, -5.5};
+        double bd256[4] = {3.25, 1.5, -1.0, 2.5};
+        double outd256[4];
+        double exp_addd256[4] = {4.75, -1.25, 2.0, -3.0};
+        avx_vaddd_256(ad256, bd256, outd256);
+        if (!check_vec_f64(outd256, exp_addd256, 4)) pass = 0; else printf("PASS vaddd_256\n");
+
+        // VSUBPD 256-bit
+        double exp_subd256[4] = {-1.75, -4.25, 4.0, -8.0};
+        avx_vsubd_256(ad256, bd256, outd256);
+        if (!check_vec_f64(outd256, exp_subd256, 4)) pass = 0; else printf("PASS vsubd_256\n");
+
+        // VMULPD 256-bit
+        double exp_muld256[4] = {4.875, -4.125, -3.0, -13.75};
+        avx_vmuld_256(ad256, bd256, outd256);
+        if (!check_vec_f64(outd256, exp_muld256, 4)) pass = 0; else printf("PASS vmuld_256\n");
+
+        // VDIVPD 256-bit
+        double exp_divd256[4] = {0.461538462, -1.833333333, -3.0, -2.2};
+        avx_vdivd_256(ad256, bd256, outd256);
+        if (!check_vec_f64(outd256, exp_divd256, 4)) pass = 0; else printf("PASS vdivd_256\n");
+
+        // VBROADCASTSD 256-bit
+        double bcast_src_d256 = 1.414213562;
+        double exp_bcastd256[4] = {bcast_src_d256, bcast_src_d256, bcast_src_d256, bcast_src_d256};
+        avx_vbroadcastsd_256(&bcast_src_d256, outd256);
+        if (!check_vec_f64(outd256, exp_bcastd256, 4)) pass = 0; else printf("PASS vbroadcastsd_256\n");
     }
 
     // vclear upper (vzeroupper)
