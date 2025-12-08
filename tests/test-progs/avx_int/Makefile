@@ -30,4 +30,11 @@ clean:
 run: $(TARGET)
 	./$(TARGET)
 
-.PHONY: all clean run
+disasm: $(TARGET)
+	objdump -d --show-raw-insn $(TARGET) | grep -A 5 "avx_vpaddd_128\|avx_vpandd_128\|avx_vpminsd_128\|avx_vpminsq_128\|avx_vpbroadcastd_128\|avx_vmovdqu_128"
+
+disasm-all: $(TARGET)
+	objdump -d $(TARGET) > $(TARGET).disasm
+	@echo "Disassembly written to $(TARGET).disasm"
+
+.PHONY: all clean run disasm disasm-all
