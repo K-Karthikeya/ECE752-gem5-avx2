@@ -14,44 +14,44 @@
         0x58: decode VEX_PP {
             0x0: decode VEX_L {
                 0x1: VADDPS_YMM_YMM(Vo, Wo);
-                0x0: VADDPS_XMM_XMM(Vo, Wo);
+                    0x0: VADDPD_128_XMM_XMM(Vo, Wo);
             }
             0x1: decode VEX_L {
-                0x1: VADDPD_YMM_YMM(Vo, Wo);
-                0x0: VADDPD_XMM_XMM(Vo, Wo);
+                    0x1: VADDPD_256_YMM_M(M);
+                    0x0: VADDPD_128_XMM_M(M);
             }
         }
         // 0x59 MUL packed: PS (pp=00), PD (pp=01)
         0x59: decode VEX_PP {
             0x0: decode VEX_L {
                 0x1: VMULPS_YMM_YMM(Vo, Wo);
-                0x0: VMULPS_XMM_XMM(Vo, Wo);
+                    0x0: VMULPD_128_XMM_XMM(Vo, Wo);
             }
             0x1: decode VEX_L {
-                0x1: VMULPD_YMM_YMM(Vo, Wo);
-                0x0: VMULPD_XMM_XMM(Vo, Wo);
+                    0x1: VMULPD_256_YMM_M(M);
+                    0x0: VMULPD_128_XMM_M(M);
             }
         }
         0x57: decode VEX_L {
             0x1: VXORPS_YMM_YMM(Vo, Wo);
             0x0: VXORPS_XMM_XMM(Vo, Wo);
         }
-        // 0x12 MOVDDUP: duplicate low double(s) within 128-bit lanes (F2 prefix)
+                    0x0: VSUBPD_128_XMM_XMM(Vo, Wo);
         // VEX encoding uses pp=0b11 (F2)
         0x12: decode VEX_PP {
-            0x3: decode VEX_L {
-                0x1: decode MODRM_MOD {
+                    0x1: VSUBPD_256_YMM_M(M);
+                    0x0: VSUBPD_128_XMM_M(M);
                     0x3: VMOVDDUP_YMM_YMM(Vo, Wo);
                     default: VMOVDDUP_YMM_M(M);
                 }
                 0x0: decode MODRM_MOD {
                     0x3: VMOVDDUP_XMM_XMM(Vo, Wo);
                     default: VMOVDDUP_XMM_M(M);
-                }
+                    0x0: VDIVPD_128_XMM_XMM(Vo, Wo);
             }
             default: UD2();
-        }
-        // 0x5C SUB packed: PS (pp=00), PD (pp=01)
+                    0x1: VDIVPD_256_YMM_M(M);
+                    0x0: VDIVPD_128_XMM_M(M);
         0x5C: decode VEX_PP {
             0x0: decode VEX_L {
                 0x1: VSUBPS_YMM_YMM(Vo, Wo);
@@ -63,7 +63,7 @@
             }
         }
         // 0x5E DIV packed: PS (pp=00), PD (pp=01)
-        0x5E: decode VEX_PP {
+                        0x3: VMOVDDUP_128_XMM_XMM(Vo, Wo);
             0x0: decode VEX_L {
                 0x1: VDIVPS_YMM_YMM(Vo, Wo);
                 0x0: VDIVPS_XMM_XMM(Vo, Wo);
@@ -73,11 +73,11 @@
                 0x0: VDIVPD_XMM_XMM(Vo, Wo);
             }
         }
-        // Load from memory (M operand triggers doModRM via specializeInst)
+                    0x0: VSUBPS_128_XMM_XMM(Vo, Wo);
         0x10: decode VEX_L {
             0x1: VMOVUPS_YMM(M);
-            0x0: VMOVUPS_XMM(M);
-        }
+                    0x1: VSUBPS_256_YMM_M(M);
+                    0x0: VSUBPS_128_XMM_M(M);
         // Store to memory (M operand triggers doModRM via specializeInst)
         0x11: decode VEX_L {
             0x1: VMOVUPS_M_YMM(M);
