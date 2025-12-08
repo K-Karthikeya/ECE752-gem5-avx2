@@ -156,19 +156,11 @@
                 }
                 default: Inst::UD2();
             }
-            // VPBROADCASTD (0F 38 58 /r) - source can be xmm reg or memory
+            // VPBROADCASTD (0F 38 58 /r) uses Vo dest, Wo src (reg/mem)
             0x58: decode VEX_PRESENT {
-                0x1: decode MODRM_MOD {
-                    // reg-reg form (ModRM.mod == 3)
-                    0x3: decode VEX_L {
-                        0x1: Inst::VPBROADCASTD_256(Vo, Wdq);
-                        0x0: Inst::VPBROADCASTD_128(Vo, Wdq);
-                    }
-                    // memory form (ModRM.mod != 3)
-                    default: decode VEX_L {
-                        0x1: Inst::VPBROADCASTD_256(Vo, Wo);
-                        0x0: Inst::VPBROADCASTD_128(Vo, Wo);
-                    }
+                0x1: decode VEX_L {
+                    0x1: Inst::VPBROADCASTD_256(Vo, Wo);
+                    0x0: Inst::VPBROADCASTD_128(Vo, Wo);
                 }
                 default: Inst::UD2();
             }
