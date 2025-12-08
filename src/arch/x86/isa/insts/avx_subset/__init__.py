@@ -3,7 +3,7 @@
 
 from .floating_point.arithmetic import vaddps, vmulps, vxorps, vsubps, vandps, vdivps, vfmadd231ps, vcmpps
 from .floating_point.data_transfer import vmovups, vmovaps, vzeroupper
-from .integer.arithmetic import vpaddd, vpandd, vpminsd, vpbroadcastd
+from .integer.arithmetic import vpaddd, vpand, vpminsd, vpbroadcastd
 from .integer.data_transfer import vmovdqu
 
 microcode = ""
@@ -19,7 +19,7 @@ microcode += vdivps.microcode
 microcode += vfmadd231ps.microcode
 microcode += vcmpps.microcode
 microcode += vpaddd.microcode
-microcode += vpandd.microcode
+microcode += vpand.microcode
 microcode += vpminsd.microcode
 microcode += vpbroadcastd.microcode
 microcode += vmovdqu.microcode
