@@ -1,0 +1,26 @@
+//////////////////////////////////////////////////////////////////
+// Minimal VEX three-byte 0F 38 opcode decodes for AVX subset.
+//
+// Defines VEX-encoded entries for a limited subset, currently VBROADCASTSD.
+
+'X86ISA::ThreeByte0F38OpcodeVEX': decode OPCODE_OP {
+    format Inst {
+        // 0x19 VBROADCASTSD: broadcast m64 to XMM/YMM (66h -> pp=01)
+        0x19: decode VEX_PP {
+            0x1: decode VEX_L {
+                // YMM dest (L=1): only memory source is valid under AVX2
+                0x1: decode MODRM_MOD {
+                    0x3: UD2();
+                    default: VBROADCASTSD_YMM_M(M);
+                }
+                // XMM dest (L=0): memory source
+                0x0: decode MODRM_MOD {
+                    0x3: UD2();
+                    default: VBROADCASTSD_XMM_M(M);
+                }
+            }
+            default: UD2();
+        }
+        default: UD2();
+    }
+}
