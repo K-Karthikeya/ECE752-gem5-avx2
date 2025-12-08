@@ -273,26 +273,23 @@ let {{
             self.lane = lane
         constructorCode = """
             this->addAVXDestRegs();
+            // For VMOVDDUP: always read only the FIRST qword from source
+            // Whether from memory (ufp0 with 1 qword) or register (xmmrm with 2 qwords),
+            // we only need lane 0 to duplicate
+            _numSrcRegs = 1;
+            setSrcRegIdx(0, RegId(floatRegClass, src1));
         """
         code = """
-            // Read full vector from src1 (registered per-lane in
-            // operand array)
-            // Duplicate lane 0 of each 128-bit half across that half.
+            // Read the first 64-bit value (lane 0 of source)
+            RegVal low = xc->getRegOperand(this, 0);
+            // Duplicate it to fill both lanes of the 128-bit result
             if (destVL == 16) {
-                // XMM: two 64-bit chunks; duplicate chunk 0 into chunks
-                // 0 and 1
-                RegVal low = xc->getRegOperand(this, 0);
+                // XMM: two 64-bit chunks; duplicate chunk 0 into chunks 0 and 1
                 xc->setRegOperand(this, 0, low);
                 xc->setRegOperand(this, 1, low);
             } else {
-                // YMM: four 64-bit chunks; duplicate chunk 0 to [0,1],
-                // chunk 2 to [2,3]
-                RegVal low0 = xc->getRegOperand(this, 0);
-                RegVal low2 = xc->getRegOperand(this, 2);
-                xc->setRegOperand(this, 0, low0);
-                xc->setRegOperand(this, 1, low0);
-                xc->setRegOperand(this, 2, low2);
-                xc->setRegOperand(this, 3, low2);
+                // YMM: should not be used - use vdupf_half instead
+                panic("vdupf with VL=32 should use vdupf_half");
             }
         """
 
@@ -305,15 +302,23 @@ let {{
             srcSize=size, srcVL=VL)
         constructorCode = """
             this->addAVXDestRegs();
+            // Always read full YMM source (4 qwords) whether from memory or register
+            // ldfp256 loads all 4, and reg-to-reg also provides all 4
+            auto vRegs = destVL / sizeof(uint64_t);
+            _numSrcRegs = vRegs;
+            for (int i = 0; i < vRegs; ++i) {
+                setSrcRegIdx(i, RegId(floatRegClass, src1 + i));
+            }
         """
         code = """
-            // Same as vdupf for VL=32
-            RegVal low0 = xc->getRegOperand(this, 0);
-            RegVal low2 = xc->getRegOperand(this, 2);
-            xc->setRegOperand(this, 0, low0);
-            xc->setRegOperand(this, 1, low0);
-            xc->setRegOperand(this, 2, low2);
-            xc->setRegOperand(this, 3, low2);
+            // For VL=32 (YMM): duplicate lanes 0 and 2 within their respective 128-bit halves
+            // Input: 4 doubles [A, B, C, D] -> Output: [A, A, C, C]
+            RegVal low0 = xc->getRegOperand(this, 0);  // Lane 0
+            RegVal low2 = xc->getRegOperand(this, 2);  // Lane 2
+            xc->setRegOperand(this, 0, low0);  // Lane 0 stays
+            xc->setRegOperand(this, 1, low0);  // Lane 1 = duplicate of lane 0
+            xc->setRegOperand(this, 2, low2);  // Lane 2 stays
+            xc->setRegOperand(this, 3, low2);  // Lane 3 = duplicate of lane 2
         """
 
     class vxorf(varithp):

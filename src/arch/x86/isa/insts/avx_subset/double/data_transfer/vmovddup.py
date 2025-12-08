@@ -18,12 +18,12 @@ def macroop VMOVDDUP_256_XMM_XMM {
     vdupf_half dest=xmm0, src=xmmrm, size=8, VL=32
 };
 def macroop VMOVDDUP_256_XMM_M {
-    ldfp128 ufp0, seg, sib, "DISPLACEMENT", dataSize=16
+    ldfp256 ufp0, seg, sib, "DISPLACEMENT", dataSize=32
     vdupf_half dest=xmm0, src=ufp0, size=8, VL=32
 };
 def macroop VMOVDDUP_256_XMM_P {
     rdip t7
-    ldfp128 ufp0, seg, riprel, "DISPLACEMENT", dataSize=16
+    ldfp256 ufp0, seg, riprel, "DISPLACEMENT", dataSize=32
     vdupf_half dest=xmm0, src=ufp0, size=8, VL=32
 };
 """
