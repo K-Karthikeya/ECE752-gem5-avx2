@@ -54,8 +54,8 @@
             }
             0x17: ptest_Vdq_Wdq();
             0x18: decode VEX_L {
-                0x1: Inst::VBROADCASTSS_YMM(M);
-                0x0: Inst::VBROADCASTSS_XMM(M);
+                0x1: Inst::VBROADCASTSS_256_YMM(M);
+                0x0: Inst::VBROADCASTSS_128_XMM(M);
             }
             0x1C: decode MODRM_MOD {
                 default: Inst::PABSB(Vdq, Wdq);
@@ -179,3 +179,4 @@
         }
     }
 }
+

@@ -1,9 +1,9 @@
 microcode = '''
-def macroop VMOVUPS_XMM_M {
+def macroop VMOVUPS_128_XMM_M {
     ldfp128 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
     vclear dest=xmm2, destVL=16
 };
-def macroop VMOVUPS_XMM_P {
+def macroop VMOVUPS_128_XMM_P {
     rdip t7
     ldfp128 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
     vclear dest=xmm2, destVL=16
@@ -11,11 +11,11 @@ def macroop VMOVUPS_XMM_P {
 def macroop VMOVUPS_M_XMM_M {
     stfp128 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
 };
-def macroop VMOVUPS_M_XMM_P {
+def macroop VMOVUPS_128_M_XMM_P {
     rdip t7
     stfp128 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
 };
-def macroop VMOVUPS_YMM_M {
+def macroop VMOVUPS_256_YMM_M {
     # Original 4x64-bit loads (commented out to test ldfp256)
     # ldfp xmm0, seg, sib, "DISPLACEMENT", dataSize=8
     # ldfp xmm1, seg, sib, "DISPLACEMENT + 8", dataSize=8
@@ -25,7 +25,7 @@ def macroop VMOVUPS_YMM_M {
     # dataSize here is element size (8B); microop fetches 4 lanes internally.
     ldfp256 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
 };
-def macroop VMOVUPS_YMM_P {
+def macroop VMOVUPS_256_YMM_P {
     rdip t7
     ldfp256 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
 };
@@ -39,8 +39,9 @@ def macroop VMOVUPS_M_YMM_M {
     # dataSize is element size (8B); microop stores 4 lanes internally.
     stfp256 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
 };
-def macroop VMOVUPS_M_YMM_P {
+def macroop VMOVUPS_256_M_YMM_P {
     rdip t7
     stfp256 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
 };
 '''
+

@@ -40,41 +40,41 @@
         }
         // VMINPS (0x5D)
         0x5D: decode VEX_L {
-            0x1: VMINPS_YMM_YMM(Vo, Wo);
-            0x0: VMINPS_XMM_XMM(Vo, Wo);
+            0x1: VMINPS_256_YMM_YMM(Vo, Wo);
+            0x0: VMINPS_128_XMM_XMM(Vo, Wo);
         }
         // VMAXPS (0x5F)
         0x5F: decode VEX_L {
-            0x1: VMAXPS_YMM_YMM(Vo, Wo);
-            0x0: VMAXPS_XMM_XMM(Vo, Wo);
+            0x1: VMAXPS_256_YMM_YMM(Vo, Wo);
+            0x0: VMAXPS_128_XMM_XMM(Vo, Wo);
         }
         // Load from memory (M operand triggers doModRM via specializeInst)
         0x10: decode VEX_L {
-            0x1: VMOVUPS_YMM(M);
-            0x0: VMOVUPS_XMM(M);
+            0x1: VMOVUPS_256_YMM(M);
+            0x0: VMOVUPS_128_XMM(M);
         }
         // Store to memory (M operand triggers doModRM via specializeInst)
         0x11: decode VEX_L {
-            0x1: VMOVUPS_M_YMM(M);
-            0x0: VMOVUPS_M_XMM(M);
+            0x1: VMOVUPS_256_M_YMM(M);
+            0x0: VMOVUPS_128_M_XMM(M);
         }
         // VMOVSLDUP (0x12, VEX)
         0x12: decode VEX_L {
-            0x1: VMOVSLDUP_YMM_YMM(Vo, Wo);
-            0x0: VMOVSLDUP_XMM_XMM(Vo, Wo);
+            0x1: VMOVSLDUP_256_YMM_YMM(Vo, Wo);
+            0x0: VMOVSLDUP_128_XMM_XMM(Vo, Wo);
         }
         // VMOVSHDUP (0x16, VEX)
         0x16: decode VEX_L {
-            0x1: VMOVSHDUP_YMM_YMM(Vo, Wo);
-            0x0: VMOVSHDUP_XMM_XMM(Vo, Wo);
+            0x1: VMOVSHDUP_256_YMM_YMM(Vo, Wo);
+            0x0: VMOVSHDUP_128_XMM_XMM(Vo, Wo);
         }
         0x28: decode VEX_L {
-            0x1: VMOVAPS_YMM(M);
-            0x0: VMOVAPS_XMM(M);
+            0x1: VMOVAPS_256_YMM(M);
+            0x0: VMOVAPS_128_XMM(M);
         }
         0x29: decode VEX_L {
-            0x1: VMOVAPS_M_YMM(M);
-            0x0: VMOVAPS_M_XMM(M);
+            0x1: VMOVAPS_256_M_YMM(M);
+            0x0: VMOVAPS_128_M_XMM(M);
         }
         // FMA3 instructions live in 0F38 map; this file covers only 0F. See three_byte_opcodes_vex.isa for VFMADD231PS mapping.
         // VCMPPS (0xC2) requires an immediate (Ib).
@@ -83,7 +83,7 @@
             0x1: VCMPPS_YMM_YMM(Vo, Wo, Ib);
             0x0: VCMPPS_XMM_XMM(Vo, Wo, Ib);
         }
-        0x77: VZEROUPPER();
+        0x77: VZEROUPPER_256();
         default: UD2();
     }
 }
