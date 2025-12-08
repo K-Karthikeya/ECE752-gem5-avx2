@@ -10,7 +10,7 @@ def macroop VPBROADCASTD_128_XMM_XMM {
 # 128-bit width; reg-mem SIB form (VPBROADCASTD reg, [mem])
 def macroop VPBROADCASTD_128_XMM_M {
     ld t1, seg, sib, "DISPLACEMENT", dataSize=4
-    mov2fp xmm0, t1, dataSize=4
+    mov2fp xmm0, t1, 0
     vbroadcasti dest=xmm0, src1=xmm0, size=4, VL=16
 };
 
@@ -18,7 +18,7 @@ def macroop VPBROADCASTD_128_XMM_M {
 def macroop VPBROADCASTD_128_XMM_P {
     rdip t7
     ld t1, seg, riprel, "DISPLACEMENT", dataSize=4
-    mov2fp xmm0, t1, dataSize=4
+    mov2fp xmm0, t1, 0
     vbroadcasti dest=xmm0, src1=xmm0, size=4, VL=16
 };
 
@@ -30,7 +30,7 @@ def macroop VPBROADCASTD_256_XMM_XMM {
 # 256-bit width; reg-mem SIB form
 def macroop VPBROADCASTD_256_XMM_M {
     ld t1, seg, sib, "DISPLACEMENT", dataSize=4
-    mov2fp xmm0, t1, dataSize=4
+    mov2fp xmm0, t1, 0
     vbroadcasti dest=xmm0, src1=xmm0, size=4, VL=32
 };
 
@@ -38,7 +38,7 @@ def macroop VPBROADCASTD_256_XMM_M {
 def macroop VPBROADCASTD_256_XMM_P {
     rdip t7
     ld t1, seg, riprel, "DISPLACEMENT", dataSize=4
-    mov2fp xmm0, t1, dataSize=4
+    mov2fp xmm0, t1, 0
     vbroadcasti dest=xmm0, src1=xmm0, size=4, VL=32
 };
 '''
