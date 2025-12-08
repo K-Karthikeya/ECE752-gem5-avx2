@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-// Prototypes for assembly test routines.
+// Prototypes for assembly test routines - Floating Point
 void avx_vaddf_128(const float *a, const float *b, float *out);
 void avx_vaddf_256(const float *a, const float *b, float *out);
 void avx_vsubf_128(const float *a, const float *b, float *out);
@@ -22,6 +22,20 @@ void avx_vcmpf_eq_256(const float *a, const float *b, uint32_t *mask_out);
 void avx_vclear_upper(void);
 void avx_ldstfp_128(float *mem, float *out);
 void avx_ldstfp_256(float *mem, float *out);
+
+// Prototypes for integer AVX instructions
+void avx_vpaddd_128(const uint32_t *a, const uint32_t *b, uint32_t *out);
+void avx_vpaddd_256(const uint32_t *a, const uint32_t *b, uint32_t *out);
+void avx_vpand_128(const uint32_t *a, const uint32_t *b, uint32_t *out);
+void avx_vpand_256(const uint32_t *a, const uint32_t *b, uint32_t *out);
+void avx_vpminsd_128(const int32_t *a, const int32_t *b, int32_t *out);
+void avx_vpminsd_256(const int32_t *a, const int32_t *b, int32_t *out);
+void avx_vpbroadcastd_128(const uint32_t *src, uint32_t *out);
+void avx_vpbroadcastd_256(const uint32_t *src, uint32_t *out);
+void avx_vmovdqu_ld_128(const uint32_t *src, uint32_t *out);
+void avx_vmovdqu_st_128(const uint32_t *src, uint32_t *out);
+void avx_vmovdqu_ld_256(const uint32_t *src, uint32_t *out);
+void avx_vmovdqu_st_256(const uint32_t *src, uint32_t *out);
 
 static int check_vec_f32(const float *got, const float *exp, int lanes)
 {
@@ -173,6 +187,96 @@ int main(void)
         float out256[8] = {0};
         avx_ldstfp_256(mem256, out256);
         if (!check_vec_f32(out256, mem256, 8)) pass = 0; else printf("PASS ldstfp_256\n");
+    }
+
+    // Integer AVX Tests - 128-bit
+    {
+        uint32_t a[4] = {10, 20, 30, 40};
+        uint32_t b[4] = {5, 15, 25, 35};
+        uint32_t out[4];
+        
+        // VPADDD 128-bit
+        uint32_t exp_add[4];
+        for (int i = 0; i < 4; i++) exp_add[i] = a[i] + b[i];
+        avx_vpaddd_128(a, b, out);
+        if (!check_vec_u32(out, exp_add, 4)) pass = 0; else printf("PASS vpaddd_128\n");
+        
+        // VPAND 128-bit
+        uint32_t exp_and[4];
+        for (int i = 0; i < 4; i++) exp_and[i] = a[i] & b[i];
+        avx_vpand_128(a, b, out);
+        if (!check_vec_u32(out, exp_and, 4)) pass = 0; else printf("PASS vpand_128\n");
+        
+        // VPMINSD 128-bit
+        int32_t sa[4] = {-10, 50, -100, 200};
+        int32_t sb[4] = {20, -30, -50, 150};
+        int32_t sout[4];
+        int32_t exp_min[4];
+        for (int i = 0; i < 4; i++) exp_min[i] = (sa[i] < sb[i]) ? sa[i] : sb[i];
+        avx_vpminsd_128(sa, sb, sout);
+        if (!check_vec_u32((uint32_t*)sout, (uint32_t*)exp_min, 4)) pass = 0; else printf("PASS vpminsd_128\n");
+        
+        // VPBROADCASTD 128-bit
+        uint32_t broadcast_val = 0x12345678;
+        uint32_t exp_broadcast[4] = {broadcast_val, broadcast_val, broadcast_val, broadcast_val};
+        avx_vpbroadcastd_128(&broadcast_val, out);
+        if (!check_vec_u32(out, exp_broadcast, 4)) pass = 0; else printf("PASS vpbroadcastd_128\n");
+        
+        // VMOVDQU load/store 128-bit
+        uint32_t src[4] = {0xDEADBEEF, 0xCAFEBABE, 0x12345678, 0x87654321};
+        uint32_t dst[4] = {0};
+        avx_vmovdqu_ld_128(src, dst);
+        if (!check_vec_u32(dst, src, 4)) pass = 0; else printf("PASS vmovdqu_ld_128\n");
+        
+        uint32_t dst2[4] = {0};
+        avx_vmovdqu_st_128(src, dst2);
+        if (!check_vec_u32(dst2, src, 4)) pass = 0; else printf("PASS vmovdqu_st_128\n");
+    }
+
+    // Integer AVX Tests - 256-bit
+    {
+        uint32_t a[8] = {10, 20, 30, 40, 50, 60, 70, 80};
+        uint32_t b[8] = {5, 15, 25, 35, 45, 55, 65, 75};
+        uint32_t out[8];
+        
+        // VPADDD 256-bit
+        uint32_t exp_add[8];
+        for (int i = 0; i < 8; i++) exp_add[i] = a[i] + b[i];
+        avx_vpaddd_256(a, b, out);
+        if (!check_vec_u32(out, exp_add, 8)) pass = 0; else printf("PASS vpaddd_256\n");
+        
+        // VPAND 256-bit
+        uint32_t exp_and[8];
+        for (int i = 0; i < 8; i++) exp_and[i] = a[i] & b[i];
+        avx_vpand_256(a, b, out);
+        if (!check_vec_u32(out, exp_and, 8)) pass = 0; else printf("PASS vpand_256\n");
+        
+        // VPMINSD 256-bit
+        int32_t sa[8] = {-10, 50, -100, 200, -300, 400, -500, 600};
+        int32_t sb[8] = {20, -30, -50, 150, -200, 300, -400, 500};
+        int32_t sout[8];
+        int32_t exp_min[8];
+        for (int i = 0; i < 8; i++) exp_min[i] = (sa[i] < sb[i]) ? sa[i] : sb[i];
+        avx_vpminsd_256(sa, sb, sout);
+        if (!check_vec_u32((uint32_t*)sout, (uint32_t*)exp_min, 8)) pass = 0; else printf("PASS vpminsd_256\n");
+        
+        // VPBROADCASTD 256-bit
+        uint32_t broadcast_val = 0xABCDEF01;
+        uint32_t exp_broadcast[8];
+        for (int i = 0; i < 8; i++) exp_broadcast[i] = broadcast_val;
+        avx_vpbroadcastd_256(&broadcast_val, out);
+        if (!check_vec_u32(out, exp_broadcast, 8)) pass = 0; else printf("PASS vpbroadcastd_256\n");
+        
+        // VMOVDQU load/store 256-bit
+        uint32_t src[8] = {0xDEADBEEF, 0xCAFEBABE, 0x12345678, 0x87654321, 
+                           0xFEEDFACE, 0x13579BDF, 0x2468ACE0, 0xAABBCCDD};
+        uint32_t dst[8] = {0};
+        avx_vmovdqu_ld_256(src, dst);
+        if (!check_vec_u32(dst, src, 8)) pass = 0; else printf("PASS vmovdqu_ld_256\n");
+        
+        uint32_t dst2[8] = {0};
+        avx_vmovdqu_st_256(src, dst2);
+        if (!check_vec_u32(dst2, src, 8)) pass = 0; else printf("PASS vmovdqu_st_256\n");
     }
 
     if (!pass) {

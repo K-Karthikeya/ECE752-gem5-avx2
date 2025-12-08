@@ -16,7 +16,13 @@ ASM := ops/vaddf_128.S ops/vaddf_256.S \
        ops/vandf_128.S ops/vandf_256.S \
        ops/vfmadd231f_128.S ops/vfmadd231f_256.S \
        ops/vcmpf_eq_128.S ops/vcmpf_eq_256.S \
-       ops/vclear.S ops/ldstfp_128.S ops/ldstfp_256.S
+       ops/vclear.S ops/ldstfp_128.S ops/ldstfp_256.S \
+       ops/vpaddd_128.S ops/vpaddd_256.S \
+       ops/vpand_128.S ops/vpand_256.S \
+       ops/vpminsd_128.S ops/vpminsd_256.S \
+       ops/vpbroadcastd_128.S ops/vpbroadcastd_256.S \
+       ops/vmovdqu_ld_128.S ops/vmovdqu_st_128.S \
+       ops/vmovdqu_ld_256.S ops/vmovdqu_st_256.S
 
 OBJ := $(SRC:.c=.o) $(ASM:.S=.o)
 
