@@ -12,24 +12,24 @@
             0x1: decode VEX_L {
                 // 128-bit: reg-reg vs mem
                 0x0: decode MODRM_MOD {
-                    0x3: VADDPD_128_XMM_XMM(Vo, Wo);
-                    default: VADDPD_128_XMM_M(M);
+                    0x3: VADDPD_128(Vo, Wo);
+                    default: VADDPD_128(Vo, M);
                 }
                 // 256-bit: reg-reg vs mem
                 0x1: decode MODRM_MOD {
-                    0x3: VADDPD_256_XMM_XMM(Vo, Wo);
-                    default: VADDPD_256_XMM_M(M);
+                    0x3: VADDPD_256(Vo, Wo);
+                    default: VADDPD_256(Vo, M);
                 }
             }
             // PS
             0x0: decode VEX_L {
                 0x0: decode MODRM_MOD {
-                    0x3: VADDPS_XMM_XMM(Vo, Wo);
-                    default: VADDPS_XMM_M(M);
+                    0x3: VADDPS_128(Vo, Wo);
+                    default: VADDPS_128(Vo, M);
                 }
                 0x1: decode MODRM_MOD {
-                    0x3: VADDPS_YMM_YMM(Vo, Wo);
-                    default: VADDPS_YMM_M(M);
+                    0x3: VADDPS_256(Vo, Wo);
+                    default: VADDPS_256(Vo, M);
                 }
             }
         }
@@ -39,23 +39,23 @@
             // PD
             0x1: decode VEX_L {
                 0x0: decode MODRM_MOD {
-                    0x3: VMULPD_128_XMM_XMM(Vo, Wo);
-                    default: VMULPD_128_XMM_M(M);
+                    0x3: VMULPD_128(Vo, Wo);
+                    default: VMULPD_128(Vo, M);
                 }
                 0x1: decode MODRM_MOD {
-                    0x3: VMULPD_256_XMM_XMM(Vo, Wo);
-                    default: VMULPD_256_XMM_M(M);
+                    0x3: VMULPD_256(Vo, Wo);
+                    default: VMULPD_256(Vo, M);
                 }
             }
             // PS
             0x0: decode VEX_L {
                 0x0: decode MODRM_MOD {
-                    0x3: VMULPS_XMM_XMM(Vo, Wo);
-                    default: VMULPS_XMM_M(M);
+                    0x3: VMULPS_128(Vo, Wo);
+                    default: VMULPS_128(Vo, M);
                 }
                 0x1: decode MODRM_MOD {
-                    0x3: VMULPS_YMM_YMM(Vo, Wo);
-                    default: VMULPS_YMM_M(M);
+                    0x3: VMULPS_256(Vo, Wo);
+                    default: VMULPS_256(Vo, M);
                 }
             }
         }
@@ -65,23 +65,23 @@
             // PD
             0x1: decode VEX_L {
                 0x0: decode MODRM_MOD {
-                    0x3: VSUBPD_128_XMM_XMM(Vo, Wo);
-                    default: VSUBPD_128_XMM_M(M);
+                    0x3: VSUBPD_128(Vo, Wo);
+                    default: VSUBPD_128(Vo, M);
                 }
                 0x1: decode MODRM_MOD {
-                    0x3: VSUBPD_256_XMM_XMM(Vo, Wo);
-                    default: VSUBPD_256_XMM_M(M);
+                    0x3: VSUBPD_256(Vo, Wo);
+                    default: VSUBPD_256(Vo, M);
                 }
             }
             // PS
             0x0: decode VEX_L {
                 0x0: decode MODRM_MOD {
-                    0x3: VSUBPS_128_XMM_XMM(Vo, Wo);
-                    default: VSUBPS_128_XMM_M(M);
+                    0x3: VSUBPS_128(Vo, Wo);
+                    default: VSUBPS_128(Vo, M);
                 }
                 0x1: decode MODRM_MOD {
-                    0x3: VSUBPS_256_XMM_XMM(Vo, Wo);
-                    default: VSUBPS_256_XMM_M(M);
+                    0x3: VSUBPS_256(Vo, Wo);
+                    default: VSUBPS_256(Vo, M);
                 }
             }
         }
@@ -91,23 +91,23 @@
             // PD
             0x1: decode VEX_L {
                 0x0: decode MODRM_MOD {
-                    0x3: VDIVPD_128_XMM_XMM(Vo, Wo);
-                    default: VDIVPD_128_XMM_M(M);
+                    0x3: VDIVPD_128(Vo, Wo);
+                    default: VDIVPD_128(Vo, M);
                 }
                 0x1: decode MODRM_MOD {
-                    0x3: VDIVPD_256_XMM_XMM(Vo, Wo);
-                    default: VDIVPD_256_XMM_M(M);
+                    0x3: VDIVPD_256(Vo, Wo);
+                    default: VDIVPD_256(Vo, M);
                 }
             }
             // PS
             0x0: decode VEX_L {
                 0x0: decode MODRM_MOD {
-                    0x3: VDIVPS_XMM_XMM(Vo, Wo);
-                    default: VDIVPS_XMM_M(M);
+                    0x3: VDIVPS_128(Vo, Wo);
+                    default: VDIVPS_128(Vo, M);
                 }
                 0x1: decode MODRM_MOD {
-                    0x3: VDIVPS_YMM_YMM(Vo, Wo);
-                    default: VDIVPS_YMM_M(M);
+                    0x3: VDIVPS_256(Vo, Wo);
+                    default: VDIVPS_256(Vo, M);
                 }
             }
         }
@@ -118,13 +118,13 @@
             0x3: decode VEX_L {
                 // 256-bit MOVDDUP (YMM width; name uses 256_XMM_* convention)
                 0x1: decode MODRM_MOD {
-                    0x3: VMOVDDUP_256_XMM_XMM(Vo, Wo);
-                    default: VMOVDDUP_256_XMM_M(M);
+                    0x3: VMOVDDUP_256(Vo, Wo);
+                    default: VMOVDDUP_256(Vo, M);
                 }
                 // 128-bit MOVDDUP
                 0x0: decode MODRM_MOD {
-                    0x3: VMOVDDUP_128_XMM_XMM(Vo, Wo);
-                    default: VMOVDDUP_128_XMM_M(M);
+                    0x3: VMOVDDUP_128(Vo, Wo);
+                    default: VMOVDDUP_128(Vo, M);
                 }
             }
             default: UD2();

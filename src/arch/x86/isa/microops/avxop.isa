@@ -203,7 +203,8 @@ let {{
     class vaddf(varithp):
         opClass = 'SimdFloatAddOp'
         constructorCode = varithp.constructorCode
-        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vaddf enter VL=%u size=%u\\n",
+        code = """
+        'DPRINTF(AVXVerbose, "[AVX-TRACE] vaddf enter VL=%u size=%u\\n",
          destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t);
          for (int _i = 0; _i < _vRegs; ++_i) {
             uint64_t _pre_s1 = xc->getRegOperand(this, _i);
@@ -213,11 +214,13 @@ let {{
                 (unsigned long long)_pre_s2);
         }
         this->doPackedBinaryOp(xc, BinaryOp::FloatAdd);'
+        """
 
     class vsubf(varithp):
         opClass = 'SimdFloatAddOp'
         constructorCode = varithp.constructorCode
-        code = 'fprintf(stderr, "[AVX-TRACE] vsubf enter VL=%u size=%u\\n",
+        code = """
+        'fprintf(stderr, "[AVX-TRACE] vsubf enter VL=%u size=%u\\n",
         destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t);
         for (int _i = 0; _i < _vRegs; ++_i) {
             uint64_t _pre_s1 = xc->getRegOperand(this, _i);
@@ -227,11 +230,12 @@ let {{
             _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2);
         }
         this->doPackedBinaryOp(xc, BinaryOp::FloatSub);'
+        """
 
     class vmulf(varithp):
         opClass = 'SimdFloatMultOp'
         constructorCode = varithp.constructorCode
-        code =
+        code = """
         'DPRINTF(AVXVerbose, "[AVX-TRACE] vmulf enter VL=%u size=%u\\n",
             destVL, srcSize);
         int _vRegs = destVL / sizeof(uint64_t);
@@ -243,11 +247,12 @@ let {{
                 (unsigned long long)_pre_s2);
         }
         this->doPackedBinaryOp(xc, BinaryOp::FloatMul);'
+        """
 
     class vdivf(varithp):
         opClass = 'SimdFloatMultOp'
         constructorCode = varithp.constructorCode
-        code =
+        code = """
         'fprintf(stderr, "[AVX-TRACE] vdivf enter VL=%u size=%u\\n",
             destVL, srcSize);
         int _vRegs = destVL / sizeof(uint64_t);
@@ -261,6 +266,7 @@ let {{
                 (unsigned long long)_pre_s2);
         }
         this->doPackedBinaryOp(xc, BinaryOp::FloatDiv);'
+        """
 
     # Broadcast: splat one element across all lanes
     class vbcastf(AVXOp):

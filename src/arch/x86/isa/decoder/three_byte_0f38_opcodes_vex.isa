@@ -11,12 +11,12 @@
                 // YMM dest (L=1): only memory source is valid under AVX2
                 0x1: decode MODRM_MOD {
                     0x3: UD2();
-                    default: VBROADCASTSD_YMM_M(M);
+                    default: VBROADCASTSD_256(Vo, M);
                 }
                 // XMM dest (L=0): memory source
                 0x0: decode MODRM_MOD {
                     0x3: UD2();
-                    default: VBROADCASTSD_XMM_M(M);
+                    default: VBROADCASTSD_128(Vo, M);
                 }
             }
             default: UD2();
