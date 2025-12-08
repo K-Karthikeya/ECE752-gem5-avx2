@@ -25,38 +25,38 @@ avx_subset_double_test:
     vmovups   (%rdi), %xmm0          # a low lane
     vmovups   (%rsi), %xmm1          # b low lane
     # Compute low lane results
-    addpd     %xmm1, %xmm0           # xmm0 = a+b (low)
+    vaddpd     %xmm1, %xmm0, %xmm0    # xmm0 = a+b (low)
     vmovups   %xmm0, (%rdx)          # out[0..1]
     vmovups   (%rdi), %xmm2          # reload a low
     vmovups   (%rsi), %xmm3          # reload b low
-    subpd     %xmm3, %xmm2           # xmm2 = a-b (low)
+    vsubpd     %xmm3, %xmm2, %xmm2    # xmm2 = a-b (low)
     vmovups   %xmm2, 32(%rdx)        # out[4..5]
     vmovups   (%rdi), %xmm4          # reload a low
     vmovups   (%rsi), %xmm5          # reload b low
-    mulpd     %xmm5, %xmm4           # xmm4 = a*b (low)
+    vmulpd     %xmm5, %xmm4, %xmm4    # xmm4 = a*b (low)
     vmovups   %xmm4, 64(%rdx)        # out[8..9]
     vmovups   (%rdi), %xmm6          # reload a low
     vmovups   (%rsi), %xmm7          # reload b low
-    divpd     %xmm7, %xmm6           # xmm6 = a/b (low)
+    vdivpd     %xmm7, %xmm6, %xmm6    # xmm6 = a/b (low)
     vmovups   %xmm6, 96(%rdx)        # out[12..13]
 
     # Load a[2..3], b[2..3]
     vmovups   16(%rdi), %xmm0        # a high lane
     vmovups   16(%rsi), %xmm1        # b high lane
     # Compute high lane results
-    addpd     %xmm1, %xmm0           # xmm0 = a+b (high)
+    vaddpd     %xmm1, %xmm0, %xmm0    # xmm0 = a+b (high)
     vmovups   %xmm0, 16(%rdx)        # out[2..3]
     vmovups   16(%rdi), %xmm2        # reload a high
     vmovups   16(%rsi), %xmm3        # reload b high
-    subpd     %xmm3, %xmm2           # xmm2 = a-b (high)
+    vsubpd     %xmm3, %xmm2, %xmm2    # xmm2 = a-b (high)
     vmovups   %xmm2, 48(%rdx)        # out[6..7]
     vmovups   16(%rdi), %xmm4        # reload a high
     vmovups   16(%rsi), %xmm5        # reload b high
-    mulpd     %xmm5, %xmm4           # xmm4 = a*b (high)
+    vmulpd     %xmm5, %xmm4, %xmm4    # xmm4 = a*b (high)
     vmovups   %xmm4, 80(%rdx)        # out[10..11]
     vmovups   16(%rdi), %xmm6        # reload a high
     vmovups   16(%rsi), %xmm7        # reload b high
-    divpd     %xmm7, %xmm6           # xmm6 = a/b (high)
+    vdivpd     %xmm7, %xmm6, %xmm6    # xmm6 = a/b (high)
     vmovups   %xmm6, 112(%rdx)       # out[14..15]
 
     # tmp[0..1] = movddup XMM from a (duplicate a[0] across both lanes)
