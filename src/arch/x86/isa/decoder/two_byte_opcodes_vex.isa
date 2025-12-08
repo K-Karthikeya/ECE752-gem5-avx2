@@ -231,7 +231,7 @@
         // VMOVD: Move 32-bit between GPR and XMM (VEX.66 prefix, pp=0x1)
         // 0x6E - load from reg/mem to XMM, 0x7E - store from XMM to reg/mem
         0x6E: decode VEX_PP {
-            0x1: VMOVD(Ed, Vd);
+            0x1: VMOVD(Vd, Ed);
             default: UD2();
         }
         0x7E: decode VEX_PP {
