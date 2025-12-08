@@ -112,8 +112,20 @@
             0x38: decode MODRM_MOD {
                 default: Inst::PMINSB(Vdq, Wdq);
             }
-            0x39: decode MODRM_MOD {
-                default: Inst::PMINSD(Vdq, Wdq);
+            0x39: decode VEX_PRESENT {
+                0x1: decode REX_W {
+                    0x1: decode VEX_L {
+                        0x1: Inst::VPMINSQ_256(Vo, Wo);
+                        0x0: Inst::VPMINSQ_128(Vo, Wo);
+                    }
+                    0x0: decode VEX_L {
+                        0x1: Inst::VPMINSD_256(Vo, Wo);
+                        0x0: Inst::VPMINSD_128(Vo, Wo);
+                    }
+                }
+                default: decode MODRM_MOD {
+                    default: Inst::PMINSD(Vdq, Wdq);
+                }
             }
             0x3A: decode MODRM_MOD {
                 default: Inst::PMINUW(Vdq, Wdq);
@@ -140,21 +152,22 @@
                 default: Inst::PHMINPOSUW(Vdq, Wdq);
             }
             // VEX FMA3: VFMADD231PS (0F 38 B8 /r)
-            // New approach: encode vector width in the Inst name (128/256)
-            // and let operand kinds (Vo/Wo) drive reg vs mem suffix only.
-            0xB8: decode VEX_L {
-                0x1: Inst::VFMADD231PS_256(Vo, Wo);
-                0x0: Inst::VFMADD231PS_128(Vo, Wo);
-            }
-            // VPMINSD/VPMINSQ (0F 38 3B /r, dword/qword lanes)
-            0x3B: decode VEX_L {
-                0x1: Inst::VPMINSQ_256(Vo, Wo);
-                0x0: Inst::VPMINSD_128(Vo, Wo);
+            // Encode vector width in the Inst name (128/256) and let operand
+            // kinds (Vo/Wo) select reg vs mem expansions.
+            0xB8: decode VEX_PRESENT {
+                0x1: decode VEX_L {
+                    0x1: Inst::VFMADD231PS_256(Vo, Wo);
+                    0x0: Inst::VFMADD231PS_128(Vo, Wo);
+                }
+                default: Inst::UD2();
             }
             // VPBROADCASTD (0F 38 58 /r) uses Vo dest, Wo src (reg/mem)
-            0x58: decode VEX_L {
-                0x1: Inst::VPBROADCASTD_256(Vo, Wo);
-                0x0: Inst::VPBROADCASTD_128(Vo, Wo);
+            0x58: decode VEX_PRESENT {
+                0x1: decode VEX_L {
+                    0x1: Inst::VPBROADCASTD_256(Vo, Wo);
+                    0x0: Inst::VPBROADCASTD_128(Vo, Wo);
+                }
+                default: Inst::UD2();
             }
             default: Inst::UD2();
         }
