@@ -129,10 +129,49 @@
                 }
             }
         }
-
-        // 0x12 MOVDDUP: duplicate low double(s) within 128-bit lanes
-        // (F2 prefix)
+        // VMINPS (0x5D)
+        0x5D: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x0: decode MODRM_MOD {
+                    0x3: VMINPS_128(Vo, Wo);
+                    default: VMINPS_128(Vo, M);
+                }
+                0x1: decode MODRM_MOD {
+                    0x3: VMINPS_256(Vo, Wo);
+                    default: VMINPS_256(Vo, M);
+                }
+            }
+            default: UD2();
+        }
+                // VMAXPS (0x5F)
+        0x5F: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x0: decode MODRM_MOD {
+                    0x3: VMAXPS_128(Vo, Wo);
+                    default: VMAXPS_128(Vo, M);
+                }
+                0x1: decode MODRM_MOD {
+                    0x3: VMAXPS_256(Vo, Wo);
+                    default: VMAXPS_256(Vo, M);
+                }
+            }
+            default: UD2();
+        }
+        // 0x12 MOVSLDUP and MOVDDUP: duplicate low singles / low doubles
+        // (F3 prefix for MOVSLDUP, F2 prefix for MOVDDUP)
         0x12: decode VEX_PP {
+            // VMOVSLDUP (F3 prefix, VEX_PP=0x2)
+            0x2: decode VEX_L {
+                0x1: decode MODRM_MOD {
+                    0x3: VMOVSLDUP_256(Vo, Wo);
+                    default: VMOVSLDUP_256(Vo, M);
+                }
+                0x0: decode MODRM_MOD {
+                    0x3: VMOVSLDUP_128(Vo, Wo);
+                    default: VMOVSLDUP_128(Vo, M);
+                }
+            }
+            // VMOVDDUP (F2 prefix, VEX_PP=0x3)
             0x3: decode VEX_L {
                 // 256-bit MOVDDUP (YMM width; name uses 256_XMM_* convention)
                 0x1: decode MODRM_MOD {
@@ -148,7 +187,20 @@
             default: UD2();
         }
 
-        // Simple moves (unchanged): VMOVUPS/VMOVAPS
+        // 0x16 VMOVSHDUP (0F 16 /r, F3 prefix) - duplicate high singles
+        0x16: decode VEX_PP {
+            0x2: decode VEX_L {
+                0x1: decode MODRM_MOD {
+                    0x3: VMOVSHDUP_256(Vo, Wo);
+                    default: VMOVSHDUP_256(Vo, M);
+                }
+                0x0: decode MODRM_MOD {
+                    0x3: VMOVSHDUP_128(Vo, Wo);
+                    default: VMOVSHDUP_128(Vo, M);
+                }
+            }
+            default: UD2();
+        }
 
         // Integer arithmetic/logical packed ops (dword lanes)
         0xFE: decode VEX_L {
