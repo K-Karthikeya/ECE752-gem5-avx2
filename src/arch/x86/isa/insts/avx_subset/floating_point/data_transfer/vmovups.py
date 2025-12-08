@@ -8,7 +8,7 @@ def macroop VMOVUPS_128_XMM_P {
     ldfp128 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
     vclear dest=xmm2, destVL=16
 };
-def macroop VMOVUPS_M_XMM_M {
+def macroop VMOVUPS_128_M_XMM {
     stfp128 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
 };
 def macroop VMOVUPS_128_M_XMM_P {
@@ -29,7 +29,7 @@ def macroop VMOVUPS_256_YMM_P {
     rdip t7
     ldfp256 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
 };
-def macroop VMOVUPS_M_YMM_M {
+def macroop VMOVUPS_256_M_YMM {
     # Original 4x64-bit stores (commented out to test stfp256)
     # stfp xmm0, seg, sib, "DISPLACEMENT", dataSize=8
     # stfp xmm1, seg, sib, "DISPLACEMENT + 8", dataSize=8
