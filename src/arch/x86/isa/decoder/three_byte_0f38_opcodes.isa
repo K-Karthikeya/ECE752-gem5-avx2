@@ -154,9 +154,6 @@
             0x3F: decode MODRM_MOD {
                 default: Inst::PMAXUD(Vdq, Wdq);
             }
-            0x40: decode MODRM_MOD {
-                default: Inst::PMULLD(Vdq, Wdq);
-            }
             0x41: decode MODRM_MOD {
                 default: Inst::PHMINPOSUW(Vdq, Wdq);
             }

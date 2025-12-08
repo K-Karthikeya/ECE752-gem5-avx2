@@ -169,8 +169,10 @@ protected:
     IntAdd,
     IntSub,
     IntAnd,
-    SIntMin,
+    IntOr,
     IntXor,
+    IntMul,
+    SIntMin,
   };
 
   inline FloatInt calcPackedBinaryOp(FloatInt src1, FloatInt src2, BinaryOp op) const
@@ -207,13 +209,21 @@ protected:
         dest.si.i1 = src1.si.i1 & src2.si.i1;
         dest.si.i2 = src1.si.i2 & src2.si.i2;
         break;
-      case BinaryOp::SIntMin:
-        dest.si.i1 = std::min(src1.si.i1, src2.si.i1);
-        dest.si.i2 = std::min(src1.si.i2, src2.si.i2);
+      case BinaryOp::IntOr:
+        dest.si.i1 = src1.si.i1 | src2.si.i1;
+        dest.si.i2 = src1.si.i2 | src2.si.i2;
         break;
       case BinaryOp::IntXor:
         dest.si.i1 = src1.si.i1 ^ src2.si.i1;
         dest.si.i2 = src1.si.i2 ^ src2.si.i2;
+        break;
+      case BinaryOp::IntMul:
+        dest.si.i1 = src1.si.i1 * src2.si.i1;
+        dest.si.i2 = src1.si.i2 * src2.si.i2;
+        break;
+      case BinaryOp::SIntMin:
+        dest.si.i1 = std::min(src1.si.i1, src2.si.i1);
+        dest.si.i2 = std::min(src1.si.i2, src2.si.i2);
         break;
       case BinaryOp::FloatMin:
         dest.f.f1 = std::min(src1.f.f1, src2.f.f1);
@@ -250,11 +260,17 @@ protected:
       case BinaryOp::IntAnd:
         dest.sl = src1.sl & src2.sl;
         break;
-      case BinaryOp::SIntMin:
-        dest.sl = std::min(src1.sl, src2.sl);
+      case BinaryOp::IntOr:
+        dest.sl = src1.sl | src2.sl;
         break;
       case BinaryOp::IntXor:
         dest.sl = src1.sl ^ src2.sl;
+        break;
+      case BinaryOp::IntMul:
+        dest.sl = src1.sl * src2.sl;
+        break;
+      case BinaryOp::SIntMin:
+        dest.sl = std::min(src1.sl, src2.sl);
         break;
       case BinaryOp::FloatMin:
         dest.d = std::min(src1.d, src2.d);
