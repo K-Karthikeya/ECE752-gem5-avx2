@@ -40,9 +40,9 @@
             0x0: VPADDD_128(Vo, Wo);
         }
         0xDB: decode VEX_L {
-            // VPANDD (0F DB /r)
-            0x1: VPANDD_256(Vo, Wo);
-            0x0: VPANDD_128(Vo, Wo);
+            // VPAND (0F DB /r) - bitwise AND works on all element sizes
+            0x1: VPAND_256(Vo, Wo);
+            0x0: VPAND_128(Vo, Wo);
         }
         0x5E: decode VEX_L {
             // VDIVPS reg-reg

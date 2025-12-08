@@ -10,9 +10,9 @@ HARNESS = avx_int_harness.c
 ASM_SRCS = ops/vpaddd_128.S ops/vpaddd_256.S \
            ops/vpandd_128.S ops/vpandd_256.S \
            ops/vpminsd_128.S ops/vpminsd_256.S \
-           ops/vpminsq_128.S ops/vpminsq_256.S \
            ops/vpbroadcastd_128.S ops/vpbroadcastd_256.S \
            ops/vmovdqu_128.S ops/vmovdqu_256.S
+# VPMINSQ is AVX-512 only, not included: ops/vpminsq_128.S ops/vpminsq_256.S
 
 ASM_OBJS = $(ASM_SRCS:.S=.o)
 

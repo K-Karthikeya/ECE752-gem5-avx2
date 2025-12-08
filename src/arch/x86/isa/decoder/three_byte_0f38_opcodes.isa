@@ -113,15 +113,10 @@
                 default: Inst::PMINSB(Vdq, Wdq);
             }
             0x39: decode VEX_PRESENT {
-                0x1: decode REX_W {
-                    0x1: decode VEX_L {
-                        0x1: Inst::VPMINSQ_256(Vo, Wo);
-                        0x0: Inst::VPMINSQ_128(Vo, Wo);
-                    }
-                    0x0: decode VEX_L {
-                        0x1: Inst::VPMINSD_256(Vo, Wo);
-                        0x0: Inst::VPMINSD_128(Vo, Wo);
-                    }
+                0x1: decode VEX_L {
+                    // VPMINSD only - VPMINSQ (REX_W=1) is AVX-512 only
+                    0x1: Inst::VPMINSD_256(Vo, Wo);
+                    0x0: Inst::VPMINSD_128(Vo, Wo);
                 }
                 default: decode MODRM_MOD {
                     default: Inst::PMINSD(Vdq, Wdq);

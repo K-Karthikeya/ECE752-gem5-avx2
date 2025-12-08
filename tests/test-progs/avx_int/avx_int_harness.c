@@ -203,8 +203,9 @@ int main() {
     test_vpandd_256();
     test_vpminsd_128();
     test_vpminsd_256();
-    test_vpminsq_128();
-    test_vpminsq_256();
+    // VPMINSQ is AVX-512 only, not available in AVX2
+    // test_vpminsq_128();
+    // test_vpminsq_256();
     test_vpbroadcastd_128();
     test_vpbroadcastd_256();
     test_vmovdqu_128();
