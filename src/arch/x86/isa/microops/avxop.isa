@@ -347,13 +347,13 @@ let {{
     class vaddi(varithp):
         opClass = 'SimdAddOp'
         constructorCode = varithp.constructorCode
-        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vaddi enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); FloatInt _s1; _s1.ul = _pre_s1; FloatInt _s2; _s2.ul = _pre_s2; DPRINTF(AVXVerbose, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::IntAdd);'
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vaddi enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntAdd);'
 
     # Integer packed AND (VPANDD): packed 32-bit bitwise AND
     class vandi(varithp):
         opClass = 'SimdAddOp'
         constructorCode = varithp.constructorCode
-        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vandi enter VL=%u size=%u\\n", destVL, srcSize); int _vRegs = destVL / sizeof(uint64_t); for (int _i = 0; _i < _vRegs; ++_i) { uint64_t _pre_s1 = xc->getRegOperand(this, _i); uint64_t _pre_s2 = xc->getRegOperand(this, _vRegs + _i); DPRINTF(AVXVerbose, "[AVX-PRE] lane=%d pre_s1=%#016llx pre_s2=%#016llx\\n", _i, (unsigned long long)_pre_s1, (unsigned long long)_pre_s2); } this->doPackedBinaryOp(xc, BinaryOp::IntAnd);'
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vandi enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntAnd);'
 
     # Integer packed min (VPMINSD/VPMINSQ): signed integer minimum
     class vmini(varithp):
@@ -369,7 +369,6 @@ let {{
                              destSize=size, destVL=VL, srcSize=size, srcVL=VL)
         constructorCode = """
         this->addAVXDestRegs();
-        auto vRegs = destVL / sizeof(uint64_t);
         auto baseSrc = src1;
         _numSrcRegs = 1;
         setSrcRegIdx(0, RegId(floatRegClass, baseSrc));
