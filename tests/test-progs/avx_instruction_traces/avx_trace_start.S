@@ -62,6 +62,7 @@ _start:
     lea expected(%rip), %rdi      # rdi = expected
     mov $104, %rcx                # count of floats
     xor %eax, %eax                # accumulates mismatches
+    xor %r10d, %r10d              # element index tracker (0-based)
 1:
     mov (%rdi), %r8d
     mov (%rsi), %r9d
@@ -69,10 +70,12 @@ _start:
     jne 2f
     add $4, %rdi
     add $4, %rsi
+    inc %r10d
     loop 1b
     jmp 3f
 2:
-    mov $1, %eax                  # mark failure
+    mov %r10d, %eax               # set failing index (0-based)
+    inc %eax                      # return 1-based index for clarity
 3:
 
     # Exit with code in eax (0 = pass, 1 = fail)
