@@ -54,11 +54,6 @@ let {{
     # Append our AVX subset microcode so the assembler recognizes VADDPS/VMULPS/VXORPS/VMOV*/VZEROUPPER
     try:
         from insts.avx_subset import microcode as avx_microcode
-        print("=" * 80)
-        print("AVX SUBSET MICROCODE BEING ADDED:")
-        print("=" * 80)
-        print(avx_microcode)
-        print("=" * 80)
         microcode += avx_microcode
     except Exception as e:
         # If avx_subset isn't present, proceed without it (helps non-AVX builds)
