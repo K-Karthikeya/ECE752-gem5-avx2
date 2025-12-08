@@ -14,7 +14,6 @@ def macroop VADDPS_128_XMM_P {
     vaddf dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=16
     vclear dest=xmm2, destVL=16
 };
-
 def macroop VADDPS_256_XMM_XMM {
     vaddf dest=xmm0, src1=xmm0v, src2=xmmrm, size=4, VL=32
 };

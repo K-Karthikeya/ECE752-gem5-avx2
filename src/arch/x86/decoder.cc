@@ -53,6 +53,7 @@ Decoder::doResetState()
   emi.rex = 0;
   emi.legacy = 0;
   emi.evex = 0;
+  emi.vex_pp = 0;
 
     emi.opcode.type = BadOpcode;
     emi.opcode.op = 0;
@@ -214,6 +215,7 @@ Decoder::doVex2Of2State(uint8_t nextByte)
 
   emi.evex.l = vex.l;
   emi.evex.v = ~vex.v;
+  emi.vex_pp = vex.p;
 
     switch (vex.p) {
       case 0:
@@ -294,6 +296,7 @@ Decoder::doVex3Of3State(uint8_t nextByte)
 
   emi.evex.l = vex.l;
   emi.evex.v = ~vex.v;
+  emi.vex_pp = vex.p;
 
     switch (vex.p) {
       case 0:

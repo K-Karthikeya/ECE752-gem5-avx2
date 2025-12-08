@@ -13,7 +13,6 @@ def macroop VANDPS_128_XMM_P {
     vandf dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=16
     vclear dest=xmm2, destVL=16
 };
-
 def macroop VANDPS_256_XMM_XMM {
     vandf dest=xmm0, src1=xmm0v, src2=xmmrm, size=4, VL=32
 };

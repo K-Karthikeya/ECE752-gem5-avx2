@@ -20,7 +20,6 @@ def macroop VFMADD231PS_128_XMM_P {
     vfmadd231f dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=16
     vclear dest=xmm2, destVL=16
 };
-
 # 256-bit width (VEX.L=1); reg-reg and reg/mem forms
 def macroop VFMADD231PS_256_XMM_XMM {
     vfmadd231f dest=xmm0, src1=xmm0v, src2=xmmrm, size=4, VL=32
