@@ -277,6 +277,9 @@ struct ExtMachInst
     LegacyPrefixVector legacy;
     Rex rex;
     EVexInfo evex;
+    // Synthetic field: VEX mandatory-prefix (pp) value captured during decode.
+    // 0 = none, 1 = 66h, 2 = F3h, 3 = F2h (as encoded in VEX/EVEX p).
+    uint8_t vex_pp;
 
     //This holds all of the bytes of the opcode
     struct
@@ -310,12 +313,14 @@ operator << (std::ostream &os, const ExtMachInst &emi)
 {
     ccprintf(os, "\n{\n\tleg = %#x,\n\trex = %#x,\n\t"
                  "evex/xop = %#x,\n\t"
+                 "vex_pp = %u,\n\t"
                  "op = {\n\t\ttype = %s,\n\t\top = %#x,\n\t\t},\n\t"
                  "modRM = %#x,\n\tsib = %#x,\n\t"
                  "immediate = %#x,\n\tdisplacement = %#x\n\t"
                  "dispSize = %d}\n",
                  (uint8_t)emi.legacy, (uint8_t)emi.rex,
                  (uint16_t)emi.evex,
+                 (unsigned)emi.vex_pp,
                  opcodeTypeToStr(emi.opcode.type), (uint8_t)emi.opcode.op,
                  (uint8_t)emi.modRM, (uint8_t)emi.sib,
                  emi.immediate, emi.displacement, emi.dispSize);
@@ -381,6 +386,7 @@ struct hash<gem5::X86ISA::ExtMachInst>
         return (((uint64_t)emi.legacy << 48) |
                 ((uint64_t)emi.rex << 40) |
                 ((uint64_t)emi.evex << 32) |
+                ((uint64_t)emi.vex_pp << 28) |
                 ((uint64_t)emi.modRM << 24) |
                 ((uint64_t)emi.sib << 16) |
                 ((uint64_t)emi.opcode.type << 8) |
