@@ -94,4 +94,7 @@ def bitfield VEX_PRESENT evex.vex_present;
 def bitfield VEX_V evex.v;
 def bitfield VEX_L evex.l;
 // VEX.pp encodes legacy SIMD prefixes: 00 = none (PS), 01 = 66h (PD)
-def bitfield VEX_PP evex.pp;
+// EVEX encodes mandatory prefix in EVex3Of4.p; map VEX_PP to evex.p
+// VEX_PP: mandatory SIMD prefix from VEX/EVEX 'p' field.
+// We store this as a synthetic `vex_pp` on ExtMachInst populated by the decoder.
+def bitfield VEX_PP vex_pp;
