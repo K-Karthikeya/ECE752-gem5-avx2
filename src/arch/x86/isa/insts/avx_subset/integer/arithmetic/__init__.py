@@ -1,2 +1,2 @@
 # integer/arithmetic/__init__.py
-from . import vpaddd, vpand, vpminsd, vpbroadcastd
+from . import vpaddd, vpand, vpminsd, vpbroadcastd, vpxor, vpor, vpsubd, vpmulld

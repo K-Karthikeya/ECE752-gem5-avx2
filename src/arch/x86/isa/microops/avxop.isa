@@ -600,11 +600,35 @@ let {{
         constructorCode = varithp.constructorCode
         code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vaddi enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntAdd);'
 
-    # Integer packed AND (VPANDD): packed 32-bit bitwise AND
+    # Integer packed AND (VPAND): packed 32-bit bitwise AND
     class vandi(varithp):
         opClass = 'SimdAddOp'
         constructorCode = varithp.constructorCode
         code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vandi enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntAnd);'
+
+    # Integer packed OR (VPOR): packed 32-bit bitwise OR
+    class vori(varithp):
+        opClass = 'SimdAddOp'
+        constructorCode = varithp.constructorCode
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vori enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntOr);'
+
+    # Integer packed XOR (VPXOR): packed 32-bit bitwise XOR
+    class vxori(varithp):
+        opClass = 'SimdAddOp'
+        constructorCode = varithp.constructorCode
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vxori enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntXor);'
+
+    # Integer packed subtract (VPSUBD): packed 32-bit signed integer subtraction
+    class vsubi(varithp):
+        opClass = 'SimdAddOp'
+        constructorCode = varithp.constructorCode
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vsubi enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntSub);'
+
+    # Integer packed multiply (VPMULLD): packed 32-bit signed integer multiplication
+    class vmuli(varithp):
+        opClass = 'SimdMultOp'
+        constructorCode = varithp.constructorCode
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vmuli enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntMul);'
 
     # Integer packed min (VPMINSD/VPMINSQ): signed integer minimum
     class vmini(varithp):

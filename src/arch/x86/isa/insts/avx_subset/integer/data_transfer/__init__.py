@@ -1,2 +1,2 @@
 # integer/data_transfer/__init__.py
-from . import vmovdqu
+from . import vmovdqu, vmovd

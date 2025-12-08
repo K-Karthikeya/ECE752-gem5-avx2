@@ -213,6 +213,31 @@
             0x1: VPAND_256(Vo, Wo);
             0x0: VPAND_128(Vo, Wo);
         }
+        0xEB: decode VEX_L {
+            // VPOR (0F EB /r) - bitwise OR
+            0x1: VPOR_256(Vo, Wo);
+            0x0: VPOR_128(Vo, Wo);
+        }
+        0xEF: decode VEX_L {
+            // VPXOR (0F EF /r) - bitwise XOR
+            0x1: VPXOR_256(Vo, Wo);
+            0x0: VPXOR_128(Vo, Wo);
+        }
+        0xFA: decode VEX_L {
+            // VPSUBD (0F FA /r) - packed 32-bit subtract
+            0x1: VPSUBD_256(Vo, Wo);
+            0x0: VPSUBD_128(Vo, Wo);
+        }
+        // VMOVD: Move 32-bit between GPR and XMM (VEX.66 prefix, pp=0x1)
+        // 0x6E - load from reg/mem to XMM, 0x7E - store from XMM to reg/mem
+        0x6E: decode VEX_PP {
+            0x1: VMOVD(Ed, Vd);
+            default: UD2();
+        }
+        0x7E: decode VEX_PP {
+            0x1: VMOVD(Ed, Vd);
+            default: UD2();
+        }
         // Load from memory (M operand triggers doModRM via specializeInst)
         // VMOVDQU (0F 6F /r) load and VMOVDQU store (0F 7F /r)
         0x6F: decode VEX_L {

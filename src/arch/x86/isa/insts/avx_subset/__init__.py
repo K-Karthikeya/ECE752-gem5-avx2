@@ -38,10 +38,15 @@ from .integer.arithmetic import (
     vpaddd,
     vpand,
     vpminsd,
-    vpbroadcastd
+    vpbroadcastd,
+    vpxor,
+    vpor,
+    vpsubd,
+    vpmulld
 )
 from .integer.data_transfer import (
-    vmovdqu
+    vmovdqu,
+    vmovd
 )
 
 microcode = ""
@@ -72,3 +77,8 @@ microcode += vpand.microcode
 microcode += vpminsd.microcode
 microcode += vpbroadcastd.microcode
 microcode += vmovdqu.microcode
+microcode += vpxor.microcode
+microcode += vpor.microcode
+microcode += vpsubd.microcode
+microcode += vpmulld.microcode
+microcode += vmovd.microcode
