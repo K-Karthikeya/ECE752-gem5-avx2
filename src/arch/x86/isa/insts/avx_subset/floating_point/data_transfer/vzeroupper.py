@@ -1,6 +1,5 @@
 microcode = '''
-
-def macroop VZEROUPPER_256 {
+def macroop VZEROUPPER {
     vclear dest="X86ISA::FpRegIndex(FLOATREG_XMM_IDX(0, 2))", destVL=16
     vclear dest="X86ISA::FpRegIndex(FLOATREG_XMM_IDX(1, 2))", destVL=16
     vclear dest="X86ISA::FpRegIndex(FLOATREG_XMM_IDX(2, 2))", destVL=16
@@ -18,6 +17,4 @@ def macroop VZEROUPPER_256 {
     vclear dest="X86ISA::FpRegIndex(FLOATREG_XMM_IDX(14, 2))", destVL=16
     vclear dest="X86ISA::FpRegIndex(FLOATREG_XMM_IDX(15, 2))", destVL=16
 };
-
 '''
-

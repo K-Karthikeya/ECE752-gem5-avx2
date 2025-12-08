@@ -1,6 +1,7 @@
 # avx_subset/__init__.py
 # Aggregate minimal AVX2 subset microcode.
 
+
 from .double.arithmetic import (
     vaddpd,
     vdivpd,
@@ -33,6 +34,16 @@ from .floating_point.data_transfer import (
     vbroadcastss
 )
 
+from .integer.arithmetic import (
+    vpaddd,
+    vpand,
+    vpminsd,
+    vpbroadcastd
+)
+from .integer.data_transfer import (
+    vmovdqu
+)
+
 microcode = ""
 microcode += vaddps.microcode
 microcode += vmulps.microcode
@@ -56,3 +67,8 @@ microcode += vmulpd.microcode
 microcode += vdivpd.microcode
 microcode += vbroadcastsd.microcode
 microcode += vmovddup.microcode
+microcode += vpaddd.microcode
+microcode += vpand.microcode
+microcode += vpminsd.microcode
+microcode += vpbroadcastd.microcode
+microcode += vmovdqu.microcode

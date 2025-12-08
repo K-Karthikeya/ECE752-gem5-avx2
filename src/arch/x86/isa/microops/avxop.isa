@@ -594,4 +594,50 @@ let {{
                 xc->setRegOperand(this, i, dest.ul);
             }
         """
+
+    # Integer packed add (VPADDD): packed 32-bit signed integer addition
+    class vaddi(varithp):
+        opClass = 'SimdAddOp'
+        constructorCode = varithp.constructorCode
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vaddi enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntAdd);'
+
+    # Integer packed AND (VPANDD): packed 32-bit bitwise AND
+    class vandi(varithp):
+        opClass = 'SimdAddOp'
+        constructorCode = varithp.constructorCode
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vandi enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::IntAnd);'
+
+    # Integer packed min (VPMINSD/VPMINSQ): signed integer minimum
+    class vmini(varithp):
+        opClass = 'SimdCmpOp'
+        constructorCode = varithp.constructorCode
+        code = 'DPRINTF(AVXVerbose, "[AVX-TRACE] vmini enter VL=%u size=%u\\n", destVL, srcSize); this->doPackedBinaryOp(xc, BinaryOp::SIntMin);'
+
+    # Broadcast 32-bit integer to all lanes (VPBROADCASTD)
+    class vbroadcasti(AVXOp):
+        srcType = 'AVXOpBase::SrcType::Reg'
+        def __init__(self, dest, src1, size, VL):
+            super().__init__(dest=dest, src1=src1, src2=src1,
+                             destSize=size, destVL=VL, srcSize=size, srcVL=VL)
+        constructorCode = """
+        this->addAVXDestRegs();
+        auto baseSrc = src1;
+        _numSrcRegs = 1;
+        setSrcRegIdx(0, RegId(floatRegClass, baseSrc));
+        DPRINTF(AVXVerbose, "[AVX-BROADCAST] src=%u VL=%u\\n", (unsigned)baseSrc, destVL);
+        """
+        code = """
+            DPRINTF(AVXVerbose, "[AVX-TRACE] vbroadcasti enter VL=%u\\n", destVL);
+            int _vRegs = destVL / sizeof(uint64_t);
+            uint64_t _srcVal = xc->getRegOperand(this, 0);
+            FloatInt _src; _src.ul = _srcVal;
+            uint32_t _bcast = _src.si.i1; // Use lower 32 bits to broadcast
+            DPRINTF(AVXVerbose, "[AVX-BCAST] broadcasting %#x to %d lanes\\n", (unsigned)_bcast, _vRegs);
+            for (int _i = 0; _i < _vRegs; ++_i) {
+                FloatInt _res;
+                _res.si.i1 = _bcast;
+                _res.si.i2 = _bcast;
+                xc->setRegOperand(this, _i, _res.ul);
+            }
+        """
 }};

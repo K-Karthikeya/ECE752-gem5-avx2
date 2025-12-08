@@ -19,5 +19,4 @@ def macroop VBROADCASTSD_256_XMM_P {
     ldfp256 ufp0, seg, riprel, "DISPLACEMENT", dataSize=8
     vbcastf dest=xmm0, src=ufp0, size=8, VL=32
 };
-
 """

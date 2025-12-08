@@ -1,7 +1,8 @@
 microcode = '''
-# FMA 231: dest = dest * vvvv + reg
-# Microop computes: (pos0 * posN) + pos2N
-# Map: pos0=dest(accumulator), posN=src1(vvvv), pos2N=src2(reg)
+# VFMADD231PS: dest = (vvvv * modrm) + dest_input
+# Instruction semantics: result = (src1 * src2) + accumulator
+# Macroop parameters: dest=accumulator, src1=vvvv (first multiplier), src2=modrm (second multiplier)
+# Microop register mapping: position0=vvvv, positionN=modrm, position2N=dest_accumulator
 
 # 128-bit width (VEX.L=0); reg-reg and reg/mem forms
 def macroop VFMADD231PS_128_XMM_XMM {
@@ -19,7 +20,6 @@ def macroop VFMADD231PS_128_XMM_P {
     vfmadd231f dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=16
     vclear dest=xmm2, destVL=16
 };
-
 # 256-bit width (VEX.L=1); reg-reg and reg/mem forms
 def macroop VFMADD231PS_256_XMM_XMM {
     vfmadd231f dest=xmm0, src1=xmm0v, src2=xmmrm, size=4, VL=32
