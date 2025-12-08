@@ -3,8 +3,8 @@
 .type avx_vpbroadcastd_256, @function
 avx_vpbroadcastd_256:
     # rdi = src, rsi = result
-    vmovd xmm0, [rdi]
-    vpbroadcastd ymm1, xmm0
-    vmovdqu [rsi], ymm1
+    vmovd (%rdi), %xmm0
+    vpbroadcastd %xmm0, %ymm1
+    vmovdqu %ymm1, (%rsi)
     vzeroupper
     ret

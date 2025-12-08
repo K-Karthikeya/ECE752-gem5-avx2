@@ -3,7 +3,7 @@
 .type avx_vpbroadcastd_128, @function
 avx_vpbroadcastd_128:
     # rdi = src, rsi = result
-    vmovd xmm0, [rdi]
-    vpbroadcastd xmm1, xmm0
-    vmovdqu [rsi], xmm1
+    vmovd (%rdi), %xmm0
+    vpbroadcastd %xmm0, %xmm1
+    vmovdqu %xmm1, (%rsi)
     ret
