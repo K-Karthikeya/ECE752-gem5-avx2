@@ -10,8 +10,9 @@ extern void avx_vpandd_128(int32_t *a, int32_t *b, int32_t *result);
 extern void avx_vpandd_256(int32_t *a, int32_t *b, int32_t *result);
 extern void avx_vpminsd_128(int32_t *a, int32_t *b, int32_t *result);
 extern void avx_vpminsd_256(int32_t *a, int32_t *b, int32_t *result);
-extern void avx_vpminsq_128(int64_t *a, int64_t *b, int64_t *result);
-extern void avx_vpminsq_256(int64_t *a, int64_t *b, int64_t *result);
+// VPMINSQ is AVX-512 only
+// extern void avx_vpminsq_128(int64_t *a, int64_t *b, int64_t *result);
+// extern void avx_vpminsq_256(int64_t *a, int64_t *b, int64_t *result);
 extern void avx_vpbroadcastd_128(int32_t *src, int32_t *result);
 extern void avx_vpbroadcastd_256(int32_t *src, int32_t *result);
 extern void avx_vmovdqu_load_128(int32_t *src, int32_t *result);
@@ -132,6 +133,8 @@ void test_vpminsd_256() {
     compare_i32(expected, result, 8, "VPMINSD 256-bit");
 }
 
+// VPMINSQ is AVX-512 only, not available in AVX2
+/*
 void test_vpminsq_128() {
     ALIGN32 int64_t a[2] = {1000000000000LL, -2000000000000LL};
     ALIGN32 int64_t b[2] = {2000000000000LL, -1000000000000LL};
@@ -151,6 +154,7 @@ void test_vpminsq_256() {
     avx_vpminsq_256(a, b, result);
     compare_i64(expected, result, 4, "VPMINSQ 256-bit");
 }
+*/
 
 void test_vpbroadcastd_128() {
     ALIGN32 int32_t src[4] = {42, 0, 0, 0};
