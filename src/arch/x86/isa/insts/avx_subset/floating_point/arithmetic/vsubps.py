@@ -13,7 +13,6 @@ def macroop VSUBPS_128_XMM_P {
     vsubf dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=16
     vclear dest=xmm2, destVL=16
 };
-
 def macroop VSUBPS_256_XMM_XMM {
     vsubf dest=xmm0, src1=xmm0v, src2=xmmrm, size=4, VL=32
 };
