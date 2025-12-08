@@ -74,12 +74,11 @@ _start:
     loop 1b
     jmp 3f
 2:
-    mov %r10d, %eax               # set failing index (0-based)
-    inc %eax                      # return 1-based index for clarity
+    mov %r10d, %edi               # set failing index (0-based) into exit arg
+    inc %edi                      # return 1-based index for clarity
 3:
 
-    # Exit with code in eax (0 = pass, 1 = fail)
-    movzbl %al, %edi              # zero-extend eax to rdi for exit code
+    # Exit with code in edi (0 = pass)
     mov $60, %rax                 # SYS_exit syscall number
     syscall
 
