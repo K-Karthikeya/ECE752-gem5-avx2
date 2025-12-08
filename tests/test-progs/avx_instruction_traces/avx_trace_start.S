@@ -76,8 +76,8 @@ _start:
 3:
 
     # Exit with code in eax (0 = pass, 1 = fail)
-    mov %eax, %edi          # preserve computed status
-    mov $60, %rax           # SYS_exit
+    movzbl %al, %edi              # zero-extend eax to rdi for exit code
+    mov $60, %rax                 # SYS_exit syscall number
     syscall
 
     .size _start, .-_start
