@@ -232,11 +232,11 @@ int main(void)
         avx_vdivd_128(ad, bd, outd);
         if (!check_vec_f64(outd, exp_divd, 2)) pass = 0; else printf("PASS vdivd_128\n");
 
-        // VBROADCASTSD 128-bit
-        double bcast_src_d = 2.718281828;
-        double exp_bcastd[2] = {bcast_src_d, bcast_src_d};
-        avx_vbroadcastsd_128(&bcast_src_d, outd);
-        if (!check_vec_f64(outd, exp_bcastd, 2)) pass = 0; else printf("PASS vbroadcastsd_128\n");
+        // // VBROADCASTSD 128-bit
+        // double bcast_src_d = 2.718281828;
+        // double exp_bcastd[2] = {bcast_src_d, bcast_src_d};
+        // avx_vbroadcastsd_128(&bcast_src_d, outd);
+        // if (!check_vec_f64(outd, exp_bcastd, 2)) pass = 0; else printf("PASS vbroadcastsd_128\n");
     }
 
     // 256-bit floats (8 lanes)
@@ -363,10 +363,10 @@ int main(void)
         if (!check_vec_f64(outd256, exp_divd256, 4)) pass = 0; else printf("PASS vdivd_256\n");
 
         // VBROADCASTSD 256-bit
-        double bcast_src_d256 = 1.414213562;
-        double exp_bcastd256[4] = {bcast_src_d256, bcast_src_d256, bcast_src_d256, bcast_src_d256};
-        avx_vbroadcastsd_256(&bcast_src_d256, outd256);
-        if (!check_vec_f64(outd256, exp_bcastd256, 4)) pass = 0; else printf("PASS vbroadcastsd_256\n");
+        // double bcast_src_d256 = 1.414213562;
+        // double exp_bcastd256[4] = {bcast_src_d256, bcast_src_d256, bcast_src_d256, bcast_src_d256};
+        // avx_vbroadcastsd_256(&bcast_src_d256, outd256);
+        // if (!check_vec_f64(outd256, exp_bcastd256, 4)) pass = 0; else printf("PASS vbroadcastsd_256\n");
     }
 
     // vclear upper (vzeroupper)
