@@ -1,6 +1,6 @@
 CC = gcc
 AS = as
-CFLAGS = -O2 -mavx2 -g -Wall
+CFLAGS = -O2 -mno-avx -g -Wall
 LDFLAGS = -no-pie
 
 TARGET = avx_int_test
