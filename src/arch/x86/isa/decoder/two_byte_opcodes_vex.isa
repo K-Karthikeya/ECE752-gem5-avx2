@@ -34,6 +34,24 @@
             }
         }
 
+        // 0x54 ANDPS - Packed bitwise AND (PS only, pp=00)
+        0x54: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x1: VANDPS_256(Vo, Wo);
+                0x0: VANDPS_128(Vo, Wo);
+            }
+            default: UD2();
+        }
+
+        // 0x57 XORPS - Packed bitwise XOR (PS only, pp=00)
+        0x57: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x1: VXORPS_256(Vo, Wo);
+                0x0: VXORPS_128(Vo, Wo);
+            }
+            default: UD2();
+        }
+
         // 0x59 MUL packed: PS (pp=00), PD (pp=01)
         0x59: decode VEX_PP {
             // PD
