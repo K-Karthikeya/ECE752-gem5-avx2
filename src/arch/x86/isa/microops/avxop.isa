@@ -272,7 +272,6 @@ let {{
             this->addAVXDestRegs();
         """
         code = """
-            auto vRegs = destVL / sizeof(uint64_t);
             // Read full vector from src1 (registered per-lane in
             // operand array)
             // Duplicate lane 0 of each 128-bit half across that half.
