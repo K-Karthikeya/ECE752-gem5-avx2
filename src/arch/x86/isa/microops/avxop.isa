@@ -363,7 +363,6 @@ let {{
 
     # Broadcast 32-bit integer to all lanes (VPBROADCASTD)
     class vbroadcasti(AVXOp):
-        abstract = True
         srcType = 'AVXOpBase::SrcType::Reg'
         def __init__(self, dest, src1, size, VL):
             super().__init__(dest=dest, src1=src1, src2=src1,
