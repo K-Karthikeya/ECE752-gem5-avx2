@@ -30,3 +30,4 @@ def macroop VMOVAPS_M_256_P {
     stfp256 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
 };
 '''
+

@@ -163,6 +163,8 @@ protected:
     FloatSub,
     FloatMul,
     FloatDiv,
+    FloatMin,
+    FloatMax,
     // Add/Sub can ignore sign.
     IntAdd,
     IntSub,
@@ -213,6 +215,14 @@ protected:
         dest.si.i1 = src1.si.i1 ^ src2.si.i1;
         dest.si.i2 = src1.si.i2 ^ src2.si.i2;
         break;
+      case BinaryOp::FloatMin:
+        dest.f.f1 = std::min(src1.f.f1, src2.f.f1);
+        dest.f.f2 = std::min(src1.f.f2, src2.f.f2);
+        break;
+      case BinaryOp::FloatMax:
+        dest.f.f1 = std::max(src1.f.f1, src2.f.f1);
+        dest.f.f2 = std::max(src1.f.f2, src2.f.f2);
+        break;
       default:
         assert(false && "Invalid op type.");
       }
@@ -245,6 +255,12 @@ protected:
         break;
       case BinaryOp::IntXor:
         dest.sl = src1.sl ^ src2.sl;
+        break;
+      case BinaryOp::FloatMin:
+        dest.d = std::min(src1.d, src2.d);
+        break;
+      case BinaryOp::FloatMax:
+        dest.d = std::max(src1.d, src2.d);
         break;
       default:
         assert(false && "Invalid op type.");

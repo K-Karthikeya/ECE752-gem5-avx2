@@ -21,11 +21,17 @@ from .floating_point.arithmetic import (
     vmulps,
     vsubps,
     vxorps,
+    vminps, 
+    vmaxps
+    
 )
 from .floating_point.data_transfer import (
     vmovaps,
     vmovups,
     vzeroupper,
+    vmovsldup, 
+    vmovshdup, 
+    vbroadcastss
 )
 
 from .integer.arithmetic import (
@@ -45,11 +51,16 @@ microcode += vxorps.microcode
 microcode += vmovups.microcode
 microcode += vmovaps.microcode
 microcode += vzeroupper.microcode
+microcode += vmovsldup.microcode
+microcode += vmovshdup.microcode
+microcode += vbroadcastss.microcode
 microcode += vsubps.microcode
 microcode += vandps.microcode
 microcode += vdivps.microcode
 microcode += vfmadd231ps.microcode
 microcode += vcmpps.microcode
+microcode += vminps.microcode
+microcode += vmaxps.microcode
 microcode += vaddpd.microcode
 microcode += vsubpd.microcode
 microcode += vmulpd.microcode
