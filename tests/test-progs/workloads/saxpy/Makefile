@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -Wextra -O2 -std=c11
+CFLAGS := -Wall -Wextra -O2 -std=c11 -static
 ASMFLAGS := -mavx2 -mfma
 
 TARGET := saxpy_benchmark
