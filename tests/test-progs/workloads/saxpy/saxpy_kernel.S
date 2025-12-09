@@ -27,18 +27,25 @@ saxpy_avx256:
     cmp %rdx, %rax
     jge .L_done
     
-    # Load 8 floats from x[i] into ymm0
-    vmovups (%rsi,%rax,4), %ymm0
+    # Load 8 floats from x[i] into ymm0 (split into two 128-bit loads for gem5)
+    vmovups (%rsi,%rax,4), %xmm0
+    vmovups 16(%rsi,%rax,4), %xmm1
+    vinsertf128 $1, %xmm1, %ymm0, %ymm0
     
-    # Load 8 floats from y[i] into ymm1
-    vmovups (%rdi,%rax,4), %ymm1
+    # Load 8 floats from y[i] into ymm1 (split into two 128-bit loads for gem5)
+    vmovups (%rdi,%rax,4), %xmm1
+    vmovups 16(%rdi,%rax,4), %xmm2
+    vinsertf128 $1, %xmm2, %ymm1, %ymm1
     
     # Compute y[i] = a * x[i] + y[i] using FMA
     # ymm1 = ymm0 * ymm3 + ymm1
     vfmadd231ps %ymm0, %ymm3, %ymm1
     
-    # Store result back to y[i]
-    vmovups %ymm1, (%rdi,%rax,4)
+    # Store result back to y[i] (split into two 128-bit stores for gem5)
+    vextractf128 $0, %ymm1, %xmm0
+    vextractf128 $1, %ymm1, %xmm2
+    vmovups %xmm0, (%rdi,%rax,4)
+    vmovups %xmm2, 16(%rdi,%rax,4)
     
     # Advance to next 8 elements
     add $8, %rax
