@@ -89,7 +89,8 @@ for workload_name in simple_vadd saxpy matmul image_blur; do
             options="$size"
         fi
         
-        stats_file="$OUTPUT_DIR/${workload_name}_${size}_stats.txt"
+        # gem5 prepends m5out/ to stats file path, so use just filename
+        stats_file="${workload_name}_${size}_stats.txt"
         output_file="$OUTPUT_DIR/${workload_name}_${size}_output.txt"
         
         echo -e "${YELLOW}Running: $workload_name with size $size${NC}"
@@ -98,6 +99,12 @@ for workload_name in simple_vadd saxpy matmul image_blur; do
         # Run gem5 - use eval to properly handle quoted arguments
         eval "$GEM5_BIN --stats-file=\"$stats_file\" $CONFIG_SCRIPT --cmd=\"$binary_path\" --options=\"$options\" --cpu-type=$CPU_TYPE" > "$output_file" 2>&1
         exit_code=$?
+        
+        # Move stats file from m5out/ to our output directory
+        if [ -f "m5out/$stats_file" ]; then
+            mv "m5out/$stats_file" "$OUTPUT_DIR/$stats_file"
+        fi
+        stats_file="$OUTPUT_DIR/$stats_file"
         
         total_count=$((total_count + 1))
         
