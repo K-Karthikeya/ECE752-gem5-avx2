@@ -4,7 +4,7 @@
  * Implements Y = a*X + Y using 256-bit AVX with FMA
  * Processes 8 single-precision floats per iteration
  * 
- * Uses Intel syntax to match tested AVX implementation
+ * Uses ONLY tested instructions: VMOVUPS_256, VBROADCASTSS_256, VFMADD231PS_256
  */
 
 .intel_syntax noprefix
@@ -22,7 +22,7 @@ saxpy_avx256:
     push rbp
     mov rbp, rsp
     
-    # Broadcast scalar 'a' to all lanes of ymm3
+    # Broadcast scalar 'a' to all 8 lanes of ymm3
     vbroadcastss ymm3, xmm0
     
     # Initialize loop counter: i = 0
@@ -33,21 +33,18 @@ saxpy_avx256:
     cmp rax, rdx
     jge .L_done
     
-    # Calculate byte offset: rax * 4 (since each float is 4 bytes)
-    # Load 8 floats from x[i] into ymm0
-    lea r8, [rsi + rax*4]
-    vmovups ymm0, YMMWORD PTR [r8]
+    # Load 8 floats from x[i] into ymm0 (32-byte load)
+    vmovups ymm0, YMMWORD PTR [rsi + rax*4]
     
-    # Load 8 floats from y[i] into ymm1
-    lea r9, [rdi + rax*4]
-    vmovups ymm1, YMMWORD PTR [r9]
+    # Load 8 floats from y[i] into ymm1 (32-byte load)
+    vmovups ymm1, YMMWORD PTR [rdi + rax*4]
     
     # Compute y[i] = a * x[i] + y[i] using FMA
     # VFMADD231PS: ymm1 = (ymm3 * ymm0) + ymm1 = (a * x) + y
     vfmadd231ps ymm1, ymm3, ymm0
     
-    # Store result back to y[i]
-    vmovups YMMWORD PTR [r9], ymm1
+    # Store result back to y[i] (32-byte store)
+    vmovups YMMWORD PTR [rdi + rax*4], ymm1
     
     # Advance to next 8 elements
     add rax, 8
