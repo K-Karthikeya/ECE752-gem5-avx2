@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Plot AVX vs SSE Performance Comparison
-Generates bar charts comparing simTicks for each workload across different input sizes.
+Generates bar charts comparing simSeconds for each workload across different input sizes.
 """
 
 import pandas as pd
@@ -48,8 +48,8 @@ def plot_workload_comparison(avx_csv, sse_csv, output_dir='plots'):
         
         # Merge on Size to ensure matching sizes
         merged = pd.merge(
-            avx_data[['Size', 'SimTicks']], 
-            sse_data[['Size', 'SimTicks']], 
+            avx_data[['Size', 'SimSeconds']], 
+            sse_data[['Size', 'SimSeconds']], 
             on='Size', 
             suffixes=('_AVX', '_SSE')
         )
@@ -61,9 +61,12 @@ def plot_workload_comparison(avx_csv, sse_csv, output_dir='plots'):
         # Sort by size
         merged = merged.sort_values('Size')
         
-        # Convert SimTicks to numeric (handle 'N/A' values)
-        merged['SimTicks_AVX'] = pd.to_numeric(merged['SimTicks_AVX'], errors='coerce')
-        merged['SimTicks_SSE'] = pd.to_numeric(merged['SimTicks_SSE'], errors='coerce')
+        # Map workload names for display
+        display_name = workload.replace('simple_vadd', 'VecAdd').replace('_', ' ').title()
+        
+        # Convert SimSeconds to numeric (handle 'N/A' values)
+        merged['SimSeconds_AVX'] = pd.to_numeric(merged['SimSeconds_AVX'], errors='coerce')
+        merged['SimSeconds_SSE'] = pd.to_numeric(merged['SimSeconds_SSE'], errors='coerce')
         
         # Remove rows with missing data
         merged = merged.dropna()
@@ -73,7 +76,7 @@ def plot_workload_comparison(avx_csv, sse_csv, output_dir='plots'):
             continue
         
         # Calculate speedup
-        merged['Speedup'] = merged['SimTicks_SSE'] / merged['SimTicks_AVX']
+        merged['Speedup'] = merged['SimSeconds_SSE'] / merged['SimSeconds_AVX']
         
         # Create figure with two subplots
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
@@ -82,14 +85,14 @@ def plot_workload_comparison(avx_csv, sse_csv, output_dir='plots'):
         x = np.arange(len(merged))
         width = 0.35
         
-        bars1 = ax1.bar(x - width/2, merged['SimTicks_AVX'], width, 
+        bars1 = ax1.bar(x - width/2, merged['SimSeconds_AVX'], width, 
                         label='AVX-256', color='#2E86AB', alpha=0.8)
-        bars2 = ax1.bar(x + width/2, merged['SimTicks_SSE'], width, 
+        bars2 = ax1.bar(x + width/2, merged['SimSeconds_SSE'], width, 
                         label='SSE-128', color='#A23B72', alpha=0.8)
         
         ax1.set_xlabel('Input Size', fontsize=12, fontweight='bold')
-        ax1.set_ylabel('Simulation Ticks', fontsize=12, fontweight='bold')
-        ax1.set_title(f'{workload.replace("_", " ").title()} - Performance Comparison', 
+        ax1.set_ylabel('Simulation Time (seconds)', fontsize=12, fontweight='bold')
+        ax1.set_title(f'{display_name} - Performance Comparison', 
                      fontsize=14, fontweight='bold')
         ax1.set_xticks(x)
         ax1.set_xticklabels(merged['Size'].astype(str))
@@ -101,7 +104,7 @@ def plot_workload_comparison(avx_csv, sse_csv, output_dir='plots'):
             for bar in bars:
                 height = bar.get_height()
                 ax1.text(bar.get_x() + bar.get_width()/2., height,
-                        f'{int(height):,}',
+                        f'{height:.6f}',
                         ha='center', va='bottom', fontsize=8, rotation=0)
         
         # Subplot 2: Speedup chart
@@ -111,8 +114,8 @@ def plot_workload_comparison(avx_csv, sse_csv, output_dir='plots'):
         ax2.fill_between(merged['Size'], 1.5, 2.5, alpha=0.1, color='green')
         
         ax2.set_xlabel('Input Size', fontsize=12, fontweight='bold')
-        ax2.set_ylabel('Speedup (SSE ticks / AVX ticks)', fontsize=12, fontweight='bold')
-        ax2.set_title(f'{workload.replace("_", " ").title()} - AVX Speedup', 
+        ax2.set_ylabel('Speedup (SSE time / AVX time)', fontsize=12, fontweight='bold')
+        ax2.set_title(f'{display_name} - AVX Speedup', 
                      fontsize=14, fontweight='bold')
         ax2.grid(True, alpha=0.3, linestyle='--')
         ax2.legend(fontsize=11)
@@ -156,21 +159,23 @@ def create_summary_plot(avx_df, sse_df, workloads, output_dir):
         sse_data = sse_df[sse_df['Workload'] == workload].copy()
         
         merged = pd.merge(
-            avx_data[['Size', 'SimTicks']], 
-            sse_data[['Size', 'SimTicks']], 
+            avx_data[['Size', 'SimSeconds']], 
+            sse_data[['Size', 'SimSeconds']], 
             on='Size', 
             suffixes=('_AVX', '_SSE')
         )
         
-        merged['SimTicks_AVX'] = pd.to_numeric(merged['SimTicks_AVX'], errors='coerce')
-        merged['SimTicks_SSE'] = pd.to_numeric(merged['SimTicks_SSE'], errors='coerce')
+        merged['SimSeconds_AVX'] = pd.to_numeric(merged['SimSeconds_AVX'], errors='coerce')
+        merged['SimSeconds_SSE'] = pd.to_numeric(merged['SimSeconds_SSE'], errors='coerce')
         merged = merged.dropna()
         
         if not merged.empty:
-            merged['Speedup'] = merged['SimTicks_SSE'] / merged['SimTicks_AVX']
+            merged['Speedup'] = merged['SimSeconds_SSE'] / merged['SimSeconds_AVX']
             avg_speedup = merged['Speedup'].mean()
             speedups.append(avg_speedup)
-            labels.append(workload.replace('_', ' ').title())
+            # Map workload names for display
+            display_label = workload.replace('simple_vadd', 'VecAdd').replace('_', ' ').title()
+            labels.append(display_label)
     
     # Create bar chart
     colors = ['#2E86AB', '#A23B72', '#F18F01']
