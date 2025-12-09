@@ -1,7 +1,7 @@
 CC := gcc
 CFLAGS := -Wall -Wextra -O2 -std=c11 -static
 # Disable AVX in C code but allow SSE2 (standard on x86-64)
-CFLAGS_NOAVX := -mno-avx -mno-avx2 -mno-fma -msse2
+CFLAGS_NOAVX := -mno-avx -mno-avx2 -mno-fma -mno-sse2avx -msse2
 # Enable AVX only for assembly
 ASMFLAGS := -mavx2 -mfma
 

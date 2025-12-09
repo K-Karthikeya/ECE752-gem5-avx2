@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -Wextra -O2 -std=c11
+CFLAGS := -Wall -Wextra -O2 -std=c11 -static
 CFLAGS_NOAVX := -mno-avx -mno-avx2 -mno-fma -mno-sse2avx
 CFLAGS_ASM := -mavx -mavx2 -mfma
 
