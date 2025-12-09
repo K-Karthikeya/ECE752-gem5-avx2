@@ -14,7 +14,7 @@ saxpy_avx256:
     #   rdi = float *y (output array, also input)
     #   rsi = float *x (input array)
     #   xmm0 = float a (scalar multiplier)
-    #   rcx = size_t n (number of elements)
+    #   rdx = size_t n (number of elements)
     
     # Broadcast scalar 'a' to all lanes of ymm3
     vbroadcastss %xmm0, %ymm3
@@ -24,7 +24,7 @@ saxpy_avx256:
     
 .L_loop:
     # Check if we've processed all elements
-    cmp %rcx, %rax
+    cmp %rdx, %rax
     jge .L_done
     
     # Load 8 floats from x[i] into ymm0
