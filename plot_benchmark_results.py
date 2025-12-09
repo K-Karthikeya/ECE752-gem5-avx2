@@ -78,10 +78,9 @@ def plot_workload_comparison(avx_csv, sse_csv, output_dir='plots'):
         # Calculate speedup
         merged['Speedup'] = merged['SimTicks_SSE'] / merged['SimTicks_AVX']
         
-        # Create figure with two subplots
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+        # Create Figure 1: Double bar chart
+        fig1, ax1 = plt.subplots(figsize=(10, 6))
         
-        # Subplot 1: Double bar chart
         x = np.arange(len(merged))
         width = 0.35
         
@@ -107,7 +106,17 @@ def plot_workload_comparison(avx_csv, sse_csv, output_dir='plots'):
                         f'{int(height):,}',
                         ha='center', va='bottom', fontsize=8, rotation=0)
         
-        # Subplot 2: Speedup chart
+        plt.tight_layout()
+        
+        # Save bar chart
+        output_file_bars = os.path.join(output_dir, f'{workload}_performance.png')
+        plt.savefig(output_file_bars, dpi=300, bbox_inches='tight')
+        print(f"✓ Created: {output_file_bars}")
+        plt.close()
+        
+        # Create Figure 2: Speedup chart
+        fig2, ax2 = plt.subplots(figsize=(10, 6))
+        
         ax2.plot(merged['Size'], merged['Speedup'], marker='o', linewidth=2, 
                 markersize=8, color='#F18F01', label='AVX Speedup')
         ax2.axhline(y=2.0, color='green', linestyle='--', alpha=0.5, label='2x baseline')
@@ -127,10 +136,11 @@ def plot_workload_comparison(avx_csv, sse_csv, output_dir='plots'):
         
         plt.tight_layout()
         
-        # Save figure
-        output_file = os.path.join(output_dir, f'{workload}_comparison.png')
-        plt.savefig(output_file, dpi=300, bbox_inches='tight')
-        print(f"✓ Created: {output_file}")
+        # Save speedup chart
+        output_file_speedup = os.path.join(output_dir, f'{workload}_speedup.png')
+        plt.savefig(output_file_speedup, dpi=300, bbox_inches='tight')
+        print(f"✓ Created: {output_file_speedup}")
+        plt.close()
         
         # Print statistics
         print(f"  {workload}:")
@@ -138,8 +148,6 @@ def plot_workload_comparison(avx_csv, sse_csv, output_dir='plots'):
         print(f"    Min speedup: {merged['Speedup'].min():.2f}x (size {merged.loc[merged['Speedup'].idxmin(), 'Size']})")
         print(f"    Max speedup: {merged['Speedup'].max():.2f}x (size {merged.loc[merged['Speedup'].idxmax(), 'Size']})")
         print()
-        
-        plt.close()
     
     # Create combined summary plot
     create_summary_plot(avx_df, sse_df, workloads, output_dir)
