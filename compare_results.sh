@@ -59,11 +59,12 @@ count=0
 
 for workload in $workloads; do
     for size in ${sizes[$workload]}; do
-        sse_stats="$SSE_DIR/${workload}_${size}_stats.txt"
-        avx_stats="$AVX_DIR/${workload}_${size}_stats.txt"
+        # Use ROI stats files (stats1.txt) which contain only kernel execution
+        sse_stats="$SSE_DIR/${workload}_${size}_stats1.txt"
+        avx_stats="$AVX_DIR/${workload}_${size}_stats1.txt"
         
         if [ -f "$sse_stats" ] && [ -f "$avx_stats" ]; then
-            # Extract simulation ticks
+            # Extract simulation ticks from ROI (kernel-only measurements)
             sse_ticks=$(grep "simTicks" "$sse_stats" | head -1 | awk '{print $2}')
             avx_ticks=$(grep "simTicks" "$avx_stats" | head -1 | awk '{print $2}')
             

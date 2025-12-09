@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <gem5/m5ops.h>
 
 // Assembly kernel (AVX-256 only)
 extern void saxpy_avx256(float *y, const float *x, float a, size_t n);
@@ -108,7 +109,9 @@ int main(int argc, char **argv) {
     // Run AVX version with timing
     printf("Running AVX-256 version...\n");
     uint64_t start = rdtsc();
+    m5_dump_reset_stats(0, 0);
     saxpy_avx256(y_avx, x, a, n);
+    m5_dump_reset_stats(0, 0);
     uint64_t avx_cycles = rdtsc() - start;
     
     // Verify correctness

@@ -96,11 +96,24 @@ for workload_name in simple_vadd saxpy matmul; do
         eval "$GEM5_BIN --stats-file=\"$stats_file\" $CONFIG_SCRIPT --cmd=\"$binary_path\" --options=\"$options\" --cpu-type=$CPU_TYPE" > "$output_file" 2>&1
         exit_code=$?
         
-        # Move stats file from m5out/ to our output directory
+        # Move stats files from m5out/ to our output directory
+        # stats.txt = full simulation, stats1.txt = ROI (between m5_dump_reset_stats calls)
         if [ -f "m5out/$stats_file" ]; then
             mv "m5out/$stats_file" "$OUTPUT_DIR/$stats_file"
         fi
-        stats_file="$OUTPUT_DIR/$stats_file"
+        
+        # Extract ROI statistics from stats1.txt (kernel execution only)
+        roi_stats_file="${workload_name}_${size}_stats1.txt"
+        if [ -f "m5out/stats1.txt" ]; then
+            mv "m5out/stats1.txt" "$OUTPUT_DIR/$roi_stats_file"
+        fi
+        
+        # Move any additional stats files
+        for extra_stats in m5out/stats*.txt; do
+            if [ -f "$extra_stats" ]; then
+                mv "$extra_stats" "$OUTPUT_DIR/"
+            fi
+        done
         
         total_count=$((total_count + 1))
         
@@ -119,19 +132,21 @@ for workload_name in simple_vadd saxpy matmul; do
                 status="UNKNOWN"
             fi
             
-            # Extract statistics
-            if [ -f "$stats_file" ]; then
-                sim_ticks=$(grep "simTicks" "$stats_file" | head -1 | awk '{print $2}')
-                sim_seconds=$(grep "simSeconds" "$stats_file" | head -1 | awk '{print $2}')
-                sim_freq=$(grep "simFreq" "$stats_file" | head -1 | awk '{print $2}')
+            # Extract statistics from ROI stats file (kernel execution only)
+            roi_stats_path="$OUTPUT_DIR/$roi_stats_file"
+            if [ -f "$roi_stats_path" ]; then
+                sim_ticks=$(grep "simTicks" "$roi_stats_path" | head -1 | awk '{print $2}')
+                sim_seconds=$(grep "simSeconds" "$roi_stats_path" | head -1 | awk '{print $2}')
+                sim_freq=$(grep "simFreq" "$roi_stats_path" | head -1 | awk '{print $2}')
                 
-                echo "  Simulation ticks: $sim_ticks"
-                echo "  Simulation time: $sim_seconds seconds"
+                echo "  ROI Simulation ticks: $sim_ticks (kernel only)"
+                echo "  ROI Simulation time: $sim_seconds seconds (kernel only)"
                 
                 # Store results
                 echo "$workload_name,$size,$status,$sim_ticks,$sim_seconds,$sim_freq" >> "$results_csv"
             else
                 echo "$workload_name,$size,$status,N/A,N/A,N/A" >> "$results_csv"
+                echo -e "  ${YELLOW}⚠ ROI stats file not found: $roi_stats_path${NC}"
             fi
         else
             echo -e "  ${RED}✗ gem5 failed with exit code $exit_code${NC}"

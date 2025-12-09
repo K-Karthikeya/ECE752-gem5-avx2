@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <gem5/m5ops.h>
 
 // Assembly kernel (AVX-256 only)
 extern void matmul_avx256(float *C, const float *A, const float *B, size_t N);
@@ -115,7 +116,9 @@ int main(int argc, char **argv) {
     // Run AVX version with timing
     printf("Running AVX-256 version...\n");
     uint64_t start = rdtsc();
+    m5_dump_reset_stats(0, 0);
     matmul_avx256(C_avx, A, B, N);
+    m5_dump_reset_stats(0, 0);
     uint64_t avx_cycles = rdtsc() - start;
     
     // Verify

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdint.h>
+#include <gem5/m5ops.h>
 
 // External assembly function (SSE version)
 extern void vadd_sse(float* z, const float* x, const float* y, size_t n);
@@ -54,7 +55,9 @@ int main(int argc, char* argv[]) {
     
     // Run SSE version
     printf("Running SSE-128 version...\n");
+    m5_dump_reset_stats(0, 0);
     vadd_sse(z_sse, x, y, n);
+    m5_dump_reset_stats(0, 0);
     
     // Verify results
     printf("\nVerifying results...\n");

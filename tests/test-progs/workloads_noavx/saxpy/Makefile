@@ -17,7 +17,7 @@ all: $(TARGET)
 $(TARGET): $(SRC) $(ASM)
 	$(CC) $(CFLAGS) $(CFLAGS_NOAVX) $(SRC) -c -o saxpy.o
 	$(CC) $(ASMFLAGS) $(ASM) -c -o saxpy_kernel.o
-	$(CC) $(CFLAGS) saxpy.o saxpy_kernel.o -o $@
+	$(CC) $(CFLAGS) saxpy.o saxpy_kernel.o -o $@ $(LDFLAGS)
 
 clean:
 	rm -f $(TARGET) saxpy.o saxpy_kernel.o
