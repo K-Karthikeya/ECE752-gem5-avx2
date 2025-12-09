@@ -104,10 +104,11 @@ cd ../matmul && make clean && make
    - Verification checks
    - I/O operations
 
-2. **Multiple Statistics Files:** Each m5_dump_reset_stats() call creates a separate stats file:
-   - First call: Resets counters (no output, just initialization overhead)
-   - Second call: Dumps stats for the ROI (kernel execution only)
-   - Stats files are numbered sequentially: `stats.txt`, `stats1.txt`, `stats2.txt`, etc.
+2. **Multiple Statistics Regions:** Each m5_dump_reset_stats() call creates a new statistics region within the **same** stats file:
+   - Region 1: Initialization and setup (before first m5_dump_reset_stats)
+   - Region 2: **ROI - Kernel execution only** (between the two m5_dump_reset_stats calls)
+   - Region 3: Post-kernel execution (after second m5_dump_reset_stats to program end)
+   - Regions are separated by markers: `---------- Begin Simulation Statistics ----------`
 
 3. **Clean Comparison:** Both AVX and SSE versions measure exactly the same code region (the SIMD kernel)
 
@@ -122,36 +123,73 @@ To verify m5ops are working:
     --options='1024' \
     --cpu-type=AtomicSimpleCPU
 
-# Check for multiple stats files
-ls -la m5out/stats*.txt
+# Check the stats file
+cat m5out/stats.txt | grep "Begin Simulation Statistics" | wc -l
 ```
 
-You should see output like:
-```
-Running C reference version...
-Running AVX-256 version...
-Verifying results...
-PASSED: All results match!
-```
+You should see:
+1. **Console output:**
+   ```
+   Running C reference version...
+   Running AVX-256 version...
+   Verifying results...
+   PASSED: All results match!
+   ```
 
-And multiple stats files in `m5out/`:
-- `m5out/stats.txt` - Stats up to first m5_dump_reset_stats()
-- `m5out/stats1.txt` - Stats for the kernel ROI (use this one!)
-- `m5out/stats2.txt` - Stats after kernel to program end
+2. **Stats file with 3 regions:**
+   ```bash
+   # Count should be 3 (three "Begin Simulation Statistics" markers)
+   $ grep -c "Begin Simulation Statistics" m5out/stats.txt
+   3
+   ```
+
+The stats file structure:
+```
+---------- Begin Simulation Statistics ----------
+<Region 1: Initialization stats>
+---------- End Simulation Statistics   ----------
+---------- Begin Simulation Statistics ----------
+<Region 2: ROI - Kernel execution only> ← We want this!
+---------- End Simulation Statistics   ----------
+---------- Begin Simulation Statistics ----------
+<Region 3: Post-kernel stats>
+---------- End Simulation Statistics   ----------
+```
 
 ## Updated Benchmark Scripts
 
-The benchmark scripts (`run_benchmarks.sh` and `run_benchmarks_sse.sh`) will automatically collect the ROI statistics. Look for the stats file with the kernel execution metrics.
+The benchmark scripts (`run_benchmarks.sh` and `run_benchmarks_sse.sh`) will **automatically extract** the ROI statistics from region 2 and save them to `*_stats1.txt` files.
 
 ## Extracting ROI Statistics
 
-To extract just the kernel execution statistics:
+The benchmark scripts automatically extract ROI stats, but you can also do it manually:
+
+### Automatic Extraction (Recommended)
+The benchmark scripts extract region 2 automatically. Just run:
+```bash
+./run_benchmarks.sh          # Creates *_stats1.txt files with ROI data
+./run_benchmarks_sse.sh      # Creates *_stats1.txt files with ROI data
+```
+
+### Manual Extraction
+To manually extract ROI from a stats file:
 
 ```bash
-# The second stats file (stats1.txt) contains the ROI measurements
-grep "simTicks" m5out/stats1.txt
-grep "numCycles" m5out/stats1.txt
-grep "committedInsts" m5out/stats1.txt
+# Extract ROI from a single file
+./extract_roi_stats.sh benchmark_results/simple_vadd_1024_stats.txt \
+                       benchmark_results/simple_vadd_1024_stats1.txt
+
+# Or batch extract all files in a directory
+./extract_all_roi_stats.sh benchmark_results
+./extract_all_roi_stats.sh benchmark_results_sse
+```
+
+### View ROI Statistics
+```bash
+# View ROI measurements (kernel only)
+grep "simTicks" benchmark_results/simple_vadd_1024_stats1.txt
+grep "numCycles" benchmark_results/simple_vadd_1024_stats1.txt
+grep "committedInsts" benchmark_results/simple_vadd_1024_stats1.txt
 ```
 
 ## Troubleshooting

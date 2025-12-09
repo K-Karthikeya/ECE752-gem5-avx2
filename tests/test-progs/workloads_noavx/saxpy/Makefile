@@ -5,6 +5,14 @@ CFLAGS_NOAVX := -mno-avx -mno-avx2 -mno-fma -mno-sse2avx -msse2
 # Enable SSE only for assembly (no AVX)
 ASMFLAGS := -msse2 -mno-avx
 
+# gem5 m5ops configuration
+GEM5_PATH := ../../../..
+M5OPS_INCLUDE := $(GEM5_PATH)/include
+M5OPS_LIB := $(GEM5_PATH)/util/m5/build/x86/out
+
+CFLAGS += -I$(M5OPS_INCLUDE)
+LDFLAGS := -L$(M5OPS_LIB) -lm5
+
 TARGET := saxpy_benchmark
 SRC := saxpy.c
 ASM := saxpy_kernel.S

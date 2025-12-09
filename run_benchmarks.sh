@@ -101,24 +101,46 @@ for workload_name in simple_vadd saxpy matmul; do
         eval "$GEM5_BIN --stats-file=\"$stats_file\" $CONFIG_SCRIPT --cmd=\"$binary_path\" --options=\"$options\" --cpu-type=$CPU_TYPE" > "$output_file" 2>&1
         exit_code=$?
         
-        # Move stats files from m5out/ to our output directory
-        # stats.txt = full simulation, stats1.txt = ROI (between m5_dump_reset_stats calls)
+        # Move stats file from m5out/ to our output directory
+        full_stats_path="$OUTPUT_DIR/$stats_file"
         if [ -f "m5out/$stats_file" ]; then
-            mv "m5out/$stats_file" "$OUTPUT_DIR/$stats_file"
+            mv "m5out/$stats_file" "$full_stats_path"
         fi
         
-        # Extract ROI statistics from stats1.txt (kernel execution only)
+        # Extract ROI statistics (2nd region between m5_dump_reset_stats calls)
         roi_stats_file="${workload_name}_${size}_stats1.txt"
-        if [ -f "m5out/stats1.txt" ]; then
-            mv "m5out/stats1.txt" "$OUTPUT_DIR/$roi_stats_file"
-        fi
+        roi_stats_path="$OUTPUT_DIR/$roi_stats_file"
         
-        # Move any additional stats files
-        for extra_stats in m5out/stats*.txt; do
-            if [ -f "$extra_stats" ]; then
-                mv "$extra_stats" "$OUTPUT_DIR/"
+        if [ -f "$full_stats_path" ]; then
+            # Count statistics regions in the file
+            region_count=$(grep -c "^---------- Begin Simulation Statistics ----------$" "$full_stats_path")
+            
+            if [ "$region_count" -ge 2 ]; then
+                # Extract 2nd region (ROI) using awk
+                awk '
+                    BEGIN { region = 0; capture = 0 }
+                    /^---------- Begin Simulation Statistics ----------$/ { 
+                        region++
+                        if (region == 2) { capture = 1; print }
+                        next
+                    }
+                    /^---------- End Simulation Statistics   ----------$/ {
+                        if (region == 2) { print; capture = 0; exit }
+                        next
+                    }
+                    capture { print }
+                ' "$full_stats_path" > "$roi_stats_path"
+                
+                if [ -s "$roi_stats_path" ]; then
+                    echo -e "  ${GREEN}✓ Extracted ROI statistics (region 2 of $region_count)${NC}"
+                else
+                    echo -e "  ${YELLOW}⚠ ROI extraction produced empty file${NC}"
+                    rm -f "$roi_stats_path"
+                fi
+            else
+                echo -e "  ${YELLOW}⚠ Expected 2+ regions, found $region_count (m5ops may not be working)${NC}"
             fi
-        done
+        fi
         
         total_count=$((total_count + 1))
         
