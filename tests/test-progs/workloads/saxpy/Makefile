@@ -1,7 +1,7 @@
 CC := gcc
 CFLAGS := -Wall -Wextra -O2 -std=c11 -static
-# Disable AVX/SSE in C code to prevent compiler from generating unimplemented instructions
-CFLAGS_NOAVX := -mno-avx -mno-avx2 -mno-sse -mno-sse2 -mno-sse3 -mno-ssse3 -mno-sse4 -mno-sse4.1 -mno-sse4.2
+# Disable AVX in C code but allow SSE2 (standard on x86-64)
+CFLAGS_NOAVX := -mno-avx -mno-avx2 -mno-fma -msse2
 # Enable AVX only for assembly
 ASMFLAGS := -mavx2 -mfma
 
