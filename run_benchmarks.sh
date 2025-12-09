@@ -93,10 +93,10 @@ for workload_name in simple_vadd saxpy matmul image_blur; do
         output_file="$OUTPUT_DIR/${workload_name}_${size}_output.txt"
         
         echo -e "${YELLOW}Running: $workload_name with size $size${NC}"
-        echo "  Command: $GEM5_BIN $CONFIG_SCRIPT --cmd=$binary_path --options=\"$options\" --cpu-type=$CPU_TYPE"
+        echo "  Command: $GEM5_BIN --stats-file=\"$stats_file\" $CONFIG_SCRIPT --cmd=\"$binary_path\" --options=\"$options\" --cpu-type=$CPU_TYPE"
         
-        # Run gem5
-        $GEM5_BIN --stats-file="$stats_file" $CONFIG_SCRIPT --cmd="$binary_path" --options="$options" --cpu-type=$CPU_TYPE > "$output_file" 2>&1
+        # Run gem5 - use eval to properly handle quoted arguments
+        eval "$GEM5_BIN --stats-file=\"$stats_file\" $CONFIG_SCRIPT --cmd=\"$binary_path\" --options=\"$options\" --cpu-type=$CPU_TYPE" > "$output_file" 2>&1
         exit_code=$?
         
         total_count=$((total_count + 1))
