@@ -53,9 +53,12 @@
                 default: Inst::BLENDVPD(Vdq, Wdq);
             }
             0x17: ptest_Vdq_Wdq();
-            0x18: decode VEX_L {
-                0x1: Inst::VBROADCASTSS_256_XMM(M);
-                0x0: Inst::VBROADCASTSS_128_XMM(M);
+            0x18: decode VEX_PRESENT {
+                0x1: decode VEX_L {
+                    0x1: Inst::VBROADCASTSS_256(Vo, Wo);
+                    0x0: Inst::VBROADCASTSS_128(Vo, Wo);
+                }
+                default: Inst::UD2();
             }
             0x1C: decode MODRM_MOD {
                 default: Inst::PABSB(Vdq, Wdq);
@@ -175,20 +178,16 @@
                 }
                 default: Inst::UD2();
             }
-            // 0x19 VBROADCASTSD: broadcast m64 to XMM/YMM (66h -> pp=01)
-            0x19: decode VEX_PP {
-                0x1: decode VEX_L {
-                    // YMM dest (L=1): only memory source is valid under AVX2
-                    0x1: decode MODRM_MOD {
-                        0x3: Inst::UD2();
-                        default: Inst::VBROADCASTSD_256(Vo, M);
+            // 0x19 VBROADCASTSD: broadcast m64/xmm to XMM/YMM (66h -> pp=01)
+            0x19: decode VEX_PRESENT {
+                0x1: decode VEX_PP {
+                    0x1: decode VEX_L {
+                        0x1: Inst::VBROADCASTSD_256(Vo, Wo);
+                        0x0: Inst::VBROADCASTSD_128(Vo, Wo);
                     }
-                    // XMM dest (L=0): memory source
-                    0x0: decode MODRM_MOD {
-                        0x3: Inst::UD2();
-                        default: Inst::VBROADCASTSD_128(Vo, M);
-                    }
+                    default: Inst::UD2();
                 }
+                default: Inst::UD2();
             }
             default: Inst::UD2();
         }
