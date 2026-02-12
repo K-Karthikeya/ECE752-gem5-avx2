@@ -10,7 +10,7 @@ on:
 jobs:
 
     get-date:
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-latest
         outputs:
             date: ${{ steps.date.outputs.date }}
         steps:
@@ -18,6 +18,7 @@ jobs:
               id: date
               run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
+<<<<<<< HEAD
     macos-compilation:
         # The purpose of this is to cache the macOS compilation.
         # MacOS compilation checks are run as part of the CI tests but as the
@@ -73,9 +74,11 @@ jobs:
                   exit $status
               timeout-minutes: 120
 
+=======
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
     build-all-gem5:
         runs-on: [self-hosted, linux, x64]
-        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:latest
+        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:v25-0
         timeout-minutes: 180
         needs: get-date
 
@@ -93,13 +96,18 @@ jobs:
             - name: Build ALL/gem5.opt
               run: scons --no-compress-debug build/ALL/gem5.opt -j $(nproc)
 
+<<<<<<< HEAD
   # this builds and runs unittests.debug
     unittests-debug:
+=======
+  # this builds both unittests.fast and unittests.debug
+    unittests-fast-debug:
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
         strategy:
             matrix:
-                type: [debug]
+                type: [fast, debug]
         runs-on: [self-hosted, linux, x64]
-        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:latest
+        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:v25-0
         timeout-minutes: 60
         steps:
             - uses: actions/checkout@v4
@@ -108,8 +116,8 @@ jobs:
               run: scons build/ALL/unittests.${{ matrix.type }} -j $(nproc)
 
     get-testlib-long-dirs:
-        runs-on: ubuntu-24.04
-        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:latest
+        runs-on: ubuntu-latest
+        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:v25-0
         outputs:
             test-dirs-matrix: ${{ steps.dir-matrix.outputs.test-dirs-matrix }}
         steps:
@@ -142,7 +150,7 @@ jobs:
     testlib-long-tests:
         name: long-tests
         runs-on: [self-hosted, linux, x64]
-        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:latest
+        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:v25-0
         timeout-minutes: 1440 # 24 hours for entire matrix to run
         needs:
             - build-all-gem5
@@ -187,7 +195,7 @@ jobs:
 
     gpu-tests:
         runs-on: [self-hosted, linux, x64]
-        container: ghcr.io/gem5/gcn-gpu:latest
+        container: ghcr.io/gem5/gcn-gpu:v25-0
         timeout-minutes: 1440 # 24 hours
         needs:
             - get-date
@@ -220,7 +228,7 @@ jobs:
   # ext/sst/sst/example.py.
     sst-test:
         runs-on: [self-hosted, linux, x64]
-        container: ghcr.io/gem5/sst-env:latest
+        container: ghcr.io/gem5/sst-env:v25-0
         timeout-minutes: 180
 
         steps:
@@ -241,7 +249,7 @@ jobs:
   # simulation with it.
     systemc-test:
         runs-on: [self-hosted, linux, x64]
-        container: ghcr.io/gem5/systemc-env:latest
+        container: ghcr.io/gem5/systemc-env:v25-0
         timeout-minutes: 180
 
         steps:
@@ -262,7 +270,7 @@ jobs:
 
     dramsys-tests:
         runs-on: [self-hosted, linux, x64]
-        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:latest
+        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:v25-0
         timeout-minutes: 360 # 6 hours
         steps:
             - uses: actions/checkout@v4

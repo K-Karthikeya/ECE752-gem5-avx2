@@ -50,11 +50,10 @@
 #define __DEV_ARM_AMBA_FAKE_H__
 
 #include "dev/arm/amba_device.hh"
+#include "params/AmbaFake.hh"
 
 namespace gem5
 {
-
-struct AmbaFakeParams;
 
 class AmbaFake : public AmbaPioDevice
 {

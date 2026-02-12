@@ -41,7 +41,6 @@
 #include "base/trace.hh"
 #include "mem/packet.hh"
 #include "mem/packet_access.hh"
-#include "params/A9SCU.hh"
 #include "sim/system.hh"
 
 namespace gem5

@@ -39,9 +39,12 @@
 #define __MEM_RUBY_STRUCTURES_MN_TBESTORAGE_HH__
 
 #include <cassert>
+#include <unordered_map>
 #include <vector>
 
-#include "base/statistics.hh"
+#include <base/statistics.hh>
+
+#include "mem/ruby/common/MachineID.hh"
 #include "mem/ruby/structures/TBEStorage.hh"
 
 namespace gem5

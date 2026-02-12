@@ -48,12 +48,11 @@
 #include "dev/arm/base_gic.hh"
 #include "dev/io_device.hh"
 #include "dev/platform.hh"
+#include "params/Gicv2m.hh"
+#include "params/Gicv2mFrame.hh"
 
 namespace gem5
 {
-
-struct Gicv2mParams;
-struct Gicv2mFrameParams;
 
 /**
  * Ultimately this class should be embedded in the Gicv2m class, but
@@ -67,8 +66,10 @@ class Gicv2mFrame : public SimObject
     const unsigned int  spi_base;
     const unsigned int  spi_len;
 
-    using Params = Gicv2mFrameParams;
-    Gicv2mFrame(const Params &p);
+    typedef Gicv2mFrameParams Params;
+    Gicv2mFrame(const Params &p) :
+        SimObject(p), addr(p.addr), spi_base(p.spi_base), spi_len(p.spi_len)
+    {}
 };
 
 class Gicv2m : public PioDevice
@@ -93,7 +94,7 @@ class Gicv2m : public PioDevice
     unsigned int log2framenum;
 
   public:
-    using Params = Gicv2mParams;
+    typedef Gicv2mParams Params;
     Gicv2m(const Params &p);
 
     /** @{ */

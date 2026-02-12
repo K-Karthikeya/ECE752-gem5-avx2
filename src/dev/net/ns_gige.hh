@@ -330,12 +330,6 @@ class NSGigE : public EtherDevBase
     EventFunctionWrapper *intrEvent;
     NSGigEInt *interface;
 
-  protected:
-    Tick writeConfig(PacketPtr pkt) override;
-
-    Tick readDevice(PacketPtr pkt) override;
-    Tick writeDevice(PacketPtr pkt) override;
-
   public:
     PARAMS(NSGigE);
 
@@ -344,6 +338,11 @@ class NSGigE : public EtherDevBase
 
     Port &getPort(const std::string &if_name,
                   PortID idx=InvalidPortID) override;
+
+    Tick writeConfig(PacketPtr pkt) override;
+
+    Tick read(PacketPtr pkt) override;
+    Tick write(PacketPtr pkt) override;
 
     bool cpuIntrPending() const;
     void cpuIntrAck() { cpuIntrClear(); }

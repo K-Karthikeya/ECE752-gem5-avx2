@@ -49,6 +49,7 @@ def operand_types {{
     'sqw' : 'int64_t',
     'uqw' : 'uint64_t',
     'u2qw' : 'std::array<uint64_t, 2>',
+    'u4qw' : 'std::array<uint64_t, 4>',
     'sf' : 'float',
     'df' : 'double',
 }};
@@ -260,5 +261,23 @@ def operands {{
         'MiscRegSrc1':   ControlReg('src1', 211),
         'TscOp':         ControlReg('X86ISA::misc_reg::Tsc', 212),
         'M5Reg':         SquashCReg('X86ISA::misc_reg::M5Reg', 213),
-        'Mem':           MemOp('uqw', None, (None, 'IsLoad', 'IsStore'), 300)
+        'Mem':           MemOp('uqw', None, (None, 'IsLoad', 'IsStore'), 300),
+
+    # Operands to access AVX2 registers.
+    'FpData0':        FloatReg('data + 0', 310),
+    'FpData1':        FloatReg('data + 1', 311),
+    'FpData2':        FloatReg('data + 2', 312),
+    'FpData3':        FloatReg('data + 3', 313),
+    'FpSrcReg1x0':    FloatReg('src1 + 0', 320),
+    'FpSrcReg1x1':    FloatReg('src1 + 1', 321),
+    'FpSrcReg1x2':    FloatReg('src1 + 2', 322),
+    'FpSrcReg1x3':    FloatReg('src1 + 3', 323),
+    'FpSrcReg2x0':    FloatReg('src2 + 0', 330),
+    'FpSrcReg2x1':    FloatReg('src2 + 1', 331),
+    'FpSrcReg2x2':    FloatReg('src2 + 2', 332),
+    'FpSrcReg2x3':    FloatReg('src2 + 3', 333),
+    'FpDestReg0':     FloatReg('dest + 0', 340),
+    'FpDestReg1':     FloatReg('dest + 1', 341),
+    'FpDestReg2':     FloatReg('dest + 2', 342),
+    'FpDestReg3':     FloatReg('dest + 3', 343),
 }};

@@ -33,14 +33,12 @@ from typing import (
 )
 
 from m5.objects import (
+    AddrRange,
     DRAMSys,
     Gem5ToTlmBridge32,
     MemCtrl,
-    SystemC_Kernel,
-)
-from m5.params import (
-    AddrRange,
     Port,
+    SystemC_Kernel,
 )
 from m5.util.convert import toMemorySize
 

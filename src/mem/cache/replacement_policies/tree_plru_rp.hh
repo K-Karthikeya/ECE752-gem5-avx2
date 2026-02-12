@@ -122,7 +122,7 @@ class TreePLRU : public Base
     /**
      * Holds the latest temporary tree instance created by instantiateEntry().
      */
-    std::shared_ptr<PLRUTree> treeInstance;
+    PLRUTree* treeInstance;
 
   protected:
     /**

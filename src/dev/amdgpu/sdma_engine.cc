@@ -366,8 +366,7 @@ SDMAEngine::decodeNext(SDMAQueue *q)
         auto cb = new DmaVirtCallback<uint32_t>(
             [ = ] (const uint32_t &header)
                 { decodeHeader(q, header); });
-        dmaReadVirt(q->rptr(), sizeof(uint32_t), cb, &cb->dmaBuffer,
-                sdma_delay);
+        dmaReadVirt(q->rptr(), sizeof(uint32_t), cb, &cb->dmaBuffer);
     } else {
         // The driver expects the rptr to be written back to host memory
         // periodically. In simulation, we writeback rptr after each burst of
@@ -383,9 +382,6 @@ SDMAEngine::decodeNext(SDMAQueue *q)
         q->processing(false);
         if (q->parent()) {
             DPRINTF(SDMAEngine, "SDMA switching queues\n");
-            // If current vmid is non-zero, set it back to 0 before
-            // switching back to parent
-            cur_vmid = 0;
             decodeNext(q->parent());
         }
         cur_vmid = 0;
@@ -429,8 +425,7 @@ SDMAEngine::decodeHeader(SDMAQueue *q, uint32_t header)
             cb = new DmaVirtCallback<uint64_t>(
                 [ = ] (const uint64_t &)
                     { copy(q, (sdmaCopy *)dmaBuffer); });
-            dmaReadVirt(q->rptr(), sizeof(sdmaCopy), cb, dmaBuffer,
-                    sdma_delay);
+            dmaReadVirt(q->rptr(), sizeof(sdmaCopy), cb, dmaBuffer);
             } break;
           case SDMA_SUBOP_COPY_LINEAR_SUB_WIND: {
             panic("SDMA_SUBOP_COPY_LINEAR_SUB_WIND not implemented");
@@ -466,8 +461,7 @@ SDMAEngine::decodeHeader(SDMAQueue *q, uint32_t header)
             cb = new DmaVirtCallback<uint64_t>(
                 [ = ] (const uint64_t &)
                     { write(q, (sdmaWrite *)dmaBuffer); });
-            dmaReadVirt(q->rptr(), sizeof(sdmaWrite), cb, dmaBuffer,
-                    sdma_delay);
+            dmaReadVirt(q->rptr(), sizeof(sdmaWrite), cb, dmaBuffer);
             } break;
           case SDMA_SUBOP_WRITE_TILED: {
             panic("SDMA_SUBOP_WRITE_TILED not implemented.\n");
@@ -481,10 +475,8 @@ SDMAEngine::decodeHeader(SDMAQueue *q, uint32_t header)
         dmaBuffer = new sdmaIndirectBuffer();
         cb = new DmaVirtCallback<uint64_t>(
             [ = ] (const uint64_t &)
-                { indirectBuffer(q, (sdmaIndirectBuffer *)dmaBuffer,
-                        header); });
-        dmaReadVirt(q->rptr(), sizeof(sdmaIndirectBuffer), cb, dmaBuffer,
-                sdma_delay);
+                { indirectBuffer(q, (sdmaIndirectBuffer *)dmaBuffer); });
+        dmaReadVirt(q->rptr(), sizeof(sdmaIndirectBuffer), cb, dmaBuffer);
         } break;
       case SDMA_OP_FENCE: {
         DPRINTF(SDMAEngine, "SDMA Fence packet\n");
@@ -492,8 +484,7 @@ SDMAEngine::decodeHeader(SDMAQueue *q, uint32_t header)
         cb = new DmaVirtCallback<uint64_t>(
             [ = ] (const uint64_t &)
                 { fence(q, (sdmaFence *)dmaBuffer); });
-        dmaReadVirt(q->rptr(), sizeof(sdmaFence), cb, dmaBuffer,
-                sdma_delay);
+        dmaReadVirt(q->rptr(), sizeof(sdmaFence), cb, dmaBuffer);
         } break;
       case SDMA_OP_TRAP: {
         DPRINTF(SDMAEngine, "SDMA Trap packet\n");
@@ -501,8 +492,7 @@ SDMAEngine::decodeHeader(SDMAQueue *q, uint32_t header)
         cb = new DmaVirtCallback<uint64_t>(
             [ = ] (const uint64_t &)
                 { trap(q, (sdmaTrap *)dmaBuffer); });
-        dmaReadVirt(q->rptr(), sizeof(sdmaTrap), cb, dmaBuffer,
-                sdma_delay);
+        dmaReadVirt(q->rptr(), sizeof(sdmaTrap), cb, dmaBuffer);
         } break;
       case SDMA_OP_SEM: {
         q->incRptr(sizeof(sdmaSemaphore));
@@ -515,8 +505,7 @@ SDMAEngine::decodeHeader(SDMAQueue *q, uint32_t header)
         cb = new DmaVirtCallback<uint64_t>(
             [ = ] (const uint64_t &)
                 { pollRegMem(q, header, (sdmaPollRegMem *)dmaBuffer); });
-        dmaReadVirt(q->rptr(), sizeof(sdmaPollRegMem), cb, dmaBuffer,
-                sdma_delay);
+        dmaReadVirt(q->rptr(), sizeof(sdmaPollRegMem), cb, dmaBuffer);
         switch (sub_opcode) {
           case SDMA_SUBOP_POLL_REG_WRITE_MEM: {
             panic("SDMA_SUBOP_POLL_REG_WRITE_MEM not implemented");
@@ -542,8 +531,7 @@ SDMAEngine::decodeHeader(SDMAQueue *q, uint32_t header)
         cb = new DmaVirtCallback<uint64_t>(
             [ = ] (const uint64_t &)
                 { atomic(q, header, (sdmaAtomic *)dmaBuffer); });
-        dmaReadVirt(q->rptr(), sizeof(sdmaAtomic), cb, dmaBuffer,
-                sdma_delay);
+        dmaReadVirt(q->rptr(), sizeof(sdmaAtomic), cb, dmaBuffer);
         } break;
       case SDMA_OP_CONST_FILL: {
         DPRINTF(SDMAEngine, "SDMA Constant fill packet\n");
@@ -551,8 +539,7 @@ SDMAEngine::decodeHeader(SDMAQueue *q, uint32_t header)
         cb = new DmaVirtCallback<uint64_t>(
             [ = ] (const uint64_t &)
                 { constFill(q, (sdmaConstFill *)dmaBuffer, header); });
-        dmaReadVirt(q->rptr(), sizeof(sdmaConstFill), cb, dmaBuffer,
-                sdma_delay);
+        dmaReadVirt(q->rptr(), sizeof(sdmaConstFill), cb, dmaBuffer);
         } break;
       case SDMA_OP_PTEPDE: {
         DPRINTF(SDMAEngine, "SDMA PTEPDE packet\n");
@@ -563,8 +550,7 @@ SDMAEngine::decodeHeader(SDMAQueue *q, uint32_t header)
             cb = new DmaVirtCallback<uint64_t>(
                 [ = ] (const uint64_t &)
                     { ptePde(q, (sdmaPtePde *)dmaBuffer); });
-            dmaReadVirt(q->rptr(), sizeof(sdmaPtePde), cb, dmaBuffer,
-                    sdma_delay);
+            dmaReadVirt(q->rptr(), sizeof(sdmaPtePde), cb, dmaBuffer);
             break;
           case SDMA_SUBOP_PTEPDE_COPY:
             panic("SDMA_SUBOP_PTEPDE_COPY not implemented");
@@ -603,8 +589,7 @@ SDMAEngine::decodeHeader(SDMAQueue *q, uint32_t header)
         cb = new DmaVirtCallback<uint64_t>(
             [ = ] (const uint64_t &)
                 { srbmWrite(q, header, (sdmaSRBMWrite *)dmaBuffer); });
-        dmaReadVirt(q->rptr(), sizeof(sdmaSRBMWrite), cb, dmaBuffer,
-                sdma_delay);
+        dmaReadVirt(q->rptr(), sizeof(sdmaSRBMWrite), cb, dmaBuffer);
         } break;
       case SDMA_OP_PRE_EXE: {
         q->incRptr(sizeof(sdmaPredExec));
@@ -636,7 +621,7 @@ SDMAEngine::write(SDMAQueue *q, sdmaWrite *pkt)
     auto cb = new DmaVirtCallback<uint64_t>(
         [ = ] (const uint64_t &) { writeReadData(q, pkt, dmaBuffer); });
     dmaReadVirt(q->rptr(), sizeof(uint32_t) * pkt->count, cb,
-                (void *)dmaBuffer, sdma_delay);
+                (void *)dmaBuffer);
 }
 
 /* Completion of data reading for a write packet. */
@@ -663,7 +648,7 @@ SDMAEngine::writeReadData(SDMAQueue *q, sdmaWrite *pkt, uint32_t *dmaBuffer)
         gpuDevice->getMemMgr()->writeRequest(mmhub_addr, (uint8_t *)dmaBuffer,
                                            bufferSize, 0, cb);
     } else {
-        if (q->priv() && cur_vmid == 0) {
+        if (q->priv()) {
             pkt->dest = getGARTAddr(pkt->dest);
         }
         auto cb = new DmaVirtCallback<uint32_t>(
@@ -710,8 +695,7 @@ SDMAEngine::copy(SDMAQueue *q, sdmaCopy *pkt)
     q->incRptr(sizeof(sdmaCopy));
     // count represents the number of bytes - 1 to be copied
     pkt->count++;
-
-    if (q->priv() && cur_vmid == 0) {
+    if (q->priv()) {
         if (!gpuDevice->getVM().inMMHUB(pkt->source)) {
             DPRINTF(SDMAEngine, "Getting GART addr for %lx\n", pkt->source);
             pkt->source = getGARTAddr(pkt->source);
@@ -746,8 +730,7 @@ SDMAEngine::copy(SDMAQueue *q, sdmaCopy *pkt)
     } else {
         auto cb = new DmaVirtCallback<uint64_t>(
             [ = ] (const uint64_t &) { copyReadData(q, pkt, dmaBuffer); });
-        dmaReadVirt(pkt->source, pkt->count, cb, (void *)dmaBuffer,
-                sdma_delay);
+        dmaReadVirt(pkt->source, pkt->count, cb, (void *)dmaBuffer);
     }
 }
 
@@ -843,11 +826,9 @@ SDMAEngine::copyCleanup(uint8_t *dmaBuffer)
 
 /* Implements an indirect buffer packet. */
 void
-SDMAEngine::indirectBuffer(SDMAQueue *q, sdmaIndirectBuffer *pkt,
-        uint32_t header)
+SDMAEngine::indirectBuffer(SDMAQueue *q, sdmaIndirectBuffer *pkt)
 {
-    cur_vmid = (header >> 16) & 0xF;
-    if (q->priv() && cur_vmid == 0) {
+    if (q->priv()) {
         q->ib()->base(getGARTAddr(pkt->base));
     } else {
         q->ib()->base(pkt->base);
@@ -867,7 +848,7 @@ void
 SDMAEngine::fence(SDMAQueue *q, sdmaFence *pkt)
 {
     q->incRptr(sizeof(sdmaFence));
-    if (q->priv() && cur_vmid == 0) {
+    if (q->priv()) {
         pkt->dest = getGARTAddr(pkt->dest);
     }
 
@@ -900,8 +881,7 @@ SDMAEngine::trap(SDMAQueue *q, sdmaTrap *pkt)
     int node_id = 0;
     int local_id = getId();
 
-    if (gpuDevice->getGfxVersion() == GfxVersion::gfx942 ||
-        gpuDevice->getGfxVersion() == GfxVersion::gfx950) {
+    if (gpuDevice->getGfxVersion() == GfxVersion::gfx942) {
         node_id = getId() >> 2;
 
         // For most SDMAs the "node_id" for the interrupt handler is the SDMA
@@ -966,7 +946,7 @@ SDMAEngine::pollRegMem(SDMAQueue *q, uint32_t header, sdmaPollRegMem *pkt)
     sdmaPollRegMemHeader prm_header;
     prm_header.ordinal = header;
 
-    if (q->priv() && cur_vmid == 0) {
+    if (q->priv()) {
         pkt->address = getGARTAddr(pkt->address);
     }
 
@@ -984,7 +964,7 @@ SDMAEngine::pollRegMem(SDMAQueue *q, uint32_t header, sdmaPollRegMem *pkt)
                 [ = ] (const uint32_t &dma_buffer) {
                     pollRegMemRead(q, header, pkt, dma_buffer, 0); });
             dmaReadVirt(pkt->address, sizeof(uint32_t), cb,
-                        (void *)&cb->dmaBuffer, sdma_delay);
+                        (void *)&cb->dmaBuffer);
         } else {
             panic("SDMA poll mem operation not implemented.");
             skip = true;
@@ -1023,7 +1003,7 @@ SDMAEngine::pollRegMemRead(SDMAQueue *q, uint32_t header, sdmaPollRegMem *pkt,
             [ = ] (const uint32_t &dma_buffer) {
                 pollRegMemRead(q, header, pkt, dma_buffer, count + 1); });
         dmaReadVirt(pkt->address, sizeof(uint32_t), cb,
-                    (void *)&cb->dmaBuffer, sdma_delay);
+                    (void *)&cb->dmaBuffer);
     } else {
         DPRINTF(SDMAEngine, "SDMA polling mem addr %p, val %d ref %d done.\n",
                 pkt->address, dma_buffer, pkt->ref);
@@ -1094,7 +1074,7 @@ SDMAEngine::ptePde(SDMAQueue *q, sdmaPtePde *pkt)
                                              sizeof(uint64_t) * pkt->count, 0,
                                              cb);
     } else {
-        if (q->priv() && cur_vmid == 0) {
+        if (q->priv()) {
             pkt->dest = getGARTAddr(pkt->dest);
         }
         auto cb = new DmaVirtCallback<uint64_t>(
@@ -1150,8 +1130,7 @@ SDMAEngine::atomic(SDMAQueue *q, uint32_t header, sdmaAtomic *pkt)
     auto cb = new DmaVirtCallback<uint64_t>(
         [ = ] (const uint64_t &)
             { atomicData(q, header, pkt, dmaBuffer); });
-    dmaReadVirt(pkt->addr, sizeof(uint64_t), cb, (void *)dmaBuffer,
-            sdma_delay);
+    dmaReadVirt(pkt->addr, sizeof(uint64_t), cb, (void *)dmaBuffer);
 }
 
 void

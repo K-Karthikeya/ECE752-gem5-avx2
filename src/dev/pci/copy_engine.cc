@@ -168,7 +168,7 @@ CopyEngine::CopyEngineChannel::recvCommand()
 }
 
 Tick
-CopyEngine::readDevice(PacketPtr pkt)
+CopyEngine::read(PacketPtr pkt)
 {
     int bar;
     Addr daddr;
@@ -289,8 +289,9 @@ CopyEngine::CopyEngineChannel::channelRead(Packet *pkt, Addr daddr, int size)
     }
 }
 
+
 Tick
-CopyEngine::writeDevice(PacketPtr pkt)
+CopyEngine::write(PacketPtr pkt)
 {
     int bar;
     Addr daddr;

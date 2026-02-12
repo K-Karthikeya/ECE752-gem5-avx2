@@ -51,7 +51,6 @@
 #include "dev/arm/gic_v2.hh"
 #include "mem/physical.hh"
 #include "params/ArmRelease.hh"
-#include "params/ArmSystem.hh"
 
 namespace gem5
 {

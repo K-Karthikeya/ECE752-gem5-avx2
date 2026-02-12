@@ -33,7 +33,6 @@
 
 #include "base/bitfield.hh"
 #include "base/compiler.hh"
-#include "base/types.hh"
 #include "cpu/static_inst_fwd.hh"
 
 namespace gem5

@@ -27,13 +27,11 @@
 from typing import List
 
 from m5.objects import (
+    AddrRange,
     CHI_Memory_Controller,
     MessageBuffer,
-    RubyNetwork,
-)
-from m5.params import (
-    AddrRange,
     Port,
+    RubyNetwork,
 )
 
 from .abstract_node import TriggerMessageBuffer

@@ -89,6 +89,8 @@ class PerfectSwitch : public Consumer
     void wakeup();
     void storeEventInfo(int info);
 
+    void clearStats();
+    void collateStats();
     void print(std::ostream& out) const;
 
   private:

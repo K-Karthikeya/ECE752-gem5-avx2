@@ -37,7 +37,7 @@
 #include "mem/ruby/profiler/AccessTraceForAddress.hh"
 #include "mem/ruby/profiler/Profiler.hh"
 #include "mem/ruby/protocol/AccessType.hh"
-#include "mem/ruby/slicc_interface/RubyRequest.hh"
+#include "mem/ruby/protocol/RubyRequest.hh"
 
 namespace gem5
 {

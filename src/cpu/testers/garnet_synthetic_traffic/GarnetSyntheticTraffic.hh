@@ -136,7 +136,7 @@ class GarnetSyntheticTraffic : public ClockedObject
 
     RequestorID requestorId;
 
-    Random::RandomPtr rng;
+    Random::RandomPtr rng = Random::genRandom();
 
     void completeRequest(PacketPtr pkt);
 

@@ -164,7 +164,6 @@ class Fetch2 : public Named
     {
         Fetch2Stats(MinorCPU *cpu);
         /** Stats */
-        statistics::Scalar totalInstructions;
         statistics::Scalar intInstructions;
         statistics::Scalar fpInstructions;
         statistics::Scalar vecInstructions;

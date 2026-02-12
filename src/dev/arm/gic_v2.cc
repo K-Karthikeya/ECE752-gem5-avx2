@@ -49,7 +49,6 @@
 #include "debug/Interrupt.hh"
 #include "mem/packet.hh"
 #include "mem/packet_access.hh"
-#include "params/GicV2.hh"
 
 namespace gem5
 {

@@ -254,7 +254,6 @@ class Gicv3Redistributor : public Serializable
   public:
 
     Gicv3Redistributor(Gicv3 * gic, uint32_t cpu_id);
-    virtual ~Gicv3Redistributor() = default;
     uint32_t getAffinity() const;
     void init();
     uint64_t read(Addr addr, size_t size, bool is_secure_access);

@@ -405,8 +405,7 @@ Wavefront::initRegState(HSAQueueEntry *task, int wgSizeInWorkItems)
                 // For architected flat scratch, this enable is reused to set
                 // the FLAT_SCRATCH register pair to the scratch backing
                 // memory: https://llvm.org/docs/AMDGPUUsage.html#flat-scratch
-                if (task->gfxVersion() == GfxVersion::gfx942 ||
-                    task->gfxVersion() == GfxVersion::gfx950) {
+                if (task->gfxVersion() == GfxVersion::gfx942) {
                     uint32_t scratchPerWI =
                         task->amdQueue.scratch_workitem_byte_size;
 
@@ -491,8 +490,7 @@ Wavefront::initRegState(HSAQueueEntry *task, int wgSizeInWorkItems)
     bool packed_work_item_id = false;
 
     if (task->gfxVersion() == GfxVersion::gfx90a ||
-        task->gfxVersion() == GfxVersion::gfx942 ||
-        task->gfxVersion() == GfxVersion::gfx950) {
+        task->gfxVersion() == GfxVersion::gfx942) {
         packed_work_item_id = true;
     }
 
@@ -1693,40 +1691,6 @@ Wavefront::printProgress()
     for (auto &elem : expIssued) {
         std::cout << "\t" << cntInsts[elem] << "\n";
     }
-}
-
-void
-Wavefront::setMfmaAScale(int idx, uint8_t value)
-{
-    assert(idx < VegaISA::NumVecElemPerVecReg);
-    mfmaAScale[idx] = value;
-}
-
-void
-Wavefront::setMfmaBScale(int idx, uint8_t value)
-{
-    assert(idx < VegaISA::NumVecElemPerVecReg);
-    mfmaBScale[idx] = value;
-}
-
-uint8_t
-Wavefront::getMfmaAScale(int idx)
-{
-    assert(idx < VegaISA::NumVecElemPerVecReg);
-    uint8_t rv = mfmaAScale[idx];
-    mfmaAScale[idx] = 0;
-
-    return rv;
-}
-
-uint8_t
-Wavefront::getMfmaBScale(int idx)
-{
-    assert(idx < VegaISA::NumVecElemPerVecReg);
-    uint8_t rv = mfmaBScale[idx];
-    mfmaBScale[idx] = 0;
-
-    return rv;
 }
 
 Wavefront::WavefrontStats::WavefrontStats(statistics::Group *parent)

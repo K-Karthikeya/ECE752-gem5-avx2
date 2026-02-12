@@ -1,0 +1,277 @@
+//////////////////////////////////////////////////////////////////
+// Minimal VEX two-byte opcode decodes for AVX subset.
+//
+// This file defines a distinct opcode state for VEX-encoded two-byte (0x0F)
+// opcodes. Only a small AVX/AVX2 floating-point subset is implemented.
+
+'X86ISA::TwoByteOpcodeVEX': decode OPCODE_OP {
+    format Inst {
+        // 0x58 ADD packed: PS (pp=00), PD (pp=01)
+        0x58: decode VEX_PP {
+            // PD
+            0x1: decode VEX_L {
+                // 128-bit: reg-reg vs mem
+                0x0: decode MODRM_MOD {
+                    0x3: VADDPD_128(Vo, Wo);
+                    default: VADDPD_128(Vo, M);
+                }
+                // 256-bit: reg-reg vs mem
+                0x1: decode MODRM_MOD {
+                    0x3: VADDPD_256(Vo, Wo);
+                    default: VADDPD_256(Vo, M);
+                }
+            }
+            // PS
+            0x0: decode VEX_L {
+                0x0: decode MODRM_MOD {
+                    0x3: VADDPS_128(Vo, Wo);
+                    default: VADDPS_128(Vo, M);
+                }
+                0x1: decode MODRM_MOD {
+                    0x3: VADDPS_256(Vo, Wo);
+                    default: VADDPS_256(Vo, M);
+                }
+            }
+        }
+
+        // 0x54 ANDPS - Packed bitwise AND (PS only, pp=00)
+        0x54: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x1: VANDPS_256(Vo, Wo);
+                0x0: VANDPS_128(Vo, Wo);
+            }
+            default: UD2();
+        }
+
+        // 0x57 XORPS - Packed bitwise XOR (PS only, pp=00)
+        0x57: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x1: VXORPS_256(Vo, Wo);
+                0x0: VXORPS_128(Vo, Wo);
+            }
+            default: UD2();
+        }
+
+        // 0x59 MUL packed: PS (pp=00), PD (pp=01)
+        0x59: decode VEX_PP {
+            // PD
+            0x1: decode VEX_L {
+                0x0: decode MODRM_MOD {
+                    0x3: VMULPD_128(Vo, Wo);
+                    default: VMULPD_128(Vo, M);
+                }
+                0x1: decode MODRM_MOD {
+                    0x3: VMULPD_256(Vo, Wo);
+                    default: VMULPD_256(Vo, M);
+                }
+            }
+            // PS
+            0x0: decode VEX_L {
+                0x0: decode MODRM_MOD {
+                    0x3: VMULPS_128(Vo, Wo);
+                    default: VMULPS_128(Vo, M);
+                }
+                0x1: decode MODRM_MOD {
+                    0x3: VMULPS_256(Vo, Wo);
+                    default: VMULPS_256(Vo, M);
+                }
+            }
+        }
+
+        // 0x5C SUB packed: PS (pp=00), PD (pp=01)
+        0x5C: decode VEX_PP {
+            // PD
+            0x1: decode VEX_L {
+                0x0: decode MODRM_MOD {
+                    0x3: VSUBPD_128(Vo, Wo);
+                    default: VSUBPD_128(Vo, M);
+                }
+                0x1: decode MODRM_MOD {
+                    0x3: VSUBPD_256(Vo, Wo);
+                    default: VSUBPD_256(Vo, M);
+                }
+            }
+            // PS
+            0x0: decode VEX_L {
+                0x0: decode MODRM_MOD {
+                    0x3: VSUBPS_128(Vo, Wo);
+                    default: VSUBPS_128(Vo, M);
+                }
+                0x1: decode MODRM_MOD {
+                    0x3: VSUBPS_256(Vo, Wo);
+                    default: VSUBPS_256(Vo, M);
+                }
+            }
+        }
+
+        // 0x5E DIV packed: PS (pp=00), PD (pp=01)
+        0x5E: decode VEX_PP {
+            // PD
+            0x1: decode VEX_L {
+                0x0: decode MODRM_MOD {
+                    0x3: VDIVPD_128(Vo, Wo);
+                    default: VDIVPD_128(Vo, M);
+                }
+                0x1: decode MODRM_MOD {
+                    0x3: VDIVPD_256(Vo, Wo);
+                    default: VDIVPD_256(Vo, M);
+                }
+            }
+            // PS
+            0x0: decode VEX_L {
+                0x0: decode MODRM_MOD {
+                    0x3: VDIVPS_128(Vo, Wo);
+                    default: VDIVPS_128(Vo, M);
+                }
+                0x1: decode MODRM_MOD {
+                    0x3: VDIVPS_256(Vo, Wo);
+                    default: VDIVPS_256(Vo, M);
+                }
+            }
+        }
+        // VMINPS (0x5D)
+        0x5D: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x0: decode MODRM_MOD {
+                    0x3: VMINPS_128(Vo, Wo);
+                    default: VMINPS_128(Vo, M);
+                }
+                0x1: decode MODRM_MOD {
+                    0x3: VMINPS_256(Vo, Wo);
+                    default: VMINPS_256(Vo, M);
+                }
+            }
+            default: UD2();
+        }
+                // VMAXPS (0x5F)
+        0x5F: decode VEX_PP {
+            0x0: decode VEX_L {
+                0x0: decode MODRM_MOD {
+                    0x3: VMAXPS_128(Vo, Wo);
+                    default: VMAXPS_128(Vo, M);
+                }
+                0x1: decode MODRM_MOD {
+                    0x3: VMAXPS_256(Vo, Wo);
+                    default: VMAXPS_256(Vo, M);
+                }
+            }
+            default: UD2();
+        }
+        // 0x12 MOVSLDUP and MOVDDUP: duplicate low singles / low doubles
+        // (F3 prefix for MOVSLDUP, F2 prefix for MOVDDUP)
+        0x12: decode VEX_PP {
+            // VMOVSLDUP (F3 prefix, VEX_PP=0x2)
+            0x2: decode VEX_L {
+                0x1: decode MODRM_MOD {
+                    0x3: VMOVSLDUP_256(Vo, Wo);
+                    default: VMOVSLDUP_256(Vo, M);
+                }
+                0x0: decode MODRM_MOD {
+                    0x3: VMOVSLDUP_128(Vo, Wo);
+                    default: VMOVSLDUP_128(Vo, M);
+                }
+            }
+            // VMOVDDUP (F2 prefix, VEX_PP=0x3)
+            0x3: decode VEX_L {
+                // 256-bit MOVDDUP (YMM width; name uses 256_XMM_* convention)
+                0x1: decode MODRM_MOD {
+                    0x3: VMOVDDUP_256(Vo, Wo);
+                    default: VMOVDDUP_256(Vo, M);
+                }
+                // 128-bit MOVDDUP
+                0x0: decode MODRM_MOD {
+                    0x3: VMOVDDUP_128(Vo, Wo);
+                    default: VMOVDDUP_128(Vo, M);
+                }
+            }
+            default: UD2();
+        }
+
+        // 0x16 VMOVSHDUP (0F 16 /r, F3 prefix) - duplicate high singles
+        0x16: decode VEX_PP {
+            0x2: decode VEX_L {
+                0x1: decode MODRM_MOD {
+                    0x3: VMOVSHDUP_256(Vo, Wo);
+                    default: VMOVSHDUP_256(Vo, M);
+                }
+                0x0: decode MODRM_MOD {
+                    0x3: VMOVSHDUP_128(Vo, Wo);
+                    default: VMOVSHDUP_128(Vo, M);
+                }
+            }
+            default: UD2();
+        }
+
+        // Integer arithmetic/logical packed ops (dword lanes)
+        0xFE: decode VEX_L {
+            // VPADDD (0F FE /r)
+            0x1: VPADDD_256(Vo, Wo);
+            0x0: VPADDD_128(Vo, Wo);
+        }
+        0xDB: decode VEX_L {
+            // VPAND (0F DB /r) - bitwise AND works on all element sizes
+            0x1: VPAND_256(Vo, Wo);
+            0x0: VPAND_128(Vo, Wo);
+        }
+        0xEB: decode VEX_L {
+            // VPOR (0F EB /r) - bitwise OR
+            0x1: VPOR_256(Vo, Wo);
+            0x0: VPOR_128(Vo, Wo);
+        }
+        0xEF: decode VEX_L {
+            // VPXOR (0F EF /r) - bitwise XOR
+            0x1: VPXOR_256(Vo, Wo);
+            0x0: VPXOR_128(Vo, Wo);
+        }
+        0xFA: decode VEX_L {
+            // VPSUBD (0F FA /r) - packed 32-bit subtract
+            0x1: VPSUBD_256(Vo, Wo);
+            0x0: VPSUBD_128(Vo, Wo);
+        }
+        // VMOVD: Move 32-bit between GPR and XMM (VEX.66 prefix, pp=0x1)
+        // 0x6E - load from reg/mem to XMM, 0x7E - store from XMM to reg/mem
+        0x6E: decode VEX_PP {
+            0x1: VMOVD(Vd, Ed);
+            default: UD2();
+        }
+        0x7E: decode VEX_PP {
+            0x1: VMOVD(Ed, Vd);
+            default: UD2();
+        }
+        // Load from memory (M operand triggers doModRM via specializeInst)
+        // VMOVDQU (0F 6F /r) load and VMOVDQU store (0F 7F /r)
+        0x6F: decode VEX_L {
+            0x1: VMOVDQU_256(M);
+            0x0: VMOVDQU_128(M);
+        }
+        0x7F: decode VEX_L {
+            0x1: VMOVDQU_M_256(M);
+            0x0: VMOVDQU_M_128(M);
+        }
+        0x10: decode VEX_L {
+            0x1: VMOVUPS_256(M);
+            0x0: VMOVUPS_128(M);
+        }
+        0x11: decode VEX_L {
+            0x1: VMOVUPS_M_256(M);
+            0x0: VMOVUPS_M_128(M);
+        }
+        0x28: decode VEX_L {
+            0x1: VMOVAPS_256(M);
+            0x0: VMOVAPS_128(M);
+        }
+        0x29: decode VEX_L {
+            0x1: VMOVAPS_M_256(M);
+            0x0: VMOVAPS_M_128(M);
+        }
+        // FMA3 instructions live in 0F38 map; this file covers only 0F. See three_byte_opcodes_vex.isa for VFMADD231PS mapping.
+        // VCMPPS (0xC2) requires an immediate (Ib).
+        // The _I suffix is auto-generated by Inst format when Ib operand is present.
+        0xC2: decode VEX_L {
+            0x1: VCMPPS_256(Vo, Wo, Ib);
+            0x0: VCMPPS_128(Vo, Wo, Ib);
+        }
+        0x77: VZEROUPPER();
+        default: UD2();
+    }
+}

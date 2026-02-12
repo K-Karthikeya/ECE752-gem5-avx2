@@ -39,6 +39,7 @@
 #define __DEV_ARM_RTC_PL310_HH__
 
 #include "dev/arm/amba_device.hh"
+#include "params/PL031.hh"
 
 /** @file
  * This implements the ARM Primecell 031 RTC
@@ -46,8 +47,6 @@
 
 namespace gem5
 {
-
-struct PL031Params;
 
 class PL031 : public AmbaIntDevice
 {

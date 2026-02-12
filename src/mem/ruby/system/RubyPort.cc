@@ -41,9 +41,12 @@
 
 #include "mem/ruby/system/RubyPort.hh"
 
+#include "base/compiler.hh"
+#include "cpu/testers/rubytest/RubyTester.hh"
 #include "debug/Config.hh"
 #include "debug/Drain.hh"
-#include "debug/RubyPort.hh"
+#include "debug/Ruby.hh"
+#include "mem/ruby/protocol/AccessPermission.hh"
 #include "mem/ruby/slicc_interface/AbstractController.hh"
 #include "mem/simple_mem.hh"
 #include "sim/full_system.hh"
@@ -255,26 +258,9 @@ RubyPort::MemResponsePort::recvTimingReq(PacketPtr pkt)
         panic("RubyPort should never see request with the "
               "cacheResponding flag set\n");
 
-    // For software prefetches, immediately respond to avoid stalling on the
-    // core while still processing the prefetch by passing a copy of the
-    // request through
-    PacketPtr pf = nullptr;
-    if (pkt->cmd.isSWPrefetch()) {
-        RequestPtr req = std::make_shared<Request>(pkt->req->getPaddr(),
-                                                   pkt->req->getSize(),
-                                                   pkt->req->getFlags(),
-                                                   pkt->req->requestorId());
-        pf = pkt;
-        pkt = new Packet(req, pf->cmd);
-        pkt->allocate();
-        assert(pkt->matchAddr(pf));
-        assert(pkt->getSize() == pf->getSize());
-    }
-
     // ruby doesn't support cache maintenance operations at the
     // moment, as a workaround, we respond right away
-    if (pkt->req->isCacheMaintenance() &&
-        !owner.m_ruby_system->getProtocolInfo().getSupportsFlushes()) {
+    if (pkt->req->isCacheMaintenance()) {
         warn_once("Cache maintenance operations are not supported in Ruby.\n");
         pkt->makeResponse();
         schedTimingResp(pkt, curTick());
@@ -311,14 +297,6 @@ RubyPort::MemResponsePort::recvTimingReq(PacketPtr pkt)
     // Otherwise, we need to tell the port to retry at a later point
     // and return false.
     if (requestStatus == RequestStatus_Issued) {
-        // For software prefetches, only schedule early return if it was
-        // actually issued/aliased by the sequencer
-        if (pkt->cmd.isSWPrefetch()) {
-            assert(pf != nullptr);
-            pf->makeResponse();
-            schedTimingResp(pf, curTick());
-        }
-
         DPRINTF(RubyPort, "Request %s 0x%x issued\n", pkt->cmdString(),
                 pkt->getAddr());
         return true;

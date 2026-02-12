@@ -98,7 +98,7 @@ class Text : public Output
 
     // Implement Output
     bool valid() const override;
-    void begin(const std::string &message = "") override;
+    void begin() override;
     void end() override;
 };
 

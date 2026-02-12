@@ -59,13 +59,19 @@ BPredUnit::BPredUnit(const Params &params)
     : SimObject(params),
       numThreads(params.numThreads),
       requiresBTBHit(params.requiresBTBHit),
+<<<<<<< HEAD
       updateBTBAtSquash(params.updateBTBAtSquash),
+=======
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
       instShiftAmt(params.instShiftAmt),
       predHist(numThreads),
       btb(params.btb),
       ras(params.ras),
+<<<<<<< HEAD
       cPred(params.conditionalBranchPred),
       overridingCPred(params.overridingBranchPred),
+=======
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
       iPred(params.indirectBranchPred),
       stats(this)
 {
@@ -97,7 +103,18 @@ BPredUnit::drainSanityCheck() const
         assert(ph.empty());
 }
 
+<<<<<<< HEAD
 Prediction
+=======
+void
+BPredUnit::branchPlaceholder(ThreadID tid, Addr pc,
+                             bool uncond, void * &bp_history)
+{
+    panic("BPredUnit::branchPlaceholder() not implemented for this BP.\n");
+}
+
+bool
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 BPredUnit::predict(const StaticInstPtr &inst, const InstSeqNum &seqNum,
                    PCStateBase &pc, ThreadID tid)
 {
@@ -116,11 +133,8 @@ BPredUnit::predict(const StaticInstPtr &inst, const InstSeqNum &seqNum,
     return pred;
 }
 
-void
-BPredUnit::insertPredictorHistory(ThreadID tid, PredictorHistory *&bpu_history)
-{
-    predHist[tid].push_front(bpu_history);
-}
+
+
 
 Prediction
 BPredUnit::predict(const StaticInstPtr &inst, const InstSeqNum &seqNum,
@@ -150,12 +164,13 @@ BPredUnit::predict(const StaticInstPtr &inst, const InstSeqNum &seqNum,
      * the direction is always taken
      */
 
-    if (hist->uncond) {
+    if (inst->isUncondCtrl()) {
         // Unconditional branches -----
         hist->condPred = true;
     } else {
         // Conditional branches -------
         ++stats.condPredicted;
+<<<<<<< HEAD
         Prediction condPred =
             cPred->lookup(tid, pc.instAddr(), hist->bpHistory);
         hist->condPred = condPred.taken;
@@ -179,6 +194,9 @@ BPredUnit::predict(const StaticInstPtr &inst, const InstSeqNum &seqNum,
         } else {
             totalLatency += condPred.latency;
         }
+=======
+        hist->condPred = lookup(tid, pc.instAddr(), hist->bpHistory);
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
         if (hist->condPred) {
             ++stats.condPredictedTaken;
@@ -344,9 +362,8 @@ BPredUnit::predict(const StaticInstPtr &inst, const InstSeqNum &seqNum,
      * The actual prediction tables will updated once
      * we know the correct direction.
      **/
-    cPred->updateHistories(tid, hist->pc, hist->uncond, hist->predTaken,
-                           hist->target->instAddr(), hist->inst,
-                           hist->bpHistory);
+    updateHistories(tid, hist->pc, hist->uncond, hist->predTaken,
+                    hist->target->instAddr(), hist->inst, hist->bpHistory);
 
     if (overridingCPred) {
         overridingCPred->updateHistories(
@@ -400,8 +417,6 @@ BPredUnit::commitBranch(ThreadID tid, PredictorHistory* &hist)
         } else {
             stats.mispredictDueToPredictor[tid][hist->type]++;
         }
-        ++stats.condIncorrect;
-        ppMisses->notify(1);
     }
 
 
@@ -412,8 +427,11 @@ BPredUnit::commitBranch(ThreadID tid, PredictorHistory* &hist)
                 hist->target->instAddr());
 
     // Update the branch predictor with the correct results.
-    cPred->update(tid, hist->pc, hist->actuallyTaken, hist->bpHistory, false,
-                  hist->inst, hist->target->instAddr());
+    update(tid, hist->pc,
+                hist->actuallyTaken,
+                hist->bpHistory, false,
+                hist->inst,
+                hist->target->instAddr());
 
     if (hist->inst->isCondCtrl()) {
         updateStatsOverriding(hist->condPred, hist->actuallyTaken,
@@ -440,10 +458,6 @@ BPredUnit::commitBranch(ThreadID tid, PredictorHistory* &hist)
                          hist->type,
                          hist->rasHistory);
     }
-
-    // Correct BTB (at commit) -------------------------------------
-    // Update the BTB for all committed taken branches.
-    if (hist->actuallyTaken && !updateBTBAtSquash) { updateBTB(tid, hist); }
 }
 
 
@@ -456,11 +470,6 @@ BPredUnit::squash(const InstSeqNum &squashed_sn, ThreadID tid)
             predHist[tid].front()->seqNum > squashed_sn) {
 
         auto hist = predHist[tid].front();
-
-        DPRINTF(Branch,
-                "[tid:%i, squash sn:%llu] Removing history for "
-                "sn:%llu, PC:%#x\n",
-                tid, squashed_sn, hist->seqNum, hist->pc);
 
         squashHistory(tid, hist);
 
@@ -498,8 +507,8 @@ BPredUnit::squashHistory(ThreadID tid, PredictorHistory* &history)
                         history->indirectHistory);
     }
 
-    // This call will  delete the bpHistory.
-    cPred->squash(tid, history->bpHistory);
+    // This call should delete the bpHistory.
+    squash(tid, history->bpHistory);
 
     // If the overriding predictor was used, also squash it
     // This call will delete the overridingBpHistory.
@@ -529,6 +538,12 @@ BPredUnit::squash(const InstSeqNum &squashed_sn,
     //     PC-relative, branch was predicted incorrectly. If so, a signal
     //     to the fetch stage is sent to squash history after the mispredict
 
+    History &pred_hist = predHist[tid];
+
+    ++stats.condIncorrect;
+    ppMisses->notify(1);
+
+
     DPRINTF(Branch, "[tid:%i] Squash from %s start from sequence number %i, "
             "setting target to %s\n", tid, from_commit ? "commit" : "decode",
             squashed_sn, corr_target);
@@ -542,9 +557,9 @@ BPredUnit::squash(const InstSeqNum &squashed_sn,
     // If there's a squash due to a syscall, there may not be an entry
     // corresponding to the squash.  In that case, don't bother trying to
     // fix up the entry.
-    if (!predHist[tid].empty()) {
+    if (!pred_hist.empty()) {
 
-        PredictorHistory *hist = predHist[tid].front();
+        PredictorHistory* const hist = pred_hist.front();
 
         DPRINTF(Branch, "[tid:%i] [squash sn:%llu] Mispredicted: %s, PC:%#x\n",
                     tid, squashed_sn, toString(hist->type), hist->pc);
@@ -579,8 +594,13 @@ BPredUnit::squash(const InstSeqNum &squashed_sn,
         set(hist->target,  corr_target);
 
         // Correct Direction predictor ------------------
+<<<<<<< HEAD
         cPred->update(tid, hist->pc, actually_taken, hist->bpHistory, true,
                       hist->inst, corr_target.instAddr());
+=======
+        update(tid, hist->pc, actually_taken, hist->bpHistory,
+               true, hist->inst, corr_target.instAddr());
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
         // If the overriding predictor was used, also update it
         if (overridingCPred) {
@@ -638,18 +658,39 @@ BPredUnit::squash(const InstSeqNum &squashed_sn,
             }
         }
 
-        // Correct BTB (at squash) -------------------------------------
+        // Correct BTB ---------------------------------------------------
         // Update the BTB for all mispredicted taken branches.
-        if (actually_taken && updateBTBAtSquash) { updateBTB(tid, hist); }
+        // Always if `requiresBTBHit` is true otherwise only if the
+        // branch was direct or no indirect predictor is available.
+        if (actually_taken &&
+            (requiresBTBHit || hist->inst->isDirectCtrl() ||
+            (!iPred && !hist->inst->isReturn()))) {
+
+            if (!hist->btbHit) {
+                ++stats.BTBMispredicted;
+                if (hist->condPred)
+                    ++stats.predTakenBTBMiss;
+            }
+
+            DPRINTF(Branch,"[tid:%i] BTB Update called for [sn:%llu] "
+                        "PC %#x -> T: %#x\n", tid,
+                        hist->seqNum, hist->pc, hist->target->instAddr());
+
+            stats.BTBUpdates++;
+            btb->update(tid, hist->pc,
+                            *hist->target,
+                            hist->type,
+                            hist->inst);
+            btb->incorrectTarget(hist->pc, hist->type);
+        }
 
     } else {
-        DPRINTF(Branch,
-                "[tid:%i] [sn:%llu] predHist empty, can't "
-                "update\n",
-                tid, squashed_sn);
+        DPRINTF(Branch, "[tid:%i] [sn:%llu] pred_hist empty, can't "
+                "update\n", tid, squashed_sn);
     }
 }
 
+<<<<<<< HEAD
 void
 BPredUnit::updateBTB(ThreadID tid, PredictorHistory *&hist)
 {
@@ -689,6 +730,8 @@ BPredUnit::branchPlaceholder(ThreadID tid, Addr pc, bool uncond,
                                            hist->overridingBpHistory);
     }
 }
+=======
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
 void
 BPredUnit::dump()

@@ -87,6 +87,14 @@ def bitfield CPL mode.cpl;
 def bitfield MODE_MODE mode.mode;
 def bitfield MODE_SUBMODE mode.submode;
 
-def bitfield VEX_PRESENT vex.present;
-def bitfield VEX_V vex.v;
-def bitfield VEX_L vex.l;
+// VEX was previously a separate prefix; in modern gem5 it's embedded in evex.
+// Map legacy VEX_* references to evex.vex_present and evex.l so decoder tables
+// that still use VEX_* work for AVX2 without EVEX bits.
+def bitfield VEX_PRESENT evex.vex_present;
+def bitfield VEX_V evex.v;
+def bitfield VEX_L evex.l;
+// VEX.pp encodes legacy SIMD prefixes: 00 = none (PS), 01 = 66h (PD)
+// EVEX encodes mandatory prefix in EVex3Of4.p; map VEX_PP to evex.p
+// VEX_PP: mandatory SIMD prefix from VEX/EVEX 'p' field.
+// We store this as a synthetic `vex_pp` on ExtMachInst populated by the decoder.
+def bitfield VEX_PP vex_pp;

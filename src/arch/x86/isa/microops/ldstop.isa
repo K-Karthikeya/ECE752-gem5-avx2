@@ -454,7 +454,7 @@ let {{
 
     def defineMicroLoadOp(mnemonic, code, bigCode='',
                           mem_flags="0", big=True, nonSpec=False,
-                          is_float=False):
+                          is_float=False, mem_data_size="dataSize"):
         global header_output
         global decoder_output
         global exec_output
@@ -471,7 +471,7 @@ let {{
         iops = [InstObjParams(name, Name, base,
                               { "code": code,
                                 "ea_code": calculateEA,
-                                "memDataSize": "dataSize" })]
+                                "memDataSize": mem_data_size })]
         if big:
             iops += [InstObjParams(name, Name + "Big", base,
                                    { "code": bigCode,
@@ -510,8 +510,34 @@ let {{
                       'Request::READ_MODIFY_WRITE | Request::LOCKED_RMW',
                       nonSpec=True)
 
-    defineMicroLoadOp('Ldfp', code='FpData_uqw = Mem', big=False,
-            is_float=True)
+    defineMicroLoadOp('Ldfp', code='''
+        FpData_uqw = Mem;
+        DPRINTF(AVXVerbose, "[LDFP-EXEC] loaded=%#016llx dest=FloatReg %u\\n",
+                (unsigned long long)Mem,
+                (unsigned)destRegIdx(0).index());
+    ''', big=False, is_float=True)
+
+    # Used to implement AVX2 load, only used with 32/64-byte data.
+    defineMicroLoadOp('ldfp128', code='''
+        FpData0_uqw = Mem_u2qw[0];
+        FpData1_uqw = Mem_u2qw[1];
+        DPRINTF(AVXVerbose, "[LDFP128-EXEC] loaded0=%#016llx loaded1=%#016llx destBase=FloatReg %u\\n",
+                (unsigned long long)FpData0_uqw,
+                (unsigned long long)FpData1_uqw,
+                (unsigned)destRegIdx(0).index());
+    ''', big = False, is_float=True, mem_data_size="16")
+    defineMicroLoadOp('ldfp256', code='''
+        FpData0_uqw = Mem_u4qw[0];
+        FpData1_uqw = Mem_u4qw[1];
+        FpData2_uqw = Mem_u4qw[2];
+        FpData3_uqw = Mem_u4qw[3];
+        DPRINTF(AVXVerbose, "[LDFP256-EXEC] loaded0=%#016llx loaded1=%#016llx loaded2=%#016llx loaded3=%#016llx destBase=FloatReg %u\\n",
+                (unsigned long long)FpData0_uqw,
+                (unsigned long long)FpData1_uqw,
+                (unsigned long long)FpData2_uqw,
+                (unsigned long long)FpData3_uqw,
+                (unsigned)destRegIdx(0).index());
+    ''', big = False, is_float=True, mem_data_size="32")
 
     defineMicroLoadOp('Ldfp87', code='''
         switch (dataSize)
@@ -592,7 +618,7 @@ let {{
                            nonSpec=True)
 
     def defineMicroStoreOp(mnemonic, code, completeCode="", mem_flags="0",
-                           is_float=False, has_data=True):
+                           is_float=False, has_data=True, mem_data_size="dataSize"):
         global header_output
         global decoder_output
         global exec_output
@@ -612,7 +638,7 @@ let {{
                             { "code": code,
                               "complete_code": completeCode,
                               "ea_code": calculateEA,
-                              "memDataSize": "dataSize" })
+                              "memDataSize": mem_data_size })
         header_output += MicroLdStOpDeclare.subst(iop)
         exec_output += MicroStoreExecute.subst(iop)
         exec_output += MicroStoreInitiateAcc.subst(iop)
@@ -645,7 +671,34 @@ let {{
     defineMicroStoreOp('Stis', 'Mem = PData;')
     defineMicroStoreOp('Stul', 'Mem = PData;', mem_flags="Request::LOCKED_RMW")
 
-    defineMicroStoreOp('Stfp', code='Mem = FpData_uqw;', is_float=True)
+    defineMicroStoreOp('Stfp', code='''
+        DPRINTF(AVXVerbose, "[STFP-EXEC] src=FloatReg %u value=%#016llx\\n",
+                (unsigned)srcRegIdx(0).index(),
+                (unsigned long long)FpData_uqw);
+        Mem = FpData_uqw;
+    ''', is_float=True)
+
+    # Used to implement AVX2.
+    defineMicroStoreOp('stfp128', code='''
+        Mem_u2qw[0] = FpData0_uqw;
+        Mem_u2qw[1] = FpData1_uqw;
+        DPRINTF(AVXVerbose, "[STFP128-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx\\n",
+                (unsigned)srcRegIdx(0).index(),
+                (unsigned long long)FpData0_uqw,
+                (unsigned long long)FpData1_uqw);
+    ''', is_float=True, mem_data_size="16")
+    defineMicroStoreOp('stfp256', code='''
+        Mem_u4qw[0] = FpData0_uqw;
+        Mem_u4qw[1] = FpData1_uqw;
+        Mem_u4qw[2] = FpData2_uqw;
+        Mem_u4qw[3] = FpData3_uqw;
+        DPRINTF(AVXVerbose, "[STFP256-EXEC] srcBase=FloatReg %u stored0=%#016llx stored1=%#016llx stored2=%#016llx stored3=%#016llx\\n",
+                (unsigned)srcRegIdx(0).index(),
+                (unsigned long long)FpData0_uqw,
+                (unsigned long long)FpData1_uqw,
+                (unsigned long long)FpData2_uqw,
+                (unsigned long long)FpData3_uqw);
+    ''', is_float=True, mem_data_size="32")
 
     defineMicroStoreOp('Stfp87', code='''
         switch (dataSize)

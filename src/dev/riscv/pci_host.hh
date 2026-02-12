@@ -56,7 +56,7 @@ class GenericRiscvPciHost : public GenericPciHost
     GenericRiscvPciHost(const GenericRiscvPciHostParams &p);
 
   protected:
-    uint32_t mapPciInterrupt(const PciDevAddr &addr,
+    uint32_t mapPciInterrupt(const PciBusAddr &addr,
                              PciIntPin pin) const override;
 };
 

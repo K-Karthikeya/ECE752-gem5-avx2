@@ -242,6 +242,7 @@ MacroMemOp::MacroMemOp(const char *mnem, ExtMachInst machInst,
 }
 
 PairMemOp::PairMemOp(const char *mnem, ExtMachInst machInst, OpClass __opClass,
+<<<<<<< HEAD
                      int64_t imm, AddrMode mode, RegIndex rn, RegIndex rt,
                      RegIndex rt2)
     : PredMacroOp(mnem, machInst, __opClass),
@@ -257,6 +258,13 @@ LoadPairOp::LoadPairOp(const char *mnem, ExtMachInst machInst,
                        bool signExt, bool exclusive, bool acrel, int64_t imm,
                        AddrMode mode, RegIndex rn, RegIndex rt, RegIndex rt2)
     : PairMemOp(mnem, machInst, __opClass, imm, mode, rn, rt, rt2)
+=======
+                     uint32_t size, bool fp, bool load, bool noAlloc,
+                     bool signExt, bool exclusive, bool acrel,
+                     int64_t imm, AddrMode mode,
+                     RegIndex rn, RegIndex rt, RegIndex rt2) :
+    PredMacroOp(mnem, machInst, __opClass)
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 {
     bool post = (mode == AddrMd_PostIndex);
     bool writeback = (mode != AddrMd_Offset);
@@ -1668,32 +1676,6 @@ MicroMemPairOp::generateDisassembly(
     ss << ", ";
     ccprintf(ss, "#%d", imm);
     ss << "]";
-    return ss.str();
-}
-
-std::string
-PairMemOp::generateDisassembly(
-        Addr pc, const loader::SymbolTable *symtab) const
-{
-    std::stringstream ss;
-    printMnemonic(ss);
-    printIntReg(ss, rt);
-    ss << ", ";
-    printIntReg(ss, rt2);
-    ss << ", [";
-    printIntReg(ss, rn, 64);
-    if (mode == AddrMd_PostIndex) {
-        ss << "]";
-    }
-    if (imm) {
-        ccprintf(ss, ", #%d", imm);
-    }
-    if (mode != AddrMd_PostIndex) {
-        ss << "]";
-    }
-    if (mode == AddrMd_PreIndex) {
-        ss << "!";
-    }
     return ss.str();
 }
 

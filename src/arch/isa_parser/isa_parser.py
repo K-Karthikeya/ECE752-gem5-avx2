@@ -517,13 +517,10 @@ class InstObjParams:
 
 
 class ISAParser(Grammar):
-    def __init__(self, output_dir, decoder_name="Decoder", verbose=False):
+    def __init__(self, output_dir, decoder_name="Decoder"):
         super().__init__()
         self.lex_kwargs["reflags"] = int(re.MULTILINE)
         self.output_dir = output_dir
-        self.verbose = verbose
-        self.yacc_kwargs["debug"] = self.verbose
-        self.yacc_kwargs["write_tables"] = False
 
         self.filename = None  # for output file watermarking/scaremongering
 

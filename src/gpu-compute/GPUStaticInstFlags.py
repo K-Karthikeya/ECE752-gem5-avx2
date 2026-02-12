@@ -85,7 +85,6 @@ class GPUStaticInstFlags(Enum):
         "AtomicDec",
         "AtomicMax",
         "AtomicMin",
-        "AtomicPkAddBF16",
         # Segment access flags
         "ArgSegment",  # Accesses the arg segment
         "GlobalSegment",  # Accesses global memory

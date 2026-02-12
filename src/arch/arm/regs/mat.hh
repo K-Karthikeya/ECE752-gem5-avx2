@@ -87,7 +87,7 @@ using MatCol = gem5::VerticalSlice<ElemType,
 // SME ZA tile, i.e. matrix
 const int NumMatrixRegs = 1;
 
-inline TypedRegClassOps<ArmISA::MatRegContainer> matRegClassOps;
+static inline TypedRegClassOps<ArmISA::MatRegContainer> matRegClassOps;
 
 inline constexpr RegClass matRegClass =
     RegClass(MatRegClass, MatRegClassName, NumMatrixRegs, debug::MatRegs).

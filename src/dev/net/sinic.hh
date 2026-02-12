@@ -266,8 +266,8 @@ class Device : public Base
  * Memory Interface
  */
   public:
-    Tick readDevice(PacketPtr pkt) override;
-    Tick writeDevice(PacketPtr pkt) override;
+    Tick read(PacketPtr pkt) override;
+    Tick write(PacketPtr pkt) override;
     virtual void drainResume() override;
 
     void prepareIO(ContextID cpu, int index);

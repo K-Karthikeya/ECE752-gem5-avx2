@@ -126,11 +126,6 @@ class Plic : public PlicBase
      */
     std::vector<std::pair<uint32_t, ExceptionCode>> contextConfigs;
 
-    /**
-     * Cycle latency from received interrupt signal to output
-     */
-    uint64_t outputLatency;
-
   public:
     typedef PlicParams Params;
     Plic(const Params &params);

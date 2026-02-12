@@ -49,12 +49,13 @@ GenericArmPciHost::GenericArmPciHost(const GenericArmPciHostParams &p)
 {
 }
 
+
 uint32_t
-GenericArmPciHost::mapPciInterrupt(const PciDevAddr &addr, PciIntPin pin) const
+GenericArmPciHost::mapPciInterrupt(const PciBusAddr &addr, PciIntPin pin) const
 {
     fatal_if(pin == PciIntPin::NO_INT,
              "%02x:%02x.%i: Interrupt from a device without interrupts\n",
-             getBusNum(), addr.dev, addr.func);
+             addr.bus, addr.dev, addr.func);
 
     switch (intPolicy) {
       case enums::ARM_PCI_INT_STATIC:

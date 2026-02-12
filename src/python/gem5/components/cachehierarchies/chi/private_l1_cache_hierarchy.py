@@ -28,38 +28,36 @@ from itertools import chain
 from typing import List
 
 from m5.objects import (
+    NULL,
     RubyPortProxy,
     RubySequencer,
     RubySystem,
 )
 from m5.objects.SubSystem import SubSystem
-from m5.params import (
-    NULL,
-    AllMemory,
-)
 
-from ....coherence_protocol import CoherenceProtocol
-from ....utils.requires import requires
+from gem5.coherence_protocol import CoherenceProtocol
+from gem5.utils.requires import requires
 
 requires(coherence_protocol_required=CoherenceProtocol.CHI)
 
-from ....isas import ISA
-from ....utils.override import overrides
-from ...boards.abstract_board import AbstractBoard
-from ...processors.abstract_core import AbstractCore
-from ..abstract_cache_hierarchy import (
+from gem5.components.boards.abstract_board import AbstractBoard
+from gem5.components.cachehierarchies.abstract_cache_hierarchy import (
     AbstractCacheHierarchy,
 )
-from ..ruby.abstract_ruby_cache_hierarchy import (
+from gem5.components.cachehierarchies.ruby.abstract_ruby_cache_hierarchy import (
     AbstractRubyCacheHierarchy,
 )
-from ..ruby.topologies.simple_pt2pt import (
+from gem5.components.cachehierarchies.ruby.topologies.simple_pt2pt import (
     SimplePt2Pt,
 )
+from gem5.components.processors.abstract_core import AbstractCore
+from gem5.isas import ISA
+from gem5.utils.override import overrides
+
 from .nodes.directory import SimpleDirectory
 from .nodes.dma_requestor import DMARequestor
-from .nodes.l1_cache import L1CacheController
 from .nodes.memory_controller import MemoryController
+from .nodes.private_l1_moesi_cache import PrivateL1MOESICache
 
 
 class PrivateL1CacheHierarchy(AbstractRubyCacheHierarchy):
@@ -104,7 +102,6 @@ class PrivateL1CacheHierarchy(AbstractRubyCacheHierarchy):
             self.ruby_system.network,
             cache_line_size=board.get_cache_line_size(),
             clk_domain=board.get_clock_domain(),
-            addr_ranges=[AllMemory],
         )
         self.directory.ruby_system = self.ruby_system
 
@@ -157,20 +154,20 @@ class PrivateL1CacheHierarchy(AbstractRubyCacheHierarchy):
         for the core with a split I/D cache.
         """
         cluster = SubSystem()
-        cluster.dcache = L1CacheController(
+        cluster.dcache = PrivateL1MOESICache(
             size=self._size,
             assoc=self._assoc,
             network=self.ruby_system.network,
-            requires_send_evicts=core.requires_send_evicts(),
+            core=core,
             cache_line_size=board.get_cache_line_size(),
             target_isa=board.get_processor().get_isa(),
             clk_domain=board.get_clock_domain(),
         )
-        cluster.icache = L1CacheController(
+        cluster.icache = PrivateL1MOESICache(
             size=self._size,
             assoc=self._assoc,
             network=self.ruby_system.network,
-            requires_send_evicts=core.requires_send_evicts(),
+            core=core,
             cache_line_size=board.get_cache_line_size(),
             target_isa=board.get_processor().get_isa(),
             clk_domain=board.get_clock_domain(),
@@ -199,8 +196,8 @@ class PrivateL1CacheHierarchy(AbstractRubyCacheHierarchy):
         core.connect_dcache(cluster.dcache.sequencer.in_ports)
 
         core.connect_walker_ports(
-            cluster.icache.sequencer.in_ports,
             cluster.dcache.sequencer.in_ports,
+            cluster.icache.sequencer.in_ports,
         )
 
         # Connect the interrupt ports

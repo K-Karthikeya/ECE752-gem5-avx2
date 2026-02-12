@@ -30,7 +30,6 @@
 #define __SIM_EXIT_HH__
 
 #include <functional>
-#include <map>
 #include <string>
 
 #include "base/types.hh"

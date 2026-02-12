@@ -47,17 +47,15 @@ class ProtocolInfo
     const bool partialFuncReads;
     const bool useSecondaryLoadLinked;
     const bool useSecondaryStoreConditional;
-    const bool supportsFlushes;
 
   public:
     ProtocolInfo(std::string name, bool partial_func_reads,
                  bool use_secondary_load_linked,
-                 bool use_secondary_store_conditional, bool supports_flushes)
-        : name(name),
-          partialFuncReads(partial_func_reads),
-          useSecondaryLoadLinked(use_secondary_load_linked),
-          useSecondaryStoreConditional(use_secondary_store_conditional),
-          supportsFlushes(supports_flushes)
+                 bool use_secondary_store_conditional) :
+        name(name),
+        partialFuncReads(partial_func_reads),
+        useSecondaryLoadLinked(use_secondary_load_linked),
+        useSecondaryStoreConditional(use_secondary_store_conditional)
     {
     }
 
@@ -73,11 +71,7 @@ class ProtocolInfo
     {
         return useSecondaryStoreConditional;
     }
-    bool
-    getSupportsFlushes() const
-    {
-        return supportsFlushes;
-    }
+
 };
 
 } // namespace ruby

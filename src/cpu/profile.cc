@@ -36,7 +36,6 @@
 #include "base/trace.hh"
 #include "cpu/base.hh"
 #include "cpu/thread_context.hh"
-#include "sim/system.hh"
 
 namespace gem5
 {

@@ -54,7 +54,6 @@
 
 #include "base/trace.hh"
 #include "debug/Drain.hh"
-#include "params/FlashDevice.hh"
 
 namespace gem5
 {

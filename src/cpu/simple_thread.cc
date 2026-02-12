@@ -48,6 +48,8 @@
 #include "base/cprintf.hh"
 #include "base/output.hh"
 #include "base/trace.hh"
+#include "cpu/base.hh"
+#include "cpu/simple/base.hh"
 #include "cpu/thread_context.hh"
 #include "mem/se_translating_port_proxy.hh"
 #include "mem/translating_port_proxy.hh"

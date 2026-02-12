@@ -161,7 +161,7 @@ class Event
 Events &topLevelEvents();
 Events &allEvents();
 
-sc_core::sc_event *findEvent(const char *name);
+EventsIt findEvent(const std::string &name);
 
 } // namespace sc_gem5
 

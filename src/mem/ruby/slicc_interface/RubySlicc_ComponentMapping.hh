@@ -33,6 +33,7 @@
 #include "mem/ruby/common/MachineID.hh"
 #include "mem/ruby/common/NetDest.hh"
 #include "mem/ruby/protocol/MachineType.hh"
+#include "mem/ruby/structures/DirectoryMemory.hh"
 
 namespace gem5
 {

@@ -159,10 +159,6 @@ class Memoizer
 
 };
 
-// Deduction guide
-template <typename Ret, typename... Args>
-Memoizer(Ret (*)(Args...)) -> Memoizer<Ret, Args...>;
-
 } // namespace gem5
 
 #endif // __BASE_MEMOIZER_HH__

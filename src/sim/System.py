@@ -1,4 +1,4 @@
-# Copyright (c) 2017, 2019, 2025 Arm Limited
+# Copyright (c) 2017, 2019 ARM Limited
 # All rights reserved.
 #
 # The license below extends only to copyright in the software and shall
@@ -59,7 +59,6 @@ class System(SimObject):
     cxx_exports = [
         PyBindMethod("getMemoryMode"),
         PyBindMethod("setMemoryMode"),
-        PyBindProperty("physProxy", writable=False),
     ]
 
     memories = VectorParam.AbstractMemory(

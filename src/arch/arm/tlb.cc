@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, 2016-2025 Arm Limited
+ * Copyright (c) 2010-2013, 2016-2024 Arm Limited
  * All rights reserved
  *
  * The license below extends only to copyright in the software and shall
@@ -140,9 +140,10 @@ TLB::~TLB()
 }
 
 void
-TLB::setTableWalker(TableWalker *table_walker, bool functional)
+TLB::setTableWalker(TableWalker *table_walker)
 {
     tableWalker = table_walker;
+    tableWalker->setTlb(this);
 }
 
 TlbEntry*
@@ -254,12 +255,7 @@ TLB::insert(const Lookup &lookup_data, TlbEntry &entry)
 
     observedPageSizes.insert(entry.N);
     stats.inserts++;
-
-    if (lookup_data.mode == BaseMMU::Execute) {
-        ppInstRefills->notify(1);
-    } else {
-        ppDataRefills->notify(1);
-    }
+    ppRefills->notify(1);
 }
 
 void
@@ -391,11 +387,7 @@ TLB::TlbStats::TlbStats(TLB &parent)
 void
 TLB::regProbePoints()
 {
-    ppInstRefills.reset(
-        new probing::PMU(getProbeManager(), "InstRefills"));
-
-    ppDataRefills.reset(
-        new probing::PMU(getProbeManager(), "DataRefills"));
+    ppRefills.reset(new probing::PMU(getProbeManager(), "Refills"));
 }
 
 Port *

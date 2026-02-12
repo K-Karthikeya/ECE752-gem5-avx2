@@ -196,7 +196,7 @@ Device::prepareWrite(ContextID cpu, int index)
  * I/O read of device register
  */
 Tick
-Device::readDevice(PacketPtr pkt)
+Device::read(PacketPtr pkt)
 {
     assert(config().command & PCI_CMD_MSE);
 
@@ -287,7 +287,7 @@ Device::iprRead(Addr daddr, ContextID cpu, uint64_t &result)
  * I/O write of device register
  */
 Tick
-Device::writeDevice(PacketPtr pkt)
+Device::write(PacketPtr pkt)
 {
     assert(config().command & PCI_CMD_MSE);
 

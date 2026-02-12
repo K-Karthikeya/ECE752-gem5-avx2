@@ -52,7 +52,6 @@
 #include "mem/port.hh"
 #include "params/BaseCPU.hh"
 #include "sim/full_system.hh"
-#include "sim/system.hh"
 
 namespace gem5
 {

@@ -42,7 +42,6 @@
 #include "debug/Faults.hh"
 #include "sim/debug.hh"
 #include "sim/full_system.hh"
-#include "sim/system.hh"
 #include "sim/workload.hh"
 
 namespace gem5

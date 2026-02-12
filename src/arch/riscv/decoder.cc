@@ -51,7 +51,6 @@ Decoder::Decoder(const RiscvDecoderParams &p) : InstDecoder(p, &machInst)
 
 void Decoder::reset()
 {
-    InstDecoder::reset();
     aligned = true;
     mid = false;
     machInst = 0;

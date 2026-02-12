@@ -107,7 +107,7 @@ class FlatIntRegClassOps : public RegClassOps
     std::string regName(const RegId &id) const override;
 };
 
-inline const FlatIntRegClassOps flatIntRegClassOps;
+inline constexpr FlatIntRegClassOps flatIntRegClassOps;
 
 inline constexpr RegClass flatIntRegClass =
     RegClass(IntRegClass, IntRegClassName, int_reg::NumRegs, debug::IntRegs).
@@ -118,7 +118,7 @@ class IntRegClassOps : public FlatIntRegClassOps
     RegId flatten(const BaseISA &isa, const RegId &id) const override;
 };
 
-inline const IntRegClassOps intRegClassOps;
+inline constexpr IntRegClassOps intRegClassOps;
 
 inline constexpr RegClass intRegClass =
     RegClass(IntRegClass, IntRegClassName, int_reg::NumRegs, debug::IntRegs).

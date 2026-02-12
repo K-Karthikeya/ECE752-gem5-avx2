@@ -52,13 +52,12 @@
 #include "dev/io_device.hh"
 #include "mem/packet.hh"
 #include "mem/packet_access.hh"
+#include "params/AmbaPioDevice.hh"
+#include "params/AmbaDmaDevice.hh"
+#include "params/AmbaIntDevice.hh"
 
 namespace gem5
 {
-
-struct AmbaPioDeviceParams;
-struct AmbaDmaDeviceParams;
-struct AmbaIntDeviceParams;
 
 class AmbaDevice
 {

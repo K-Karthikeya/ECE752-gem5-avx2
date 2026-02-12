@@ -77,9 +77,6 @@ class FunctionalRequestProtocol
      */
     void sendMemBackdoorReq(FunctionalResponseProtocol *peer,
             const MemBackdoorReq &req, MemBackdoorPtr &backdoor);
-
-  public:
-    virtual ~FunctionalRequestProtocol() = default;
 };
 
 class FunctionalResponseProtocol
@@ -110,9 +107,6 @@ class FunctionalResponseProtocol
      */
     virtual void recvMemBackdoorReq(const MemBackdoorReq &req,
             MemBackdoorPtr &backdoor) = 0;
-
-  public:
-    virtual ~FunctionalResponseProtocol() = default;
 };
 
 } // namespace gem5

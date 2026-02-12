@@ -295,18 +295,10 @@ Walker::startWalkWrapper()
     if (currState && !currState->wasStarted()) {
         if (!e || fault != NoFault) {
             Fault timingFault = currState->walk();
-
-            // Catch all walker states that have early fault!
-            while (!currStates.empty() && timingFault != NoFault) {
-                // Delete currState due to early fault
+            if (timingFault != NoFault) {
                 currStates.pop_front();
                 delete currState;
-
-                // Get next currState & walk
-                if (currStates.size() > 0) {
-                    currState = currStates.front();
-                    timingFault = currState->walk();
-                }
+                currState = NULL;
             }
         }
         else {
@@ -837,23 +829,17 @@ Walker::WalkerState::stepWalk(PacketPtr &write)
 
     if (stepWalkFlags.doEndWalk) {
         // If we need to write, adjust the read packet to write the modified
-        // value back to memory. Use a fresh packet so any responder flags set
-        // during the read do not leak into the write request.
-        PacketPtr new_write = nullptr;
+        // value back to memory.
         if (!functional && stepWalkFlags.doWrite &&
             !(walkType == TwoStage && curstage == FIRST_STAGE))
         {
-            new_write = new Packet(oldRead, true, true);
-            if (oldRead->hasSharers()) {
-                new_write->setHasSharers();
-            }
-            new_write->setLE<uint64_t>(pte);
-            new_write->cmd = MemCmd::WriteReq;
+            write = oldRead;
+            write->setLE<uint64_t>(pte);
+            write->cmd = MemCmd::WriteReq;
             read = NULL;
-            delete oldRead;
-            oldRead = nullptr;
+        } else {
+            write = NULL;
         }
-        write = new_write;
 
         if (stepWalkFlags.doTLBInsert) {
             if (!functional && !memaccess.bypassTLB()) {
@@ -1007,22 +993,17 @@ Walker::WalkerState::stepWalkGStage(PacketPtr &write)
 
     if (stepWalkFlags.doEndWalk) {
         // If we need to write, adjust the read packet to write the modified
-        // value back to memory. Use a fresh packet so responder state from
-        // the read does not carry into the write request.
-        PacketPtr new_write = nullptr;
+        // value back to memory.
         if (!functional && stepWalkFlags.doWrite)
         {
-            new_write = new Packet(oldRead, true, true);
-            if (oldRead->hasSharers()) {
-                new_write->setHasSharers();
-            }
-            new_write->setLE<uint64_t>(pte);
-            new_write->cmd = MemCmd::WriteReq;
+            write = oldRead;
+            write->setLE<uint64_t>(pte);
+            write->cmd = MemCmd::WriteReq;
             read = NULL;
-            delete oldRead;
-            oldRead = nullptr;
         }
-        write = new_write;
+        else {
+            write = NULL;
+        }
 
         if (stepWalkFlags.doTLBInsert) {
             if (!functional && !memaccess.bypassTLB()) {

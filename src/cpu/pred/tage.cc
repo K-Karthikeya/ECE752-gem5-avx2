@@ -62,9 +62,7 @@ namespace gem5
 namespace branch_prediction
 {
 
-TAGE::TAGE(const TAGEParams &params)
-    : ConditionalPredictor(params),
-      tage(params.tage)
+TAGE::TAGE(const TAGEParams &params) : BPredUnit(params), tage(params.tage)
 {
 }
 

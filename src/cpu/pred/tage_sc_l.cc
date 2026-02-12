@@ -392,6 +392,7 @@ TAGE_SC_L_TAGE::extraAltCalc(TAGEBase::BranchInfo* bi)
     tage_scl_bi->altConf = (abs(2*ctr + 1) > 1);
 }
 
+<<<<<<< HEAD
 void
 TAGE_SC_L::branchPlaceholder(ThreadID tid, Addr pc, bool uncond,
                              void *&bp_history)
@@ -403,6 +404,10 @@ TAGE_SC_L::branchPlaceholder(ThreadID tid, Addr pc, bool uncond,
 
 Prediction
 TAGE_SC_L::predict(ThreadID tid, Addr pc, bool cond_branch, void *&b)
+=======
+bool
+TAGE_SC_L::predict(ThreadID tid, Addr pc, bool cond_branch, void* &b)
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 {
     TageSCLBranchInfo *bi = new TageSCLBranchInfo(*tage,
                                                   *statisticalCorrector,

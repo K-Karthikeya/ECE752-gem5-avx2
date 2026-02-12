@@ -1,2 +1,7 @@
+<<<<<<< HEAD
 mypy==1.19.1
 pre-commit==4.5.1
+=======
+mypy==1.16.0
+pre-commit==4.2.0
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)

@@ -410,12 +410,8 @@ NetworkInterface::flitisizeMessage(MsgPtr msg_ptr, int vnet)
                     destID < MachineType_base_number((MachineType) (m+1))) {
                     // calculating the NetDest associated with this destID
                     personal_dest.clear();
-                    MachineID
-                        tempID; // because ISO C++ forbids compound-literals...
-                    tempID.type = (MachineType)m;
-                    tempID.num =
-                        destID - MachineType_base_number((MachineType)m);
-                    personal_dest.add(tempID);
+                    personal_dest.add((MachineID) {(MachineType) m, (destID -
+                        MachineType_base_number((MachineType) m))});
                     new_net_msg_ptr->getDestination() = personal_dest;
                     break;
                 }

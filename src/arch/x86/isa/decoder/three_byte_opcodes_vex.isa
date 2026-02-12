@@ -1,0 +1,2 @@
+// Deprecated: VEX 0F38 mappings merged into three_byte_0f38_opcodes.isa.
+// This file intentionally left without decode blocks to avoid duplicate cases.

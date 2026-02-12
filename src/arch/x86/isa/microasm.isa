@@ -51,6 +51,14 @@ let {{
     import sys
     sys.path[0:0] = ["src/arch/x86/isa/"]
     from insts import microcode
+    # Append our AVX subset microcode so the assembler recognizes VADDPS/VMULPS/VXORPS/VMOV*/VZEROUPPER
+    try:
+        from insts.avx_subset import microcode as avx_microcode
+        microcode += avx_microcode
+    except Exception as e:
+        # If avx_subset isn't present, proceed without it (helps non-AVX builds)
+        print("Warning: AVX subset not loaded:", e)
+        pass
     # print microcode
     from micro_asm import MicroAssembler, RomMacroop
     mainRom = X86MicrocodeRom('main ROM')
@@ -59,6 +67,8 @@ let {{
     def gpRegIdx(idx):
         return "X86ISA::GpRegIndex(%s)" % idx
     def fpRegIdx(idx):
+        return "X86ISA::FpRegIndex(%s)" % idx
+    def regIdx(idx):
         return "X86ISA::FpRegIndex(%s)" % idx
     def ctrlRegIdx(idx):
         return "X86ISA::CtrlRegIndex(%s)" % idx
@@ -105,14 +115,38 @@ let {{
         "cr" : crRegIdx("env.reg"),
         "dr" : drRegIdx("env.reg"),
         "sr" : segRegIdx("env.reg"),
-        "xmml" : fpRegIdx("float_reg::xmmLow(env.reg)"),
-        "xmmh" : fpRegIdx("float_reg::xmmHigh(env.reg)"),
+        "xmml" : regIdx("FLOATREG_XMM_LOW(env.reg)"),
+        "xmmh" : regIdx("FLOATREG_XMM_HIGH(env.reg)"),
+        "xmm0" : regIdx("FLOATREG_XMM_IDX(env.reg, 0)"),
+        "xmm1" : regIdx("FLOATREG_XMM_IDX(env.reg, 1)"),
+        "xmm2" : regIdx("FLOATREG_XMM_IDX(env.reg, 2)"),
+        "xmm3" : regIdx("FLOATREG_XMM_IDX(env.reg, 3)"),
+        "xmm4" : regIdx("FLOATREG_XMM_IDX(env.reg, 4)"),
+        "xmm5" : regIdx("FLOATREG_XMM_IDX(env.reg, 5)"),
+        "xmm6" : regIdx("FLOATREG_XMM_IDX(env.reg, 6)"),
+        "xmm7" : regIdx("FLOATREG_XMM_IDX(env.reg, 7)"),
         "regm" : gpRegIdx("env.regm"),
+        "xmmlm" : regIdx("FLOATREG_XMM_LOW(env.regm)"),
+        "xmmhm" : regIdx("FLOATREG_XMM_HIGH(env.regm)"),
+        "xmm0m" : regIdx("FLOATREG_XMM_IDX(env.regm, 0)"),
+        "xmm1m" : regIdx("FLOATREG_XMM_IDX(env.regm, 1)"),
+        "xmm2m" : regIdx("FLOATREG_XMM_IDX(env.regm, 2)"),
+        "xmm3m" : regIdx("FLOATREG_XMM_IDX(env.regm, 3)"),
+        "xmm4m" : regIdx("FLOATREG_XMM_IDX(env.regm, 4)"),
+        "xmm5m" : regIdx("FLOATREG_XMM_IDX(env.regm, 5)"),
+        "xmm6m" : regIdx("FLOATREG_XMM_IDX(env.regm, 6)"),
+        "xmm7m" : regIdx("FLOATREG_XMM_IDX(env.regm, 7)"),
+        "xmm0v" : regIdx("FLOATREG_XMM_IDX(machInst.evex.v_extend, 0)"),
+        "xmm1v" : regIdx("FLOATREG_XMM_IDX(machInst.evex.v_extend, 1)"),
+        "xmm2v" : regIdx("FLOATREG_XMM_IDX(machInst.evex.v_extend, 2)"),
+        "xmm3v" : regIdx("FLOATREG_XMM_IDX(machInst.evex.v_extend, 3)"),
+        "xmm4v" : regIdx("FLOATREG_XMM_IDX(machInst.evex.v_extend, 4)"),
+        "xmm5v" : regIdx("FLOATREG_XMM_IDX(machInst.evex.v_extend, 5)"),
+        "xmm6v" : regIdx("FLOATREG_XMM_IDX(machInst.evex.v_extend, 6)"),
+        "xmm7v" : regIdx("FLOATREG_XMM_IDX(machInst.evex.v_extend, 7)"),
         "crm" : crRegIdx("env.regm"),
         "drm" : drRegIdx("env.regm"),
         "srm" : segRegIdx("env.regm"),
-        "xmmlm" : fpRegIdx("float_reg::xmmLow(env.regm)"),
-        "xmmhm" : fpRegIdx("float_reg::xmmHigh(env.regm)"),
         "mmx" : fpRegIdx("float_reg::mmx(env.reg)"),
         "mmxm" : fpRegIdx("float_reg::mmx(env.regm)"),
         "imm" : "adjustedImm",
@@ -126,6 +160,13 @@ let {{
         "ssz" : "env.stackSize"
     }
     assembler.symbols.update(symbols)
+
+    # Provide direct ModRM.rm-based XMM/YMM base register symbols (avoid env.regm).
+    # This lets AVX reg-reg arithmetic bind src2 without consuming an extra
+    # specialization slot. Each expands to the first 64-bit subregister of
+    # the ModRM.rm-selected architectural vector register; varithp will add
+    # subsequent lanes by simple +i.
+    assembler.symbols["xmmrm"] = regIdx("FLOATREG_XMM_IDX((MODRM_RM | (REX_B << 3)), 0)")
 
     assembler.symbols["ldsz"] = \
         "((env.dataSize == 8) ? 3 : (env.dataSize == 4) ? 2 : 1)"

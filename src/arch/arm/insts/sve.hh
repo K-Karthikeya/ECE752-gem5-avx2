@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019,2025 ARM Limited
+ * Copyright (c) 2017-2019 ARM Limited
  * All rights reserved
  *
  * The license below extends only to copyright in the software and shall
@@ -163,27 +163,6 @@ class SvePredCountPredOp : public ArmStaticInst
             Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
-// Predicate count SVE instruction (predicate as counter).
-class SvePredCountPngOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest;
-    RegIndex op1;
-    uint64_t imm;
-
-    SvePredCountPngOp(const char *mnem, ExtMachInst _machInst,
-                      OpClass __opClass, RegIndex _dest, RegIndex _op1,
-                      uint64_t _imm)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          op1(_op1),
-          imm(_imm)
-    {}
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
-};
-
 /// While predicate generation SVE instruction.
 class SveWhileOp : public ArmStaticInst
 {
@@ -199,51 +178,6 @@ class SveWhileOp : public ArmStaticInst
     {}
     std::string generateDisassembly(
             Addr pc, const loader::SymbolTable *symtab) const override;
-};
-
-/// While predicate generation SVE instruction (Pair variant).
-class SveWhilePairOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest, dest2, op1, op2;
-    bool srcIs32b;
-
-    SveWhilePairOp(const char *mnem, ExtMachInst _machInst, OpClass __opClass,
-                   RegIndex _dest, RegIndex _dest2, RegIndex _op1,
-                   RegIndex _op2, bool _srcIs32b)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          dest2(_dest2),
-          op1(_op1),
-          op2(_op2),
-          srcIs32b(_srcIs32b)
-    {}
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
-};
-
-/// While predicate generation SVE instruction (Png variant).
-class SveWhilePngOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest, op1, op2;
-    uint64_t imm;
-    bool srcIs32b;
-
-    SveWhilePngOp(const char *mnem, ExtMachInst _machInst, OpClass __opClass,
-                  RegIndex _dest, RegIndex _op1, RegIndex _op2, uint64_t _imm,
-                  bool _srcIs32b)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          op1(_op1),
-          op2(_op2),
-          imm(_imm),
-          srcIs32b(_srcIs32b)
-    {}
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
 };
 
 /// Psel predicate selection SVE instruction.
@@ -266,51 +200,6 @@ class SvePselOp : public ArmStaticInst
 
     std::string generateDisassembly(
             Addr pc, const loader::SymbolTable *symtab) const override;
-};
-
-/// Pext predicate selection SVE instruction.
-class SvePextOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest;
-    RegIndex op1;
-    uint64_t imm;
-
-    SvePextOp(const char *mnem, ExtMachInst _machInst, OpClass __opClass,
-              RegIndex _dest, RegIndex _op1, uint64_t _imm)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          op1(_op1),
-          imm(_imm)
-    {}
-
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
-};
-
-/// Pext predicate selection SVE instruction.
-class SvePextPairOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest;
-    RegIndex dest2;
-    RegIndex op1;
-    uint64_t imm;
-
-    SvePextPairOp(const char *mnem, ExtMachInst _machInst, OpClass __opClass,
-                  RegIndex _dest, RegIndex _dest2, RegIndex _op1,
-                  uint64_t _imm)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          dest2(_dest2),
-          op1(_op1),
-          imm(_imm)
-    {}
-
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
 };
 
 /// Compare and terminate loop SVE instruction.
@@ -644,28 +533,6 @@ class SveTerImmUnpredOp : public ArmStaticInst
             Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
-/// Ternary with indexed operand, unpredicated SVE instruction
-class SveTerIdxUnpredOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest, op1, op2;
-    uint8_t index;
-
-    SveTerIdxUnpredOp(const char *mnem, ExtMachInst _machInst,
-                      OpClass __opClass, RegIndex _dest, RegIndex _op1,
-                      RegIndex _op2, uint8_t _index)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          op1(_op1),
-          op2(_op2),
-          index(_index)
-    {}
-
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
-};
-
 /// SVE reductions.
 class SveReducOp : public ArmStaticInst
 {
@@ -713,23 +580,6 @@ class SvePtrueOp : public ArmStaticInst
 
     std::string generateDisassembly(
             Addr pc, const loader::SymbolTable *symtab) const override;
-};
-
-/// PTRUE, PTRUES.
-class SvePtruePngOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest;
-    uint8_t imm;
-
-    SvePtruePngOp(const char *mnem, ExtMachInst _machInst, OpClass __opClass,
-                  RegIndex _dest, uint8_t _imm)
-        : ArmStaticInst(mnem, _machInst, __opClass), dest(_dest), imm(_imm)
-    {}
-
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
 };
 
 /// Integer compare SVE instruction.
@@ -916,29 +766,6 @@ class SveTblOp : public ArmStaticInst
     {}
     std::string generateDisassembly(
             Addr pc, const loader::SymbolTable *symtab) const override;
-};
-
-/// SVE table lookup/permute using vector of element indices (TBL)
-class SveTblThreeSrcOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest;
-    RegIndex op1;
-    RegIndex op2;
-    RegIndex op3;
-
-    SveTblThreeSrcOp(const char *mnem, ExtMachInst _machInst,
-                     OpClass __opClass, RegIndex _dest, RegIndex _op1,
-                     RegIndex _op2, RegIndex _op3)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          op1(_op1),
-          op2(_op2),
-          op3(_op3)
-    {}
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
 };
 
 /// SVE unpack and widen predicate
@@ -1144,29 +971,6 @@ class SveComplexOp : public ArmStaticInst
             Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
-/// SVE Complex Instructions (vectors)
-class SveComplexUnpredOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest, op1, op2;
-    uint8_t rot;
-
-  public:
-    SveComplexUnpredOp(const char *mnem, ExtMachInst _machInst,
-                       OpClass __opClass, RegIndex _dest, RegIndex _op1,
-                       RegIndex _op2, uint8_t _rot)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          op1(_op1),
-          op2(_op2),
-          rot(_rot)
-    {}
-
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
-};
-
 /// SVE Complex Instructions (indexed)
 class SveComplexIdxOp : public ArmStaticInst
 {
@@ -1205,89 +1009,6 @@ class SveClampOp : public ArmStaticInst
             Addr pc, const loader::SymbolTable *symtab) const override;
 };
 
-/// SVE2p1 PMOVE (to predicate) instruction
-class SvePredMovePredOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest;
-    RegIndex op1;
-    uint64_t imm;
-
-    SvePredMovePredOp(const char *mnem, ExtMachInst _machInst,
-                      OpClass __opClass, RegIndex _dest, RegIndex _op1,
-                      uint64_t _imm)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          op1(_op1),
-          imm(_imm)
-    {}
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
-};
-
-/// SVE2p1 PMOVE (to vector) instruction
-class SvePredMoveVecOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest;
-    RegIndex op1;
-    uint64_t imm;
-
-    SvePredMoveVecOp(const char *mnem, ExtMachInst _machInst,
-                     OpClass __opClass, RegIndex _dest, RegIndex _op1,
-                     uint64_t _imm)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          op1(_op1),
-          imm(_imm)
-    {}
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
-};
-
-/// SVE2p1 multi-vector narrow instructions.
-class SveMultiNarrowOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest, op1, op2;
-
-    SveMultiNarrowOp(const char *mnem, ExtMachInst _machInst,
-                     OpClass __opClass, RegIndex _dest, RegIndex _op1,
-                     RegIndex _op2)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          op1(_op1),
-          op2(_op2)
-    {}
-
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
-};
-
-/// SVE2p1 multi-vector narrow instructions.
-class SveMultiNarrowImmOp : public ArmStaticInst
-{
-  protected:
-    RegIndex dest, op1, op2;
-    uint64_t imm;
-
-    SveMultiNarrowImmOp(const char *mnem, ExtMachInst _machInst,
-                        OpClass __opClass, RegIndex _dest, RegIndex _op1,
-                        RegIndex _op2, uint64_t _imm)
-        : ArmStaticInst(mnem, _machInst, __opClass),
-          dest(_dest),
-          op1(_op1),
-          op2(_op2),
-          imm(_imm)
-    {}
-
-    std::string
-    generateDisassembly(Addr pc,
-                        const loader::SymbolTable *symtab) const override;
-};
 
 /// Returns the symbolic name associated with pattern `imm` for PTRUE(S)
 /// instructions.
@@ -1317,14 +1038,6 @@ uint64_t sveExpandFpImmMaxMin(uint8_t imm, uint8_t size);
 /// @param size Encoding of the vector element size.
 /// @return Encoding of the expanded value.
 uint64_t sveExpandFpImmMul(uint8_t imm, uint8_t size);
-
-/// Decocde predicate-as-counter to predicate-as-mask.
-void sveCounterToPredicate(VecPredRegContainer &pred_mask, uint16_t pred,
-                           unsigned pred_width, unsigned vl, unsigned regidx);
-
-/// Encode predicate-as-mark to predicate-as-counter.
-uint16_t sveEncodePredCount(int esize, int elements, int count_in,
-                            bool invert_in);
 
 } // namespace ArmISA
 } // namespace gem5

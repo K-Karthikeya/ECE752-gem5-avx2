@@ -1,5 +1,4 @@
-# Copyright (c) 2016, 2019, 2025 Arm Limited
-# Copyright (c) 2022-2023 The University of Edinburgh
+# Copyright (c) 2016, 2019 ARM Limited
 # All rights reserved.
 #
 # The license below extends only to copyright in the software and shall
@@ -37,7 +36,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from m5.citations import add_citation
 from m5.defines import buildEnv
 from m5.objects.BaseCPU import BaseCPU
 
@@ -45,12 +43,22 @@ from m5.objects.BaseCPU import BaseCPU
 from m5.objects.BranchPredictor import *
 from m5.objects.FUPool import *
 from m5.objects.IndexingPolicies import *
-from m5.objects.IQUnit import *
 from m5.objects.ReplacementPolicies import *
-from m5.objects.SMT import *
 from m5.params import *
 from m5.proxy import *
 from m5.SimObject import *
+
+
+class SMTFetchPolicy(ScopedEnum):
+    vals = ["RoundRobin", "Branch", "IQCount", "LSQCount"]
+
+
+class SMTQueuePolicy(ScopedEnum):
+    vals = ["Dynamic", "Partitioned", "Threshold"]
+
+
+class CommitPolicy(ScopedEnum):
+    vals = ["RoundRobin", "OldestReady"]
 
 
 class BaseO3CPU(BaseCPU):
@@ -77,8 +85,6 @@ class BaseO3CPU(BaseCPU):
     )
     cacheLoadPorts = Param.Unsigned(200, "Cache Ports. Constrains loads only.")
 
-    # Backward pipeline delays
-    fetchToBacDelay = Param.Cycles(1, "Fetch to Branch address calc. delay")
     decodeToFetchDelay = Param.Cycles(1, "Decode to fetch delay")
     renameToFetchDelay = Param.Cycles(1, "Rename to fetch delay")
     iewToFetchDelay = Param.Cycles(1, "Issue/Execute/Writeback to fetch delay")
@@ -94,9 +100,6 @@ class BaseO3CPU(BaseCPU):
         1, "Issue/Execute/Writeback to decode delay"
     )
     commitToDecodeDelay = Param.Cycles(1, "Commit to decode delay")
-
-    # Forward pipeline delays
-    bacToFetchDelay = Param.Cycles(1, "Branch address calc. to fetch delay")
     fetchToDecodeDelay = Param.Cycles(1, "Fetch to decode delay")
     decodeWidth = Param.Unsigned(8, "Decode width")
 
@@ -119,16 +122,14 @@ class BaseO3CPU(BaseCPU):
     dispatchWidth = Param.Unsigned(8, "Dispatch width")
     issueWidth = Param.Unsigned(8, "Issue width")
     wbWidth = Param.Unsigned(8, "Writeback width")
+    fuPool = Param.FUPool(DefaultFUPool(), "Functional Unit pool")
 
     iewToCommitDelay = Param.Cycles(
         1, "Issue/Execute/Writeback to commit delay"
     )
     renameToROBDelay = Param.Cycles(1, "Rename to reorder buffer delay")
     commitWidth = Param.Unsigned(8, "Commit width")
-    squashWidth = OptionalParam.Unsigned(
-        "Squash width. If unspecified all instructions are "
-        "squashed instantly within one cycle.",
-    )
+    squashWidth = Param.Unsigned(8, "Squash width")
     trapLatency = Param.Cycles(13, "Trap latency")
     fetchTrapLatency = Param.Cycles(1, "Fetch trap latency")
 
@@ -172,10 +173,10 @@ class BaseO3CPU(BaseCPU):
     numRobs = Param.Unsigned(1, "Number of Reorder Buffers")
 
     numPhysIntRegs = Param.Unsigned(
-        256, "Number of physical integer registers"
+        1024, "Number of physical integer registers"
     )
     numPhysFloatRegs = Param.Unsigned(
-        256, "Number of physical floating point registers"
+        1024, "Number of physical floating point registers"
     )
     numPhysVecRegs = Param.Unsigned(256, "Number of physical vector registers")
     numPhysVecPredRegs = Param.Unsigned(
@@ -184,7 +185,7 @@ class BaseO3CPU(BaseCPU):
     numPhysMatRegs = Param.Unsigned(2, "Number of physical matrix registers")
     # most ISAs don't use condition-code regs, so default is 0
     numPhysCCRegs = Param.Unsigned(0, "Number of physical cc registers")
-    instQueues = VectorParam.IQUnit(IQUnit(), "Vector of IQs")
+    numIQEntries = Param.Unsigned(64, "Number of instruction queue entries")
     numROBEntries = Param.Unsigned(192, "Number of reorder buffer entries")
 
     smtNumFetchingThreads = Param.Unsigned(1, "SMT Number of Fetching Threads")
@@ -193,6 +194,8 @@ class BaseO3CPU(BaseCPU):
         "Partitioned", "SMT LSQ Sharing Policy"
     )
     smtLSQThreshold = Param.Int(100, "SMT LSQ Threshold Sharing Parameter")
+    smtIQPolicy = Param.SMTQueuePolicy("Partitioned", "SMT IQ Sharing Policy")
+    smtIQThreshold = Param.Int(100, "SMT IQ Threshold Sharing Parameter")
     smtROBPolicy = Param.SMTQueuePolicy(
         "Partitioned", "SMT ROB Sharing Policy"
     )
@@ -200,10 +203,7 @@ class BaseO3CPU(BaseCPU):
     smtCommitPolicy = Param.CommitPolicy("RoundRobin", "SMT Commit Policy")
 
     branchPred = Param.BranchPredictor(
-        BranchPredictor(
-            conditionalBranchPred=TournamentBP(numThreads=Parent.numThreads)
-        ),
-        "Branch Predictor",
+        TournamentBP(numThreads=Parent.numThreads), "Branch Predictor"
     )
     needsTSO = Param.Bool(False, "Enable TSO Memory model")
 
@@ -217,43 +217,3 @@ class BaseO3CPU(BaseCPU):
     recvRespBufferSize = Param.Unsigned(
         64, "Maximum number of receive response bytes per cycle"
     )
-
-    ## Parameters for decoupled front-end
-    decoupledFrontEnd = Param.Bool(False, "Enables the decoupled front-end")
-    numFTQEntries = Param.Unsigned(
-        8,
-        "Number of entries in the Fetch target queue. (only used for "
-        "decoupled front-end)",
-    )
-    minInstSize = Param.Unsigned(
-        1,
-        "Minimum instruction size (bytes). Determines the granularity "
-        "of the instruction minimum search width per cycle",
-    )
-    fetchTargetWidth = Param.Unsigned(
-        32,
-        "Max width (bytes) of Fetch target. "
-        "Determines the maximum search width per cycle",
-    )
-    maxFTPerCycle = Param.Unsigned(4, "Max number of FT created per cycle")
-    maxTakenPredPerCycle = Param.Unsigned(
-        1, "Max number of taken predictions per cycle"
-    )
-
-
-add_citation(
-    BaseO3CPU,
-    """@inproceedings{10.1145/3613424.3614258,
-  author    = {Schall, David and
-               Sandberg, Andreas and
-               Grot, Boris},
-  title     = {Warming Up a Cold Front-End with Ignite},
-  year      = {2023},
-  publisher = {Association for Computing Machinery},
-  address   = {Toronto, ON, Canada},
-  doi       = {10.1145/3613424.3614258},
-  booktitle = {Proceedings of the 56th Annual IEEE/ACM International Symposium on Microarchitecture (MICRO '23)},
-  series    = {MICRO'23}
-}
-""",
-)

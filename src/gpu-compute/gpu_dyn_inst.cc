@@ -654,12 +654,6 @@ GPUDynInst::isAtomicMin() const
 }
 
 bool
-GPUDynInst::isAtomicPkAddBF16() const
-{
-    return _staticInst->isAtomicPkAddBF16();
-}
-
-bool
 GPUDynInst::isArgLoad() const
 {
     return _staticInst->isArgLoad();
@@ -931,8 +925,7 @@ GPUDynInst::resolveFlatSegment(const VectorMask &mask)
 
         ComputeUnit *cu = wavefront()->computeUnit;
 
-        if (wavefront()->gfxVersion == GfxVersion::gfx942 ||
-            wavefront()->gfxVersion == GfxVersion::gfx950) {
+        if (wavefront()->gfxVersion == GfxVersion::gfx942) {
             // Architected flat scratch base address is in a dedicated hardware
             // register.
             for (int lane = 0; lane < cu->wfSize(); ++lane) {

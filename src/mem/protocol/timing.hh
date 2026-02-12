@@ -120,9 +120,6 @@ class TimingRequestProtocol
      * and was unsuccessful.
      */
     virtual void recvRetrySnoopResp() = 0;
-
-  public:
-    virtual ~TimingRequestProtocol() = default;
 };
 
 class TimingResponseProtocol
@@ -187,9 +184,6 @@ class TimingResponseProtocol
      * and was unsuccessful.
      */
     virtual void recvRespRetry() = 0;
-
-  public:
-    virtual ~TimingResponseProtocol() = default;
 };
 
 } // namespace gem5

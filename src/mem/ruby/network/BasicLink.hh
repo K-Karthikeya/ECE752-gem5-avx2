@@ -33,6 +33,8 @@
 #include <string>
 #include <vector>
 
+#include "mem/ruby/network/BasicRouter.hh"
+#include "mem/ruby/slicc_interface/AbstractController.hh"
 #include "params/BasicExtLink.hh"
 #include "params/BasicIntLink.hh"
 #include "params/BasicLink.hh"

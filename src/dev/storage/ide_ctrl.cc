@@ -384,14 +384,14 @@ IdeController::Channel::setDmaComplete()
 }
 
 Tick
-IdeController::readDevice(PacketPtr pkt)
+IdeController::read(PacketPtr pkt)
 {
     dispatchAccess(pkt, true);
     return pioDelay;
 }
 
 Tick
-IdeController::writeDevice(PacketPtr pkt)
+IdeController::write(PacketPtr pkt)
 {
     dispatchAccess(pkt, false);
     return pioDelay;

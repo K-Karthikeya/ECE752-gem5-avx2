@@ -54,8 +54,6 @@ struct Printer
     const T& value;
 };
 
-template <class T> Printer(const T &) -> Printer<T>;
-
 namespace opExtract_impl
 {
 

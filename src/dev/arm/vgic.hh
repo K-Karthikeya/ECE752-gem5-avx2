@@ -57,13 +57,10 @@
 #include "base/bitunion.hh"
 #include "dev/io_device.hh"
 #include "dev/platform.hh"
+#include "params/VGic.hh"
 
 namespace gem5
 {
-
-class BaseGic;
-
-struct VGicParams;
 
 class VGic : public PioDevice
 {

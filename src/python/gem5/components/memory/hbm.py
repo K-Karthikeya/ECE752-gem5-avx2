@@ -37,13 +37,10 @@ from typing import (
 )
 
 from m5.objects import (
-    AbstractMemory,
+    AddrRange,
     DRAMInterface,
     HBMCtrl,
     MemInterface,
-)
-from m5.params import (
-    AddrRange,
     Port,
 )
 
@@ -177,7 +174,7 @@ class HighBandwidthMemory(ChanneledMemory):
         ]
 
     @overrides(ChanneledMemory)
-    def get_mem_interfaces(self) -> List[AbstractMemory]:
+    def get_mem_interfaces(self) -> List[MemInterface]:
         return [ctrl.dram for ctrl in self.get_memory_controllers()] + [
             ctrl.dram_2 for ctrl in self.get_memory_controllers()
         ]

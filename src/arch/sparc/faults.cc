@@ -43,7 +43,6 @@
 #include "mem/page_table.hh"
 #include "sim/full_system.hh"
 #include "sim/process.hh"
-#include "sim/system.hh"
 
 namespace gem5
 {

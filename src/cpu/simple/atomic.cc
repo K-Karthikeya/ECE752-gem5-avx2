@@ -685,7 +685,6 @@ AtomicSimpleCPU::tick()
 
                 // keep an instruction count
                 if (fault == NoFault) {
-                    postExecute();
                     countInst();
                     ppCommit->notify(std::make_pair(thread, curStaticInst));
                 } else if (traceData) {
@@ -699,6 +698,8 @@ AtomicSimpleCPU::tick()
                     // caused the retry are unlikely to change every tick.
                     stall_ticks += clockEdge(syscallRetryLatency) - curTick();
                 }
+
+                postExecute();
             }
 
             // @todo remove me after debugging with legion done

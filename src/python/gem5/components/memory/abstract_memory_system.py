@@ -35,15 +35,12 @@ from typing import (
 )
 
 from m5.objects import (
-    AbstractMemory,
+    AddrRange,
     MemCtrl,
     MemInterface,
+    Port,
     Root,
     SubSystem,
-)
-from m5.params import (
-    AddrRange,
-    Port,
 )
 
 from ..boards.abstract_board import AbstractBoard
@@ -80,19 +77,13 @@ class AbstractMemorySystem(SubSystem):
 
     @abstractmethod
     def get_memory_controllers(self) -> List[MemCtrl]:
-        """Get all of the memory controllers in this memory system.
-
-        The "memory controller" is the object that has a port named "port"
-        that is the CPU-side port for the memory."""
+        """Get all of the memory controllers in this memory system."""
         raise NotImplementedError
 
     @abstractmethod
-    def get_mem_interfaces(self) -> List[AbstractMemory]:
+    def get_mem_interfaces(self) -> List[MemInterface]:
         """Get all memory interfaces in this memory system.
-        Useful when creating physical memory objects.
-
-        The "mem interface" is the object that is an AbstractMemory and
-        is used to create the backing store."""
+        Useful when creating physical memory objects."""
         raise NotImplementedError
 
     @abstractmethod

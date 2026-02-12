@@ -29,8 +29,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <mutex>
-#include <shared_mutex>
 #include <utility>
 
 #include "systemc/core/module.hh"
@@ -42,6 +40,7 @@
 namespace sc_gem5
 {
 
+<<<<<<< HEAD
 namespace
 {
 
@@ -89,6 +88,8 @@ allEvents()
     return allEvents;
 }
 
+=======
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 Event::Event(sc_core::sc_event *_sc_event, bool internal) :
     Event(_sc_event, nullptr, internal)
 {}
@@ -99,8 +100,6 @@ Event::Event(sc_core::sc_event *_sc_event, const char *_basename_cstr,
     _inHierarchy(!internal), delayedNotify([this]() { this->notify(); }),
     _triggeredStamp(~0ULL)
 {
-    [[maybe_unused]] std::unique_lock lock(globalEventLock);
-
     if (_basename == "" && ::sc_core::sc_is_running())
         _basename = ::sc_core::sc_gen_unique_name("event");
 
@@ -117,7 +116,11 @@ Event::Event(sc_core::sc_event *_sc_event, const char *_basename_cstr,
             Object *obj = Object::getFromScObject(parent);
             obj->addChildEvent(_sc_event);
         } else {
+<<<<<<< HEAD
             addEvent(&topLevelEvents(), _sc_event);
+=======
+            topLevelEvents.emplace(topLevelEvents.end(), _sc_event);
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
         }
 
         std::string path = parent ? (std::string(parent->name()) + ".") : "";
@@ -133,7 +136,11 @@ Event::Event(sc_core::sc_event *_sc_event, const char *_basename_cstr,
         _name = path + _basename;
     }
 
+<<<<<<< HEAD
     addEvent(&allEvents(), _sc_event);
+=======
+    allEvents.emplace(allEvents.end(), _sc_event);
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
     // Determine if we're in the hierarchy (created once initialization starts
     // means no).
@@ -141,16 +148,27 @@ Event::Event(sc_core::sc_event *_sc_event, const char *_basename_cstr,
 
 Event::~Event()
 {
-    [[maybe_unused]] std::unique_lock lock(globalEventLock);
-
     if (parent) {
         Object *obj = Object::getFromScObject(parent);
         obj->delChildEvent(_sc_event);
     } else if (inHierarchy()) {
+<<<<<<< HEAD
         popEvent(&topLevelEvents(), _name);
     }
 
     popEvent(&allEvents(), _name);
+=======
+        EventsIt it = find(topLevelEvents.begin(), topLevelEvents.end(),
+                           _sc_event);
+        assert(it != topLevelEvents.end());
+        std::swap(*it, topLevelEvents.back());
+        topLevelEvents.pop_back();
+    }
+
+    EventsIt it = findEvent(_name);
+    std::swap(*it, allEvents.back());
+    allEvents.pop_back();
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
     if (delayedNotify.scheduled())
         scheduler().deschedule(&delayedNotify);
@@ -256,22 +274,34 @@ Event::triggered() const
 void
 Event::clearParent()
 {
-    [[maybe_unused]] std::unique_lock lock(globalEventLock);
-
     if (!parent)
         return;
-    Object::getFromScObject(parent)->delChildEvent(_sc_event);
+    Object::getFromScObject(parent)->delChildEvent(sc_event());
     parent = nullptr;
+<<<<<<< HEAD
     addEvent(&topLevelEvents(), _sc_event);
+=======
+    topLevelEvents.emplace(topLevelEvents.end(), sc_event());
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 }
 
-sc_core::sc_event *
-findEvent(const char *name)
-{
-    [[maybe_unused]] std::shared_lock lock(globalEventLock);
+Events topLevelEvents;
+Events allEvents;
 
+<<<<<<< HEAD
     EventsIt it = findEventIn(allEvents(), name);
     return it == allEvents().end() ? nullptr : *it;
+=======
+EventsIt
+findEvent(const std::string &name)
+{
+    EventsIt it;
+    for (it = allEvents.begin(); it != allEvents.end(); it++)
+        if (!strcmp((*it)->name(), name.c_str()))
+            break;
+
+    return it;
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 }
 
 } // namespace sc_gem5

@@ -43,7 +43,7 @@ paramOut(CheckpointOut &cp, const std::string &name,
     // Prefixes
     paramOut(cp, name + ".legacy", (uint8_t)machInst.legacy);
     paramOut(cp, name + ".rex", (uint8_t)machInst.rex);
-    paramOut(cp, name + ".vex", (uint32_t)machInst.vex);
+    paramOut(cp, name + ".evex", (uint32_t)machInst.evex);
 
     // Opcode
     paramOut(cp, name + ".opcode.type", (uint8_t)machInst.opcode.type);
@@ -80,7 +80,7 @@ paramIn(CheckpointIn &cp, const std::string &name, ExtMachInst &machInst)
 
     uint32_t temp32;
     paramIn(cp, name + ".vex", temp32);
-    machInst.vex = temp32;
+    machInst.evex = (uint16_t)temp32;
 
     // Opcode
     paramIn(cp, name + ".opcode.type", temp8);

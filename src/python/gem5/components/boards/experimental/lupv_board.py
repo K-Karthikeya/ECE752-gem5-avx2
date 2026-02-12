@@ -29,6 +29,7 @@ from typing import List
 
 import m5
 from m5.objects import (
+    AddrRange,
     Bridge,
     Clint,
     CowDiskImage,
@@ -43,19 +44,13 @@ from m5.objects import (
     LupioTMR,
     LupioTTY,
     LupV,
-    PciBus,
     Plic,
     PMAChecker,
+    Port,
     RawDiskImage,
     RiscvLinux,
     RiscvRTC,
-    RiscvSystem,
-    SimObject,
     Terminal,
-)
-from m5.params import (
-    AddrRange,
-    Port,
 )
 from m5.util.fdthelper import (
     Fdt,
@@ -72,11 +67,11 @@ from ....utils.override import overrides
 from ...cachehierarchies.abstract_cache_hierarchy import AbstractCacheHierarchy
 from ...memory.abstract_memory_system import AbstractMemorySystem
 from ...processors.abstract_processor import AbstractProcessor
-from ..abstract_system_board import AbstractBoard
+from ..abstract_system_board import AbstractSystemBoard
 from ..kernel_disk_workload import KernelDiskWorkload
 
 
-class LupvBoard(RiscvSystem, AbstractBoard, KernelDiskWorkload):
+class LupvBoard(AbstractSystemBoard, KernelDiskWorkload):
     """
     A board capable of full system simulation for RISC-V.
     This board uses a set of LupIO education-friendly devices.
@@ -103,12 +98,9 @@ class LupvBoard(RiscvSystem, AbstractBoard, KernelDiskWorkload):
                 f"ISA: '{processor.get_isa().name}'."
             )
 
-        super().__init__()
-        AbstractBoard.__init__(
-            self, clk_freq, processor, memory, cache_hierarchy
-        )
+        super().__init__(clk_freq, processor, memory, cache_hierarchy)
 
-    @overrides(AbstractBoard)
+    @overrides(AbstractSystemBoard)
     def _setup_board(self) -> None:
         self.workload = RiscvLinux()
 
@@ -255,35 +247,24 @@ class LupvBoard(RiscvSystem, AbstractBoard, KernelDiskWorkload):
                 uncacheable=uncacheable_range
             )
 
-    @overrides(AbstractBoard)
+    @overrides(AbstractSystemBoard)
     def has_dma_ports(self) -> bool:
         return False
 
-    @overrides(AbstractBoard)
+    @overrides(AbstractSystemBoard)
     def get_dma_ports(self) -> List[Port]:
         raise NotImplementedError(
             "The LupvBoard does not have DMA Ports. "
             "Use `has_dma_ports()` to check this."
         )
 
-    @overrides(AbstractBoard)
+    @overrides(AbstractSystemBoard)
     def has_io_bus(self) -> bool:
         return True
 
-    @overrides(AbstractBoard)
+    @overrides(AbstractSystemBoard)
     def get_io_bus(self) -> IOXBar:
         return self.iobus
-
-    @overrides(AbstractBoard)
-    def has_pci_bus(self) -> bool:
-        return False
-
-    @overrides(AbstractBoard)
-    def get_pci_bus(self) -> PciBus:
-        raise NotImplementedError(
-            "The LupvBoard does not have PCI bus. "
-            "Use `has_pci_bus()` to check this."
-        )
 
     def has_coherent_io(self) -> bool:
         return True
@@ -291,7 +272,7 @@ class LupvBoard(RiscvSystem, AbstractBoard, KernelDiskWorkload):
     def get_mem_side_coherent_io_port(self) -> Port:
         return self.iobus.mem_side_ports
 
-    @overrides(AbstractBoard)
+    @overrides(AbstractSystemBoard)
     def _setup_memory_ranges(self):
         memory = self.get_memory()
         mem_size = memory.get_size()
@@ -600,12 +581,3 @@ class LupvBoard(RiscvSystem, AbstractBoard, KernelDiskWorkload):
         self.workload.dtb_filename = os.path.join(
             m5.options.outdir, "device.dtb"
         )
-
-    @overrides(SimObject)
-    def createCCObject(self):
-        """We override this function as it is called in ``m5.instantiate``. This
-        means we can insert a check to ensure the ``_connect_things`` function
-        has been run.
-        """
-        super()._connect_things_check()
-        super().createCCObject()

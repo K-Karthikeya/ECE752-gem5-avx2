@@ -51,11 +51,10 @@
 #include "cpu/static_inst.hh"
 #include "debug/Decode.hh"
 #include "enums/DecoderFlavor.hh"
+#include "params/ArmDecoder.hh"
 
 namespace gem5
 {
-
-struct ArmDecoderParams;
 
 class BaseISA;
 

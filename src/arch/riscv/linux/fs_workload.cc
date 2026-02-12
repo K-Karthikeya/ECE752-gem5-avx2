@@ -153,15 +153,15 @@ void
 BootloaderKernelWorkload::loadBootloader()
 {
     if (params().bootloader_filename != "") {
-        loader::MemoryImage image = bootloader->buildImage();
-        Addr bootloader_addr_offset = \
-            params().bootloader_addr - image.minAddr();
-        image.offset(bootloader_addr_offset).write(system->physProxy);
+        Addr bootloader_addr_offset = params().bootloader_addr;
+        bootloader->buildImage().offset(bootloader_addr_offset).write(
+            system->physProxy
+        );
         delete bootloader;
 
         inform("Loaded bootloader \'%s\' at 0x%llx\n",
                params().bootloader_filename,
-               params().bootloader_addr);
+               bootloader_addr_offset);
     } else {
         inform("Bootloader is not specified.\n");
     }
@@ -171,49 +171,26 @@ void
 BootloaderKernelWorkload::loadKernel()
 {
     if (params().object_file != "") {
-        loader::MemoryImage image = kernel->buildImage();
-        Addr kernel_paddr_offset = params().kernel_addr - image.minAddr();
-        image.offset(kernel_paddr_offset).write(system->physProxy);
+        Addr kernel_paddr_offset = params().kernel_addr;
+        kernel->buildImage().offset(kernel_paddr_offset).write(
+            system->physProxy
+        );
         delete kernel;
 
         inform("Loaded kernel \'%s\' at 0x%llx\n",
                 params().object_file,
-                params().kernel_addr);
+                kernel_paddr_offset);
     } else {
         inform("Kernel is not specified.\n");
     }
 }
 
-void
-BootloaderKernelWorkload::loadInitrd()
-{
-    if (params().initrd_filename != "") {
-        inform("Loading initrd file: %s at address %#x\n",
-               params().initrd_filename, params().initrd_addr);
-
-        loader::ImageFileDataPtr initrd_file_data(
-            new loader::ImageFileData(params().initrd_filename, false));
-        system->physProxy.writeBlob(params().initrd_addr,
-                                    initrd_file_data->data(),
-                                    initrd_file_data->len());
-        initrd_len = initrd_file_data->len();
-    }
-}
 
 void
 BootloaderKernelWorkload::loadDtb()
 {
     if (params().dtb_filename != "") {
         auto *dtb_file = new loader::DtbFile(params().dtb_filename);
-
-        if (params().initrd_filename != "") {
-            if (!dtb_file->addBootData(params().command_line.c_str(),
-                                       params().command_line.size(),
-                                       params().initrd_addr, initrd_len)) {
-                warn("couldn't append bootargs to DTB file: %s\n",
-                     params().dtb_filename);
-            }
-        }
 
         dtb_file->buildImage().offset(params().dtb_addr)
             .write(system->physProxy);
@@ -260,7 +237,6 @@ BootloaderKernelWorkload::initState()
 {
     loadBootloader();
     loadKernel();
-    loadInitrd();
     loadDtb();
 
     for (auto *tc: system->threads) {

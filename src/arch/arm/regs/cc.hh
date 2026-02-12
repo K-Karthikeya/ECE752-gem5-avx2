@@ -82,7 +82,7 @@ class CCRegClassOps : public RegClassOps
     }
 };
 
-inline CCRegClassOps ccRegClassOps;
+static inline CCRegClassOps ccRegClassOps;
 
 inline constexpr RegClass ccRegClass = RegClass(CCRegClass, CCRegClassName,
         cc_reg::NumRegs, debug::CCRegs).ops(ccRegClassOps);

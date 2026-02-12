@@ -95,8 +95,6 @@ class SyscallDesc
         _name(name), _num(num), executor(exec), dumper(dump)
     {}
 
-    virtual ~SyscallDesc() = default;
-
     void retrySyscall(ThreadContext *tc);
 
   private:

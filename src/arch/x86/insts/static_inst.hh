@@ -111,6 +111,10 @@ class X86StaticInst : public StaticInst
 
     static void printReg(std::ostream &os, RegId reg, int size);
 
+    // Instance helpers (needed by AVX disassembly paths)
+    void printSrcReg(std::ostream &os, int reg, int size) const;
+    void printDestReg(std::ostream &os, int reg, int size) const;
+
   protected:
     using ExtMachInst = X86ISA::ExtMachInst;
 
@@ -127,11 +131,7 @@ class X86StaticInst : public StaticInst
             Addr pc, const loader::SymbolTable *symtab) const override;
 
     static void divideStep(uint64_t divident, uint64_t divisor,
-                           uint64_t &quotient, uint64_t &remainder,
-                           Fault &fault);
-
-    static void addCheckUnsignedOverflow(uint64_t &value, uint64_t addend,
-                                         Fault &fault);
+            uint64_t &quotient, uint64_t &remainder);
 
     static inline uint64_t
     merge(uint64_t into, RegIndex index, uint64_t val, int size)

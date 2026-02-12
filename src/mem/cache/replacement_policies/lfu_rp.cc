@@ -47,8 +47,6 @@ LFU::LFU(const Params &p)
 void
 LFU::invalidate(const std::shared_ptr<ReplacementData>& replacement_data)
 {
-    assert(replacement_data);
-
     // Reset reference count
     std::static_pointer_cast<LFUReplData>(replacement_data)->refCount = 0;
 }
@@ -56,8 +54,6 @@ LFU::invalidate(const std::shared_ptr<ReplacementData>& replacement_data)
 void
 LFU::touch(const std::shared_ptr<ReplacementData>& replacement_data) const
 {
-    assert(replacement_data);
-
     // Update reference count
     std::static_pointer_cast<LFUReplData>(replacement_data)->refCount++;
 }
@@ -65,8 +61,6 @@ LFU::touch(const std::shared_ptr<ReplacementData>& replacement_data) const
 void
 LFU::reset(const std::shared_ptr<ReplacementData>& replacement_data) const
 {
-    assert(replacement_data);
-
     // Reset reference count
     std::static_pointer_cast<LFUReplData>(replacement_data)->refCount = 1;
 }

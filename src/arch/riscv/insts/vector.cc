@@ -454,7 +454,7 @@ VMaskMergeMicroInst::execute(ExecContext* xc,
     auto Vd = tmp_d0.as<uint8_t>();
     uint32_t vlenb = vlen >> 3;
     const uint32_t elems_per_vreg = vlenb / elemSize;
-    size_t bit_cnt = 0;
+    size_t bit_cnt = elems_per_vreg;
 
     // mask tails are always treated as agnostic: writting 1s
     tmp_d0.set(0xff);
@@ -734,8 +734,9 @@ std::string VsSegMacroInst::generateDisassembly(Addr pc,
         const loader::SymbolTable *symtab) const
 {
     std::stringstream ss;
-    ss << mnemonic << ' ' << registerName(srcRegIdx(1)) << ", " << '('
-       << registerName(srcRegIdx(0)) << ')';
+    ss << mnemonic << ' ' << registerName(destRegIdx(0)) << ", " <<
+        '(' << registerName(srcRegIdx(0)) << ')' <<
+        ", " << registerName(srcRegIdx(1));
     if (!machInst.vm)
         ss << ", v0.t";
     return ss.str();
@@ -890,10 +891,12 @@ VCpyVsMicroInst::generateDisassembly(Addr pc,
 
 VPinVdMicroInst::VPinVdMicroInst(ExtMachInst _machInst, uint32_t _microIdx,
                                  uint32_t _numVdPins, uint32_t _elen,
-                                 uint32_t _vlen, bool _hasVdOffset)
+                                 uint32_t _vlen, bool _hasVdOffset,
+                                 bool _copyVs, uint32_t _vsIdx)
     : VectorArithMicroInst("vpinvd_v_micro", _machInst, SimdMiscOp, 0,
-                           _microIdx, _elen, _vlen),
-      hasVdOffset(_hasVdOffset)
+                           _microIdx, _elen, _vlen)
+    , hasVdOffset(_hasVdOffset)
+    , copyVs(_copyVs)
 {
     setRegIdxArrays(
         reinterpret_cast<RegIdArrayPtr>(
@@ -912,6 +915,10 @@ VPinVdMicroInst::VPinVdMicroInst(ExtMachInst _machInst, uint32_t _microIdx,
     RegId Vd = destRegIdx(0);
     Vd.setNumPinnedWrites(_numVdPins);
     setDestRegIdx(0, Vd);
+
+    if (copyVs) {
+        setSrcRegIdx(_numSrcRegs++, vecRegClass[_vsIdx]);
+    }
 }
 
 Fault
@@ -934,7 +941,14 @@ VPinVdMicroInst::execute(ExecContext* xc, trace::InstRecord* traceData) const
     }
 
     if (traceData) {
-        traceData->setData(vecRegClass, &vd);
+        traceData->setData(vecRegClass, xc->getWritableRegOperand(this, 0));
+    }
+
+    if (copyVs) {
+        vreg_t& vs = *(vreg_t *)xc->getWritableRegOperand(this, 1);
+        vreg_t old_vs;
+        xc->getRegOperand(this, 1, &old_vs);
+        vs = old_vs;
     }
 
     return NoFault;

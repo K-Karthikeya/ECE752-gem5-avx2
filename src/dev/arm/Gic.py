@@ -37,6 +37,7 @@ from m5.objects.Device import (
     BasicPioDevice,
     PioDevice,
 )
+from m5.objects.IntPin import IntSourcePin
 from m5.objects.Platform import Platform
 from m5.params import *
 from m5.proxy import *

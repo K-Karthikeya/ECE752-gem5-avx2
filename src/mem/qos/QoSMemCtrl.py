@@ -90,3 +90,6 @@ class QoSMemCtrl(ClockedObject):
         [""] * 16,
         "Requestor Names to be mapped to service parameters in QoS scheduler",
     )
+    qos_masters = DeprecatedParam(
+        qos_requestors, "`qos_master` is now called `qos_requestors`"
+    )

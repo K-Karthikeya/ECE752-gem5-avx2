@@ -1098,18 +1098,12 @@ void
 LSQRequest::addReq(Addr addr, unsigned size,
                    const std::vector<bool> &byte_enable)
 {
-    unsigned inactive_tail_size = inactiveTailSize(byte_enable.begin(),
-                                                   byte_enable.end());
-
-    if (inactive_tail_size != byte_enable.size()) {
+    if (isAnyActiveElement(byte_enable.begin(), byte_enable.end())) {
         auto req = new Request(
-                addr, size-inactive_tail_size, _flags, _inst->requestorId(),
+                addr, size, _flags, _inst->requestorId(),
                 _inst->pcState().instAddr(), _inst->contextId(),
                 std::move(_amo_op));
-
-        req->setByteEnable(
-                std::vector<bool>(byte_enable.begin(),
-                                  byte_enable.end()-inactive_tail_size));
+        req->setByteEnable(byte_enable);
 
         /* If the request is marked as NO_ACCESS, setup a local access */
         if (_flags.isSet(Request::NO_ACCESS)) {

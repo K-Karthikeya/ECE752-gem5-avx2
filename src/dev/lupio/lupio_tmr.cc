@@ -32,7 +32,6 @@
 #include "debug/LupioTMR.hh"
 #include "mem/packet_access.hh"
 #include "params/LupioTMR.hh"
-#include "sim/system.hh"
 
 // Specific fields for CTRL
 #define LUPIO_TMR_IRQE    0x1

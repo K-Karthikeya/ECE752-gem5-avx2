@@ -46,7 +46,6 @@
 #include "dev/arm/base_gic.hh"
 #include "mem/packet.hh"
 #include "mem/packet_access.hh"
-#include "params/Pl111.hh"
 #include "sim/system.hh"
 
 // clang complains about std::set being overloaded with Packet::set if

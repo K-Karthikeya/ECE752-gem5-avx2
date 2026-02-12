@@ -37,31 +37,38 @@
 
 import argparse
 import sys
-from typing import List
 
 from code_formatter import code_formatter
 
+parser = argparse.ArgumentParser()
+parser.add_argument("hh", help="the path of the debug flag header file")
+parser.add_argument("name", help="the name of the debug flag")
+parser.add_argument("desc", help="a description of the debug flag")
+parser.add_argument(
+    "fmt", help="whether the flag is a format flag (True or False)"
+)
+parser.add_argument(
+    "components",
+    help="components of a compound flag, if applicable, joined with :",
+)
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("hh", help="the path of the debug flag header file")
-    parser.add_argument("name", help="the name of the debug flag")
-    parser.add_argument("desc", help="a description of the debug flag")
-    parser.add_argument(
-        "fmt", help="whether the flag is a format flag (True or False)"
-    )
-    parser.add_argument(
-        "components",
-        help="components of a compound flag, if applicable, joined with :",
-    )
-    args = parser.parse_args()
-    return args
+args = parser.parse_args()
 
+fmt = args.fmt.lower()
+if fmt == "true":
+    fmt = True
+elif fmt == "false":
+    fmt = False
+else:
+    print(f'Unrecognized "FMT" value {fmt}', file=sys.stderr)
+    sys.exit(1)
+components = args.components.split(":") if args.components else []
 
-def write_header_file(
-    hh: str, name: str, desc: str, fmt: bool, components: List[str]
-):
+code = code_formatter()
+
+code(
     """
+<<<<<<< HEAD
     Generates the C++ header file for a debug flag.
 
     This function creates a C++ header that defines a debug flag, which can be
@@ -89,6 +96,19 @@ def write_header_file(
     for flag in components:
         code(f'#include "debug/{flag}.hh"')
     code("""
+=======
+#ifndef __DEBUG_${{args.name}}_HH__
+#define __DEBUG_${{args.name}}_HH__
+
+#include "base/compiler.hh" // For namespace deprecation
+#include "base/debug.hh"
+"""
+)
+for flag in components:
+    code('#include "debug/${flag}.hh"')
+code(
+    """
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 namespace gem5
 {
 
@@ -97,6 +117,7 @@ namespace debug
 
 namespace unions
 {
+<<<<<<< HEAD
 """)
 
     # Use unions to prevent debug flags from being destructed. It's the
@@ -106,6 +127,19 @@ namespace unions
     if components:
         code("""
 inline union ${{name}}
+=======
+"""
+)
+
+# Use unions to prevent debug flags from being destructed. It's the
+# responsibility of the programmer to handle object destruction for members
+# of the union. We purposefully leave that destructor empty so that we can
+# use debug flags even in the destructors of other objects.
+if components:
+    code(
+        """
+inline union ${{args.name}}
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 {
     ~${{name}}() {}
 
@@ -117,21 +151,40 @@ inline union ${{name}}
                 f"(Flag *)&::gem5::debug::{flag}" for flag in components)}}
         }) {}
 
+<<<<<<< HEAD
 } instance${{name}};
 """)
     else:
         code("""
 inline union ${{name}}
+=======
+} instance${{args.name}};
+"""
+    )
+else:
+    code(
+        """
+inline union ${{args.name}}
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 {
     ~${{name}}() {}
     SimpleFlag flag${{name}};
 
     ${{name}}() : flag${{name}}("${{name}}", "${{desc}}", ${{"true" if fmt else "false"}}) {}
 
+<<<<<<< HEAD
 } instance${{name}};
 """)
 
     code("""
+=======
+} instance${{args.name}};
+"""
+    )
+
+code(
+    """
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 } // namespace unions
 
 inline constexpr const auto& ${{name}} =
@@ -140,23 +193,13 @@ inline constexpr const auto& ${{name}} =
 } // namespace debug
 } // namespace gem5
 
+<<<<<<< HEAD
 #endif // __DEBUG_${{name}}_HH__
 """)
+=======
+#endif // __DEBUG_${{args.name}}_HH__
+"""
+)
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
-    code.write(hh)
-
-
-if __name__ == "__main__":
-    args = parse_args()
-
-    fmt = args.fmt.lower()
-    if fmt == "true":
-        fmt = True
-    elif fmt == "false":
-        fmt = False
-    else:
-        print(f'Unrecognized "FMT" value {fmt}', file=sys.stderr)
-        sys.exit(1)
-    components = args.components.split(":") if args.components else []
-
-    write_header_file(args.hh, args.name, args.desc, fmt, components)
+code.write(args.hh)

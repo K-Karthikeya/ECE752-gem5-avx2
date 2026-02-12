@@ -48,27 +48,20 @@ FIFO::FIFO(const Params &p)
 void
 FIFO::invalidate(const std::shared_ptr<ReplacementData>& replacement_data)
 {
-    assert(replacement_data);
-
-    // To prioritize these entries to be selected during victimization
-    // we set their insertion tick as 0
+    // Reset insertion tick
     std::static_pointer_cast<FIFOReplData>(
-        replacement_data)->tickInserted = 0;
+        replacement_data)->tickInserted = ++timeTicks;
 }
 
 void
 FIFO::touch(const std::shared_ptr<ReplacementData>& replacement_data) const
 {
-    // A touch does not modify the insertion tick. We still check if the data
-    // exists to standardize the API
-    assert(replacement_data);
+    // A touch does not modify the insertion tick
 }
 
 void
 FIFO::reset(const std::shared_ptr<ReplacementData>& replacement_data) const
 {
-    assert(replacement_data);
-
     // Set insertion tick
     std::static_pointer_cast<FIFOReplData>(
         replacement_data)->tickInserted = ++timeTicks;

@@ -140,20 +140,78 @@ BitUnion8(Vex2Of2)
     Bitfield<1, 0> p;
 EndBitUnion(Vex2Of2)
 
-BitUnion8(VexInfo)
-    // Extra register index.
-    Bitfield<6, 3> v;
-    // Vector length specifier.
-    Bitfield<2> l;
-    // Whether the VEX prefix was used.
-    Bitfield<0> present;
-EndBitUnion(VexInfo)
+    BitUnion8(EVex2Of4)
+        // Inverted bit from the REX prefix.
+        Bitfield<7> r;
+        Bitfield<6> x;
+        Bitfield<5> b;
+        // Inverted bit of R'.
+        Bitfield<4> r_prime;
+        // Zero bit.
+        Bitfield<3, 2> zero;
+        // Selector for what would be two or three byte opcode types.
+        Bitfield<1, 0> m;
+    EndBitUnion(EVex2Of4)
+
+    BitUnion8(EVex3Of4)
+        // Bit from the REX prefix.
+        Bitfield<7> w;
+        // Inverted extra register index.
+        Bitfield<6, 3>  v;
+        // Always 1 in EVEX.
+        Bitfield<2> one;
+        // Implied 66, F2, or F3 opcode prefix.
+        Bitfield<1, 0> p;
+    EndBitUnion(EVex3Of4)
+
+    BitUnion8(EVex4Of4)
+        // Bit z for merging mode.
+        Bitfield<7> z;
+        // Bit L' specifying 512bit vector length, or rounding control
+        // mode when combined with L.
+        Bitfield<6> l_prime;
+        // Bit L specifying 256bit vector length.
+        Bitfield<5> l;
+        // Bit b specifying broadcasting.
+        Bitfield<4> b;
+        // Inverted bit V'.
+        Bitfield<3> v_prime;
+        // Operand mask register.
+        Bitfield<2, 0> a;
+    EndBitUnion(EVex4Of4)
+
+    // Aggregated EVex prefix info.
+    BitUnion16(EVexInfo)
+        // Bit z.
+        Bitfield<15>      z;
+        // Operand mask register a.
+        Bitfield<14, 12>  a;
+        // Extend L'L
+        Bitfield<11, 10>  l_extend;
+        Bitfield<11>      l_prime;
+        Bitfield<10>      l;
+        // Bit b.
+        Bitfield<9>      b;
+        // Extend V'vvvv
+        Bitfield<8, 4>   v_extend;
+        Bitfield<8>      v_prime;
+        Bitfield<7, 4>   v;
+        // Extend R'R
+        Bitfield<3, 2>   r_extend;
+        Bitfield<3>      r_prime;
+        Bitfield<2>      r;
+        // 01 VEX 10 EVEX.
+        Bitfield<1, 0>   present;
+        Bitfield<1>      evex_present;
+        Bitfield<0>      vex_present;
+    EndBitUnion(EVexInfo)
 
 enum OpcodeType
 {
     BadOpcode,
     OneByteOpcode,
     TwoByteOpcode,
+    TwoByteOpcodeVEX,
     ThreeByte0F38Opcode,
     ThreeByte0F3AOpcode,
 };
@@ -168,6 +226,8 @@ opcodeTypeToStr(OpcodeType type)
         return "one byte";
       case TwoByteOpcode:
         return "two byte";
+            case TwoByteOpcodeVEX:
+                return "two byte vex";
       case ThreeByte0F38Opcode:
         return "three byte 0f38";
       case ThreeByte0F3AOpcode:
@@ -216,7 +276,10 @@ struct ExtMachInst
     //Prefixes
     LegacyPrefixVector legacy;
     Rex rex;
-    VexInfo vex;
+    EVexInfo evex;
+    // Synthetic field: VEX mandatory-prefix (pp) value captured during decode.
+    // 0 = none, 1 = 66h, 2 = F3h, 3 = F2h (as encoded in VEX/EVEX p).
+    uint8_t vex_pp;
 
     //This holds all of the bytes of the opcode
     struct
@@ -249,13 +312,15 @@ inline static std::ostream &
 operator << (std::ostream &os, const ExtMachInst &emi)
 {
     ccprintf(os, "\n{\n\tleg = %#x,\n\trex = %#x,\n\t"
-                 "vex/xop = %#x,\n\t"
+                 "evex/xop = %#x,\n\t"
+                 "vex_pp = %u,\n\t"
                  "op = {\n\t\ttype = %s,\n\t\top = %#x,\n\t\t},\n\t"
                  "modRM = %#x,\n\tsib = %#x,\n\t"
                  "immediate = %#x,\n\tdisplacement = %#x\n\t"
                  "dispSize = %d}\n",
                  (uint8_t)emi.legacy, (uint8_t)emi.rex,
-                 (uint8_t)emi.vex,
+                 (uint16_t)emi.evex,
+                 (unsigned)emi.vex_pp,
                  opcodeTypeToStr(emi.opcode.type), (uint8_t)emi.opcode.op,
                  (uint8_t)emi.modRM, (uint8_t)emi.sib,
                  emi.immediate, emi.displacement, emi.dispSize);
@@ -269,7 +334,7 @@ operator == (const ExtMachInst &emi1, const ExtMachInst &emi2)
         return false;
     if (emi1.rex != emi2.rex)
         return false;
-    if (emi1.vex != emi2.vex)
+    if (emi1.evex != emi2.evex)
         return false;
     if (emi1.opcode.type != emi2.opcode.type)
         return false;
@@ -320,7 +385,8 @@ struct hash<gem5::X86ISA::ExtMachInst>
     {
         return (((uint64_t)emi.legacy << 48) |
                 ((uint64_t)emi.rex << 40) |
-                ((uint64_t)emi.vex << 32) |
+                ((uint64_t)emi.evex << 32) |
+                ((uint64_t)emi.vex_pp << 28) |
                 ((uint64_t)emi.modRM << 24) |
                 ((uint64_t)emi.sib << 16) |
                 ((uint64_t)emi.opcode.type << 8) |

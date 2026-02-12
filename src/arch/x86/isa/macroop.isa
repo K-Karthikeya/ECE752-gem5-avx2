@@ -117,6 +117,8 @@ def template MacroConstructor {{
                 ExtMachInst machInst, EmulEnv _env)
             : %(base_class)s("%(mnemonic)s", machInst, %(num_microops)s, _env)
         {
+            // Debug: entering macroop constructor for this instruction.
+            DPRINTF(AVXVerbose, "[MACRO-CTOR] class=%(class_name)s mnemonic=%(mnemonic)s numMicroops=%(num_microops)s\n");
             %(adjust_env)s;
             %(adjust_imm)s;
             %(adjust_disp)s;
@@ -239,9 +241,19 @@ let {{
                 else:
                     flags.append("IsDelayedCommit")
 
+                # Debug: print allocation progress for each microop. Embed the
+                # micropc index directly into the format string to avoid extra
+                # printf arguments. Escape % in format strings for ISA parser.
                 allocMicroops += \
-                    "microops[%d] = %s;\n" % \
-                    (micropc, op.getAllocator(flags))
+                    '/* alloc microop %d */\n' % (micropc)
+                allocMicroops += \
+                    'microops[%d] = %s;\n' % (micropc, op.getAllocator(flags))
+                # Safe, fully specified printf (two arguments: index, pointer)
+                allocMicroops += \
+                    'DPRINTF(AVXVerbose, "[MACROOP-ALLOC] allocated[%%d]=%%p\\n", %d, (void*)microops[%d].get());\n' % (micropc, micropc)
+                # Defensive: panic early if allocation returned a null RefCountingPtr (index + block name)
+                allocMicroops += \
+                    'if (!microops[%d]) { DPRINTF(AVXVerbose, "[MACROOP-ALLOC] NULL microop[%%d] in %%s\\n", %d, macrocodeBlock); panic("NULL microop in %%s", macrocodeBlock); }\n' % (micropc, micropc)
                 micropc += 1
             if env.useStackSize:
                 useStackSize = "true"

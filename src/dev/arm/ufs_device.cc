@@ -69,8 +69,6 @@
 
 #include "dev/arm/ufs_device.hh"
 
-#include "params/UFSHostDevice.hh"
-
 namespace gem5
 {
 

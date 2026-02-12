@@ -171,8 +171,6 @@ class SDMAEngine : public DmaVirtDevice
     Addr mmioBase = 0;
     Addr mmioSize = 0;
 
-    static constexpr Tick sdma_delay = 1e9;
-
   public:
     SDMAEngine(const SDMAEngineParams &p);
 
@@ -243,8 +241,7 @@ class SDMAEngine : public DmaVirtDevice
     void copyReadData(SDMAQueue *q, sdmaCopy *pkt, uint8_t *dmaBuffer);
     void copyDone(SDMAQueue *q, sdmaCopy *pkt, uint8_t *dmaBuffer);
     void copyCleanup(uint8_t *dmaBuffer);
-    void indirectBuffer(SDMAQueue *q, sdmaIndirectBuffer *pkt,
-                        uint32_t header);
+    void indirectBuffer(SDMAQueue *q, sdmaIndirectBuffer *pkt);
     void fence(SDMAQueue *q, sdmaFence *pkt);
     void fenceDone(SDMAQueue *q, sdmaFence *pkt);
     void trap(SDMAQueue *q, sdmaTrap *pkt);

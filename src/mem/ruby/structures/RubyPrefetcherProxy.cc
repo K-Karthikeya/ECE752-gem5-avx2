@@ -39,7 +39,6 @@
 
 #include "debug/HWPrefetch.hh"
 #include "mem/ruby/system/RubySystem.hh"
-#include "params/RubyController.hh"
 
 namespace gem5
 {

@@ -481,15 +481,18 @@ class PairMemOp : public PredMacroOp
     };
 
   protected:
-    AddrMode mode;
-    RegIndex rn, rt, rt2;
-    int32_t imm;
     PairMemOp(const char *mnem, ExtMachInst machInst, OpClass __opClass,
+<<<<<<< HEAD
               int64_t imm, AddrMode mode, RegIndex rn, RegIndex rt,
               RegIndex rt2);
 
     std::string generateDisassembly(
             Addr pc, const loader::SymbolTable *symtab) const override;
+=======
+              uint32_t size, bool fp, bool load, bool noAlloc, bool signExt,
+              bool exclusive, bool acrel, int64_t imm, AddrMode mode,
+              RegIndex rn, RegIndex rt, RegIndex rt2);
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 };
 
 class LoadPairOp : public PairMemOp

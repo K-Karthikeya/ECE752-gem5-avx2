@@ -39,107 +39,91 @@
 import argparse
 import importlib
 import os.path
-from typing import Type
+import sys
 
+import importer
 from code_formatter import code_formatter
 
+parser = argparse.ArgumentParser()
+parser.add_argument("modpath", help="module the simobject belongs to")
+parser.add_argument("cxx_config_hh", help="cxx config header file to generate")
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("modpath", help="module the simobject belongs to")
-    parser.add_argument(
-        "cxx_config_hh", help="cxx config header file to generate"
-    )
-    args = parser.parse_args()
-    return args
+args = parser.parse_args()
 
+basename = os.path.basename(args.cxx_config_hh)
+sim_object_name = os.path.splitext(basename)[0]
 
-def write_header_file(sim_object: Type, cxx_config_hh: str):
-    """
-    Generates the C++ header file for the C++ configuration of a SimObject.
+importer.install()
+module = importlib.import_module(args.modpath)
+sim_object = getattr(module, sim_object_name)
 
-    This file defines the CxxConfigParams class for the SimObject, which
-    is used for instantiation from a C++-based configuration instead of
-    Python. It includes the directory entry for discovering the SimObject
-    and the necessary parameter and port handling methods.
+code = code_formatter()
 
-    Args:
-        sim_object: The SimObject class for which to generate the header.
-        cxx_config_hh: The path to the header file to write.
-    """
-    sim_object_name = sim_object.__name__
-    code = code_formatter()
+entry_class = "CxxConfigDirectoryEntry_%s" % sim_object_name
+param_class = "%sCxxConfigParams" % sim_object_name
 
-    entry_class = f"CxxConfigDirectoryEntry_{sim_object_name}"
-    param_class = f"{sim_object_name}CxxConfigParams"
+code(
+    """#include "params/${sim_object_name}.hh"
 
+<<<<<<< HEAD
     code("""#include "params/${sim_object_name}.hh"
+=======
+#include "sim/cxx_config.hh"
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
-    #include "sim/cxx_config.hh"
+namespace gem5
+{
 
-    namespace gem5
+class ${param_class} : public CxxConfigParams, public ${sim_object_name}Params
+{
+  private:
+    class DirectoryEntry : public CxxConfigDirectoryEntry
     {
-
-    class ${param_class} : public CxxConfigParams, public ${sim_object_name}Params
-    {
-      private:
-        class DirectoryEntry : public CxxConfigDirectoryEntry
-        {
-          public:
-            DirectoryEntry();
-
-            CxxConfigParams *
-            makeParamsObject() const
-            {
-                return new ${param_class};
-            }
-        };
-
-        static inline AddToConfigDir dirEntry
-            {"${sim_object_name}", new DirectoryEntry};
-
       public:
-        bool setSimObject(const std::string &name, SimObject *simObject);
+        DirectoryEntry();
 
-        bool setSimObjectVector(const std::string &name,
-            const std::vector<SimObject *> &simObjects);
-
-        void setName(const std::string &name_);
-
-        const std::string &getName() { return this->name; }
-
-        bool setParam(const std::string &name, const std::string &value,
-            const Flags flags);
-
-        bool setParamVector(const std::string &name,
-            const std::vector<std::string> &values, const Flags flags);
-
-        bool setParamDict(const std::string &name,
-            const std::unordered_map<std::string, std::string> &values,
-            const Flags flags);
-
-        bool setPortConnectionCount(const std::string &name, unsigned int count);
-
-        SimObject *simObjectCreate();
+        CxxConfigParams *
+        makeParamsObject() const
+        {
+            return new ${param_class};
+        }
     };
 
+<<<<<<< HEAD
     } // namespace gem5
     """)
+=======
+    static inline AddToConfigDir dirEntry
+        {"${sim_object_name}", new DirectoryEntry};
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
-    code.write(cxx_config_hh)
+  public:
+    bool setSimObject(const std::string &name, SimObject *simObject);
 
+    bool setSimObjectVector(const std::string &name,
+        const std::vector<SimObject *> &simObjects);
 
-if __name__ == "__main__":
-    args = parse_args()
+    void setName(const std::string &name_);
 
-    basename = os.path.basename(args.cxx_config_hh)
-    sim_object_name = os.path.splitext(basename)[0]
+    const std::string &getName() { return this->name; }
 
-    # Note: Import here to remove dependence if importing from this file
-    import importer
+    bool setParam(const std::string &name, const std::string &value,
+        const Flags flags);
 
-    importer.install()
-    module = importlib.import_module(args.modpath)
-    sim_object = getattr(module, sim_object_name)
+    bool setParamVector(const std::string &name,
+        const std::vector<std::string> &values, const Flags flags);
 
-    write_header_file(sim_object, args.cxx_config_hh)
+    bool setParamDict(const std::string &name,
+        const std::unordered_map<std::string, std::string> &values,
+        const Flags flags);
+
+    bool setPortConnectionCount(const std::string &name, unsigned int count);
+
+    SimObject *simObjectCreate();
+};
+
+} // namespace gem5
+"""
+)
+
+code.write(args.cxx_config_hh)

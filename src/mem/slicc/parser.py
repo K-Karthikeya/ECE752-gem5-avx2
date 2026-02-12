@@ -71,15 +71,12 @@ class SLICC(Grammar):
         self.verbose = verbose
         self.symtab = SymbolTable(self)
         self.base_dir = base_dir
-        self.yacc_kwargs["debug"] = self.verbose
-        self.yacc_kwargs["write_tables"] = self.verbose
 
         # Update slicc_interface/ProtocolInfo.cc/hh if updating this.
         self.options = {
             "partial_func_reads": False,
             "use_secondary_load_linked": False,
             "use_secondary_store_conditional": False,
-            "supports_flushes": False,
         }
 
         if not includes:
@@ -93,8 +90,7 @@ class SLICC(Grammar):
             # set all of the types parsed so far as shared
             self.decl_list.setShared()
 
-            if protocol:
-                self.decl_list += self.parse_file(protocol, **kwargs)
+            self.decl_list += self.parse_file(protocol, **kwargs)
         except ParseError as e:
             if not self.traceback:
                 sys.exit(str(e))
@@ -120,9 +116,7 @@ class SLICC(Grammar):
         self.symtab.writeHTMLFiles(html_path)
 
     def files(self):
-        f = set()
-        if self.protocol:
-            f |= {os.path.join(self.protocol, "Types.hh")}
+        f = {os.path.join(self.protocol, "Types.hh")}
 
         f |= self.decl_list.files()
 

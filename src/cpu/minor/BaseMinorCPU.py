@@ -1,4 +1,4 @@
-# Copyright (c) 2012-2014, 2017-2018, 2025 Arm Limited
+# Copyright (c) 2012-2014, 2017-2018 ARM Limited
 # All rights reserved.
 #
 # The license below extends only to copyright in the software and shall
@@ -180,7 +180,6 @@ class MinorDefaultFloatSimdFU(MinorFU):
             "FloatMultAcc",
             "FloatDiv",
             "FloatSqrt",
-            "Bf16Cvt",
             "SimdAdd",
             "SimdAddAcc",
             "SimdAlu",
@@ -217,9 +216,6 @@ class MinorDefaultFloatSimdFU(MinorFU):
             "SimdSha256Hash2",
             "SimdShaSigma2",
             "SimdShaSigma3",
-            "SimdSha3",
-            "SimdSm4e",
-            "SimdCrc",
             "Matrix",
             "MatrixMov",
             "MatrixOP",
@@ -227,14 +223,6 @@ class MinorDefaultFloatSimdFU(MinorFU):
             "SimdFloatExt",
             "SimdFloatCvt",
             "SimdConfig",
-            "SimdDotProd",
-            "SimdBf16Add",
-            "SimdBf16Cmp",
-            "SimdBf16Cvt",
-            "SimdBf16DotProd",
-            "SimdBf16MatMultAcc",
-            "SimdBf16Mult",
-            "SimdBf16MultAcc",
         ]
     )
 
@@ -277,7 +265,7 @@ class MinorDefaultMemFU(MinorFU):
 
 
 class MinorDefaultMiscFU(MinorFU):
-    opClasses = minorMakeOpClassSet(["InstPrefetch", "System"])
+    opClasses = minorMakeOpClassSet(["IprAccess", "InstPrefetch"])
     opLat = 1
 
 
@@ -438,10 +426,7 @@ class BaseMinorCPU(BaseCPU):
     )
 
     branchPred = Param.BranchPredictor(
-        BranchPredictor(
-            conditionalBranchPred=TournamentBP(numThreads=Parent.numThreads)
-        ),
-        "Branch Predictor",
+        TournamentBP(numThreads=Parent.numThreads), "Branch Predictor"
     )
 
     def addCheckerCpu(self):

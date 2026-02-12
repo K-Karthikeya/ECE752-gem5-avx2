@@ -41,37 +41,47 @@ import argparse
 import importlib
 import os.path
 import sys
-from typing import Type
 
+import importer
 from code_formatter import code_formatter
 
+parser = argparse.ArgumentParser()
+parser.add_argument("modpath", help="module the simobject belongs to")
+parser.add_argument("cxx_config_cc", help="cxx config cc file to generate")
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("modpath", help="module the simobject belongs to")
-    parser.add_argument("cxx_config_cc", help="cxx config cc file to generate")
-    args = parser.parse_args()
-    return args
+args = parser.parse_args()
+
+basename = os.path.basename(args.cxx_config_cc)
+sim_object_name = os.path.splitext(basename)[0]
+
+importer.install()
+module = importlib.import_module(args.modpath)
+sim_object = getattr(module, sim_object_name)
+
+import m5.params
+from m5.params import isSimObjectClass
+
+code = code_formatter()
+
+entry_class = "CxxConfigDirectoryEntry_%s" % sim_object_name
+param_class = "%sCxxConfigParams" % sim_object_name
 
 
-def write_cc_file(sim_object: Type, cxx_config_cc: str):
-    """
-    Generates the C++ source file for the C++ configuration of a SimObject.
+def cxx_bool(b):
+    return "true" if b else "false"
 
-    This file defines the implementation of the CxxConfigParams class for
-    the SimObject, which is used for instantiation from a C++-based
-    configuration instead of Python. It includes implementations for setting
-    parameters and ports.
 
-    Args:
-        sim_object: The SimObject class for which to generate the source file.
-        cxx_config_cc: The path to the C++ source file to write.
-    """
-    sim_object_name = sim_object.__name__
+code('#include "params/%s.hh"' % sim_object_name)
 
-    import m5.params
-    from m5.params import isSimObjectClass
+for param in sim_object._params.values():
+    for ptype in param.ptypes:
+        if isSimObjectClass(ptype):
+            code('#include "%s"' % ptype._value_dict["cxx_header"])
+            code('#include "params/%s.hh"' % ptype.__name__)
+        else:
+            ptype.cxx_ini_predecls(code)
 
+<<<<<<< HEAD
     code = code_formatter()
 
     entry_class = f"CxxConfigDirectoryEntry_{sim_object_name}"
@@ -91,6 +101,10 @@ def write_cc_file(sim_object: Type, cxx_config_cc: str):
                 ptype.cxx_ini_predecls(code)
 
     code("""#include "${{sim_object._value_dict['cxx_header']}}"
+=======
+code(
+    """#include "${{sim_object._value_dict['cxx_header']}}"
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 #include "base/str.hh"
 #include "cxx_config/${sim_object_name}.hh"
 
@@ -99,6 +113,7 @@ namespace gem5
 
 ${param_class}::DirectoryEntry::DirectoryEntry()
 {
+<<<<<<< HEAD
 """)
     code.indent()
     for param in sim_object._params.values():
@@ -118,53 +133,85 @@ ${param_class}::DirectoryEntry::DirectoryEntry()
                 cxx_bool(is_dict),
                 cxx_bool(is_simobj),
             )
+=======
+"""
+)
+code.indent()
+for param in sim_object._params.values():
+    is_dict = isinstance(param, m5.params.DictParamDesc)
+    is_vector = isinstance(param, m5.params.VectorParamDesc)
+    is_simobj = (
+        issubclass(param.ptype, m5.SimObject.SimObject)
+        if not is_dict
+        else False
+    )
+    code(
+        'parameters["%s"] = new ParamDesc("%s", %s, %s, %s);'
+        % (
+            param.name,
+            param.name,
+            cxx_bool(is_vector),
+            cxx_bool(is_dict),
+            cxx_bool(is_simobj),
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
         )
+    )
 
-    for port in sim_object._ports.values():
-        is_vector = isinstance(port, m5.params.VectorPort)
-        is_requestor = port.is_source
+for port in sim_object._ports.values():
+    is_vector = isinstance(port, m5.params.VectorPort)
+    is_requestor = port.is_source
 
-        code(
-            'ports["%s"] = new PortDesc("%s", %s, %s);'
-            % (
-                port.name,
-                port.name,
-                cxx_bool(is_vector),
-                cxx_bool(is_requestor),
-            )
-        )
-
-    code.dedent()
-
+<<<<<<< HEAD
     code("""}
+=======
+    code(
+        'ports["%s"] = new PortDesc("%s", %s, %s);'
+        % (port.name, port.name, cxx_bool(is_vector), cxx_bool(is_requestor))
+    )
+
+code.dedent()
+
+code(
+    """}
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
 bool
 ${param_class}::setSimObject(const std::string &name, SimObject *simObject)
 {
     bool ret = true;
     if (false) {
+<<<<<<< HEAD
 """)
+=======
+"""
+)
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
-    code.indent()
-    for param in sim_object._params.values():
-        is_dict = isinstance(param, m5.params.DictParamDesc)
-        if not is_dict:
-            is_vector = isinstance(param, m5.params.VectorParamDesc)
-            is_simobj = issubclass(param.ptype, m5.SimObject.SimObject)
+code.indent()
+for param in sim_object._params.values():
+    is_dict = isinstance(param, m5.params.DictParamDesc)
+    if not is_dict:
+        is_vector = isinstance(param, m5.params.VectorParamDesc)
+        is_simobj = issubclass(param.ptype, m5.SimObject.SimObject)
 
-            if is_simobj and not is_vector:
-                code('} else if (name == "${{param.name}}") {')
-                code.indent()
-                code(
-                    "this->${{param.name}} = "
-                    "dynamic_cast<${{param.ptype.cxx_type}}>(simObject);"
-                )
-                code("if (simObject && !this->${{param.name}})")
-                code("   ret = false;")
-                code.dedent()
-    code.dedent()
+        if is_simobj and not is_vector:
+            code('} else if (name == "${{param.name}}") {')
+            code.indent()
+            code(
+                "this->${{param.name}} = "
+                "dynamic_cast<${{param.ptype.cxx_type}}>(simObject);"
+            )
+            code("if (simObject && !this->${{param.name}})")
+            code("   ret = false;")
+            code.dedent()
+code.dedent()
 
+<<<<<<< HEAD
     code("""
+=======
+code(
+    """
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
     } else {
         ret = false;
     }
@@ -179,39 +226,49 @@ ${param_class}::setSimObjectVector(const std::string &name,
     bool ret = true;
 
     if (false) {
+<<<<<<< HEAD
 """)
+=======
+"""
+)
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
-    code.indent()
-    for param in sim_object._params.values():
-        is_dict = isinstance(param, m5.params.DictParamDesc)
-        if not is_dict:
-            is_vector = isinstance(param, m5.params.VectorParamDesc)
-            is_simobj = issubclass(param.ptype, m5.SimObject.SimObject)
+code.indent()
+for param in sim_object._params.values():
+    is_dict = isinstance(param, m5.params.DictParamDesc)
+    if not is_dict:
+        is_vector = isinstance(param, m5.params.VectorParamDesc)
+        is_simobj = issubclass(param.ptype, m5.SimObject.SimObject)
 
-            if is_simobj and is_vector:
-                code('} else if (name == "${{param.name}}") {')
-                code.indent()
-                code("this->${{param.name}}.clear();")
-                code(
-                    "for (auto i = simObjects.begin(); "
-                    "ret && i != simObjects.end(); i ++)"
-                )
-                code("{")
-                code.indent()
-                code(
-                    "${{param.ptype.cxx_type}} object = "
-                    "dynamic_cast<${{param.ptype.cxx_type}}>(*i);"
-                )
-                code("if (*i && !object)")
-                code("    ret = false;")
-                code("else")
-                code("    this->${{param.name}}.push_back(object);")
-                code.dedent()
-                code("}")
-                code.dedent()
-    code.dedent()
+        if is_simobj and is_vector:
+            code('} else if (name == "${{param.name}}") {')
+            code.indent()
+            code("this->${{param.name}}.clear();")
+            code(
+                "for (auto i = simObjects.begin(); "
+                "ret && i != simObjects.end(); i ++)"
+            )
+            code("{")
+            code.indent()
+            code(
+                "${{param.ptype.cxx_type}} object = "
+                "dynamic_cast<${{param.ptype.cxx_type}}>(*i);"
+            )
+            code("if (*i && !object)")
+            code("    ret = false;")
+            code("else")
+            code("    this->${{param.name}}.push_back(object);")
+            code.dedent()
+            code("}")
+            code.dedent()
+code.dedent()
 
+<<<<<<< HEAD
     code("""
+=======
+code(
+    """
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
     } else {
         ret = false;
     }
@@ -232,43 +289,50 @@ ${param_class}::setParam(const std::string &name,
     bool ret = true;
 
     if (false) {
+<<<<<<< HEAD
 """)
+=======
+"""
+)
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
-    code.indent()
-    for param in sim_object._params.values():
-        is_dict = isinstance(param, m5.params.DictParamDesc)
-        if not is_dict:
-            is_vector = isinstance(param, m5.params.VectorParamDesc)
-            is_simobj = issubclass(param.ptype, m5.SimObject.SimObject)
+code.indent()
+for param in sim_object._params.values():
+    is_dict = isinstance(param, m5.params.DictParamDesc)
+    if not is_dict:
+        is_vector = isinstance(param, m5.params.VectorParamDesc)
+        is_simobj = issubclass(param.ptype, m5.SimObject.SimObject)
 
-            if not is_simobj and not is_vector:
-                code('} else if (name == "${{param.name}}") {')
+        if not is_simobj and not is_vector:
+            code('} else if (name == "${{param.name}}") {')
+            code.indent()
+            if isinstance(param, m5.params.OptionalParamDesc):
+                nullopt_str = str(m5.params.NullOpt)
+                code('if (value == "${{nullopt_str}}") {')
                 code.indent()
-                if isinstance(param, m5.params.OptionalParamDesc):
-                    nullopt_str = str(m5.params.NullOpt)
-                    code('if (value == "${{nullopt_str}}") {')
-                    code.indent()
-                    code("this->${{param.name}} = std::nullopt;")
-                    code("ret = true;")
-                    code.dedent()
-                    code("} else {")
-                    code.indent()
-                    param.ptype.cxx_ini_parse(
-                        code,
-                        "value",
-                        "this->%s.value()" % param.name,
-                        "ret =",
-                    )
-                    code.dedent()
-                    code("}")
-                else:
-                    param.ptype.cxx_ini_parse(
-                        code, "value", "this->%s" % param.name, "ret ="
-                    )
+                code("this->${{param.name}} = std::nullopt;")
+                code("ret = true;")
                 code.dedent()
-    code.dedent()
+                code("} else {")
+                code.indent()
+                param.ptype.cxx_ini_parse(
+                    code, "value", "this->%s.value()" % param.name, "ret ="
+                )
+                code.dedent()
+                code("}")
+            else:
+                param.ptype.cxx_ini_parse(
+                    code, "value", "this->%s" % param.name, "ret ="
+                )
+            code.dedent()
+code.dedent()
 
+<<<<<<< HEAD
     code("""
+=======
+code(
+    """
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
     } else {
         ret = false;
     }
@@ -283,34 +347,44 @@ ${param_class}::setParamVector(const std::string &name,
     bool ret = true;
 
     if (false) {
+<<<<<<< HEAD
 """)
+=======
+"""
+)
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
-    code.indent()
-    for param in sim_object._params.values():
-        is_dict = isinstance(param, m5.params.DictParamDesc)
-        if not is_dict:
-            is_vector = isinstance(param, m5.params.VectorParamDesc)
-            is_simobj = issubclass(param.ptype, m5.SimObject.SimObject)
+code.indent()
+for param in sim_object._params.values():
+    is_dict = isinstance(param, m5.params.DictParamDesc)
+    if not is_dict:
+        is_vector = isinstance(param, m5.params.VectorParamDesc)
+        is_simobj = issubclass(param.ptype, m5.SimObject.SimObject)
 
-            if not is_simobj and is_vector:
-                code('} else if (name == "${{param.name}}") {')
-                code.indent()
-                code("${{param.name}}.clear();")
-                code(
-                    "for (auto i = values.begin(); ret && i != values.end(); i ++)"
-                )
-                code("{")
-                code.indent()
-                code("${{param.ptype.cxx_type}} elem;")
-                param.ptype.cxx_ini_parse(code, "*i", "elem", "ret =")
-                code("if (ret)")
-                code("    this->${{param.name}}.push_back(elem);")
-                code.dedent()
-                code("}")
-                code.dedent()
-    code.dedent()
+        if not is_simobj and is_vector:
+            code('} else if (name == "${{param.name}}") {')
+            code.indent()
+            code("${{param.name}}.clear();")
+            code(
+                "for (auto i = values.begin(); ret && i != values.end(); i ++)"
+            )
+            code("{")
+            code.indent()
+            code("${{param.ptype.cxx_type}} elem;")
+            param.ptype.cxx_ini_parse(code, "*i", "elem", "ret =")
+            code("if (ret)")
+            code("    this->${{param.name}}.push_back(elem);")
+            code.dedent()
+            code("}")
+            code.dedent()
+code.dedent()
 
+<<<<<<< HEAD
     code("""
+=======
+code(
+    """
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
     } else {
         ret = false;
     }
@@ -325,37 +399,45 @@ ${param_class}::setParamDict(const std::string &name,
     bool ret = true;
 
     if (false) {
+<<<<<<< HEAD
 """)
+=======
+"""
+)
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
-    code.indent()
-    for param in sim_object._params.values():
-        is_dict = isinstance(param, m5.params.DictParamDesc)
-        if is_dict:
-            code('} else if (name == "${{param.name}}") {')
-            code.indent()
-            code("${{param.name}}.clear();")
-            code(
-                "for (auto i = values.begin(); ret && i != values.end(); i ++)"
-            )
-            code("{")
-            code.indent()
-            code("${{param.key_desc.ptype.cxx_type}} key;")
-            code("${{param.val_desc.ptype.cxx_type}} val;")
-            param.key_desc.ptype.cxx_ini_parse(
-                code, "i->first", "key", "bool key_ret ="
-            )
-            param.val_desc.ptype.cxx_ini_parse(
-                code, "i->second", "val", "bool val_ret ="
-            )
-            code("ret = key_ret && val_ret;")
-            code("if (ret)")
-            code("    this->${{param.name}}[key] = val;")
-            code.dedent()
-            code("}")
-            code.dedent()
-    code.dedent()
+code.indent()
+for param in sim_object._params.values():
+    is_dict = isinstance(param, m5.params.DictParamDesc)
+    if is_dict:
+        code('} else if (name == "${{param.name}}") {')
+        code.indent()
+        code("${{param.name}}.clear();")
+        code("for (auto i = values.begin(); ret && i != values.end(); i ++)")
+        code("{")
+        code.indent()
+        code("${{param.key_desc.ptype.cxx_type}} key;")
+        code("${{param.val_desc.ptype.cxx_type}} val;")
+        param.key_desc.ptype.cxx_ini_parse(
+            code, "i->first", "key", "bool key_ret ="
+        )
+        param.val_desc.ptype.cxx_ini_parse(
+            code, "i->second", "val", "bool val_ret ="
+        )
+        code("ret = key_ret && val_ret;")
+        code("if (ret)")
+        code("    this->${{param.name}}[key] = val;")
+        code.dedent()
+        code("}")
+        code.dedent()
+code.dedent()
 
+<<<<<<< HEAD
     code("""
+=======
+code(
+    """
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
     } else {
         ret = false;
     }
@@ -370,15 +452,25 @@ ${param_class}::setPortConnectionCount(const std::string &name,
     bool ret = true;
 
     if (false) {
+<<<<<<< HEAD
 """)
+=======
+"""
+)
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
-    code.indent()
-    for port in sim_object._ports.values():
-        code('} else if (name == "${{port.name}}") {')
-        code("    this->port_${{port.name}}_connection_count = count;")
-    code.dedent()
+code.indent()
+for port in sim_object._ports.values():
+    code('} else if (name == "${{port.name}}") {')
+    code("    this->port_${{port.name}}_connection_count = count;")
+code.dedent()
 
+<<<<<<< HEAD
     code("""
+=======
+code(
+    """
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
     } else {
         ret = false;
     }
@@ -389,34 +481,32 @@ ${param_class}::setPortConnectionCount(const std::string &name,
 SimObject *
 ${param_class}::simObjectCreate()
 {
+<<<<<<< HEAD
 """)
+=======
+"""
+)
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
-    code.indent()
-    if hasattr(sim_object, "abstract") and sim_object.abstract:
-        code("return nullptr;")
-    else:
-        code("return this->create();")
-    code.dedent()
+code.indent()
+if hasattr(sim_object, "abstract") and sim_object.abstract:
+    code("return nullptr;")
+else:
+    code("return this->create();")
+code.dedent()
 
+<<<<<<< HEAD
     code("""}
 
 } // namespace gem5
 """)
+=======
+code(
+    """}
 
-    code.write(cxx_config_cc)
+} // namespace gem5
+"""
+)
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 
-
-if __name__ == "__main__":
-    args = parse_args()
-
-    basename = os.path.basename(args.cxx_config_cc)
-    sim_object_name = os.path.splitext(basename)[0]
-
-    # Note: Import here to remove dependence if importing from this file
-    import importer
-
-    importer.install()
-    module = importlib.import_module(args.modpath)
-    sim_object = getattr(module, sim_object_name)
-
-    write_cc_file(sim_object, args.cxx_config_cc)
+code.write(args.cxx_config_cc)

@@ -67,7 +67,7 @@ PciVirtIO::~PciVirtIO()
 }
 
 Tick
-PciVirtIO::readDevice(PacketPtr pkt)
+PciVirtIO::read(PacketPtr pkt)
 {
     [[maybe_unused]] const unsigned size(pkt->getSize());
     int bar;
@@ -148,7 +148,7 @@ PciVirtIO::readDevice(PacketPtr pkt)
 }
 
 Tick
-PciVirtIO::writeDevice(PacketPtr pkt)
+PciVirtIO::write(PacketPtr pkt)
 {
     [[maybe_unused]] const unsigned size(pkt->getSize());
     int bar;

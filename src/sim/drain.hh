@@ -39,7 +39,6 @@
 #define __SIM_DRAIN_HH__
 
 #include <atomic>
-#include <cstddef>
 #include <mutex>
 #include <vector>
 
@@ -89,14 +88,7 @@ class DrainManager
 
   public:
     /** Get the singleton DrainManager instance */
-    static DrainManager &
-    instance()
-    {
-        /** Singleton instance of the drain manager, constructed on first use
-         */
-        static DrainManager _instance;
-        return _instance;
-    }
+    static DrainManager &instance() { return _instance; }
 
     /**
      * Try to drain the system.
@@ -199,6 +191,9 @@ class DrainManager
 
     /** Global simulator drain state */
     DrainState _state;
+
+    /** Singleton instance of the drain manager */
+    static DrainManager _instance;
 };
 
 /**

@@ -43,9 +43,8 @@
  * GCC 12.1.
  */
 
-// clang-format off
-// ignore 'maybe-uniitialized' warnings for GCC >= 12.
-#if __GNUC__ && __GNUC__ >= 12
+// ignore 'maybe-uniitialized' warnings for GCC 12.1.
+#if __GNUC__ &&  __GNUC__ == 12 && __GNUC_MINOR__ == 1
     #define SUPPRESSING_MAYBE_UNINITIALIZED_WARNING
     // save diagnostic state.
     #pragma GCC diagnostic push
@@ -56,7 +55,6 @@
     // restore the diagnostic state.
     #pragma GCC diagnostic pop
 #endif
-// clang-format on
 
 #include <string>
 #include <type_traits>

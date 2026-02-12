@@ -73,40 +73,33 @@ enum FloatRegIndex
     _Fpr7Idx,
 
     XmmBase = MmxBase + NumMMXRegs,
-    _Xmm0LowIdx = XmmBase,
-    _Xmm0HighIdx,
-    _Xmm1LowIdx,
-    _Xmm1HighIdx,
-    _Xmm2LowIdx,
-    _Xmm2HighIdx,
-    _Xmm3LowIdx,
-    _Xmm3HighIdx,
-    _Xmm4LowIdx,
-    _Xmm4HighIdx,
-    _Xmm5LowIdx,
-    _Xmm5HighIdx,
-    _Xmm6LowIdx,
-    _Xmm6HighIdx,
-    _Xmm7LowIdx,
-    _Xmm7HighIdx,
-    _Xmm8LowIdx,
-    _Xmm8HighIdx,
-    _Xmm9LowIdx,
-    _Xmm9HighIdx,
-    _Xmm10LowIdx,
-    _Xmm10HighIdx,
-    _Xmm11LowIdx,
-    _Xmm11HighIdx,
-    _Xmm12LowIdx,
-    _Xmm12HighIdx,
-    _Xmm13LowIdx,
-    _Xmm13HighIdx,
-    _Xmm14LowIdx,
-    _Xmm14HighIdx,
-    _Xmm15LowIdx,
-    _Xmm15HighIdx,
+    // Define 4 sub-registers (64-bit each) for 16 YMM registers
+#define FLOATREG_XMM_IDX(i) \
+    _Xmm##i##_0##Idx = XmmBase + i * NumXMMSubRegs + 0, \
+    _Xmm##i##_1##Idx = XmmBase + i * NumXMMSubRegs + 1, \
+    _Xmm##i##_2##Idx = XmmBase + i * NumXMMSubRegs + 2, \
+    _Xmm##i##_3##Idx = XmmBase + i * NumXMMSubRegs + 3
 
-    MicrofpBase = XmmBase + 2 * NumXMMRegs,
+    FLOATREG_XMM_IDX(0),
+    FLOATREG_XMM_IDX(1),
+    FLOATREG_XMM_IDX(2),
+    FLOATREG_XMM_IDX(3),
+    FLOATREG_XMM_IDX(4),
+    FLOATREG_XMM_IDX(5),
+    FLOATREG_XMM_IDX(6),
+    FLOATREG_XMM_IDX(7),
+    FLOATREG_XMM_IDX(8),
+    FLOATREG_XMM_IDX(9),
+    FLOATREG_XMM_IDX(10),
+    FLOATREG_XMM_IDX(11),
+    FLOATREG_XMM_IDX(12),
+    FLOATREG_XMM_IDX(13),
+    FLOATREG_XMM_IDX(14),
+    FLOATREG_XMM_IDX(15),
+
+#undef FLOATREG_XMM_IDX
+
+    MicrofpBase = XmmBase + NumXMMSubRegs * NumXMMRegs,
     _Microfp0Idx = MicrofpBase,
     _Microfp1Idx,
     _Microfp2Idx,
@@ -115,6 +108,14 @@ enum FloatRegIndex
     _Microfp5Idx,
     _Microfp6Idx,
     _Microfp7Idx,
+    _Microfp8Idx,   // <-- ADDED
+    _Microfp9Idx,   // <-- ADDED
+    _Microfp10Idx,  // <-- ADDED
+    _Microfp11Idx,  // <-- ADDED
+    _Microfp12Idx,  // <-- ADDED
+    _Microfp13Idx,  // <-- ADDED
+    _Microfp14Idx,  // <-- ADDED
+    _Microfp15Idx,  // <-- ADDED
 
     NumRegs = MicrofpBase + NumMicroFpRegs
 };
@@ -126,7 +127,7 @@ class FlatFloatRegClassOps : public RegClassOps
     std::string regName(const RegId &id) const override;
 };
 
-inline const FlatFloatRegClassOps flatFloatRegClassOps;
+inline constexpr FlatFloatRegClassOps flatFloatRegClassOps;
 
 inline constexpr RegClass flatFloatRegClass =
     RegClass(FloatRegClass, FloatRegClassName, float_reg::NumRegs,
@@ -138,7 +139,7 @@ class FloatRegClassOps : public FlatFloatRegClassOps
     RegId flatten(const BaseISA &isa, const RegId &id) const override;
 };
 
-inline const FloatRegClassOps floatRegClassOps;
+inline constexpr FloatRegClassOps floatRegClassOps;
 
 inline constexpr RegClass floatRegClass =
     RegClass(FloatRegClass, FloatRegClassName, float_reg::NumRegs,
@@ -170,13 +171,19 @@ xmm(int index)
 static inline RegId
 xmmLow(int index)
 {
-    return floatRegClass[XmmBase + 2 * index];
+    return floatRegClass[XmmBase + NumXMMSubRegs * index];
 }
 
 static inline RegId
 xmmHigh(int index)
 {
-    return floatRegClass[XmmBase + 2 * index + 1];
+    return floatRegClass[XmmBase + NumXMMSubRegs * index + 1];
+}
+
+static inline RegId
+xmmIdx(int index, int sub_idx)
+{
+    return floatRegClass[XmmBase + NumXMMSubRegs * index + sub_idx];
 }
 
 static inline RegId
@@ -192,6 +199,40 @@ stack(int index, int top)
 }
 
 } // namespace float_reg
+
+// ----------------------------------------------------------------------------
+// Backward-compatibility helpers for legacy macro-assembler generated code.
+// Some older AVX/SSE decoder generator fragments referenced symbolic macros
+// FLOATREG_XMM_LOW(reg) / FLOATREG_XMM_HIGH(reg) expecting integer indices
+// for the low/high 64-bit halves of an XMM register. The modern codebase
+// exposes helper functions in the float_reg namespace returning RegIds.
+// To avoid touching large auto-generated decode blobs that still emit these
+// identifiers, define lightweight inline functions that mimic the previous
+// macro semantics. They intentionally return FloatRegIndex (integral) values
+// matching the layout established above so existing FpRegIndex(...) wrappers
+// continue to work.
+// ----------------------------------------------------------------------------
+
+inline constexpr float_reg::FloatRegIndex FLOATREG_XMM_LOW(int reg)
+{
+    return static_cast<float_reg::FloatRegIndex>(
+        float_reg::XmmBase + NumXMMSubRegs * reg);
+}
+
+inline constexpr float_reg::FloatRegIndex FLOATREG_XMM_HIGH(int reg)
+{
+    return static_cast<float_reg::FloatRegIndex>(
+        float_reg::XmmBase + NumXMMSubRegs * reg + 1);
+}
+
+// Return the sub-register index for XMM register 'reg' and 64-bit lane 'sub'.
+// This mirrors the legacy FLOATREG_XMM_IDX(reg, sub) macro that used to
+// expand to enumerator names. We translate directly to a FlatFloatReg index.
+inline constexpr float_reg::FloatRegIndex FLOATREG_XMM_IDX(int reg, int sub)
+{
+    return static_cast<float_reg::FloatRegIndex>(
+        float_reg::XmmBase + NumXMMSubRegs * reg + sub);
+}
 
 } // namespace X86ISA
 } // namespace gem5

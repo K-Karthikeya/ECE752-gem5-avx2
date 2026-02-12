@@ -1,6 +1,5 @@
 # Copyright (c) 2022-2023 The University of Edinburgh
 # Copyright (c) 2024 Technical University of Munich
-# Copyright (c) 2025 Arm Limited
 # All rights reserved.
 #
 # The license below extends only to copyright in the software and shall
@@ -138,13 +137,13 @@ class SimpleBTB(BranchTargetBuffer):
             assoc=Parent.associativity,
             num_entries=Parent.numEntries,
             set_shift=Parent.instShiftAmt,
-            tag_bits=Parent.tagBits,
             numThreads=1,
         ),
         "BTB indexing policy",
     )
 
 
+<<<<<<< HEAD
 class ConditionalPredictor(ClockedObject):
     type = "ConditionalPredictor"
     cxx_class = "gem5::branch_prediction::ConditionalPredictor"
@@ -164,6 +163,8 @@ class ConditionalPredictor(ClockedObject):
     )
 
 
+=======
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 class IndirectPredictor(SimObject):
     type = "IndirectPredictor"
     cxx_class = "gem5::branch_prediction::IndirectPredictor"
@@ -203,6 +204,7 @@ class BranchPredictor(SimObject):
     type = "BranchPredictor"
     cxx_class = "gem5::branch_prediction::BPredUnit"
     cxx_header = "cpu/pred/bpred_unit.hh"
+    abstract = True
 
     numThreads = Param.Unsigned(Parent.numThreads, "Number of threads")
     instShiftAmt = Param.Unsigned(
@@ -228,18 +230,12 @@ class BranchPredictor(SimObject):
         "This info is only available from the BTB. "
         "Low-end CPUs predecoding might be used to identify branches. ",
     )
-    updateBTBAtSquash = Param.Bool(
-        True,
-        "Update the BTB at squash time instead of commit. This can be useful "
-        "to update the BTB earlier to avoid BTB misses on subsequent "
-        "branches. However, it can also lead to BTB pollution if the branch "
-        "is on the false path and will be squashed later.",
-    )
 
     btb = Param.BranchTargetBuffer(SimpleBTB(), "Branch target buffer (BTB)")
     ras = Param.ReturnAddrStack(
         ReturnAddrStack(), "Return address stack, set to NULL to disable RAS."
     )
+<<<<<<< HEAD
     conditionalBranchPred = Param.ConditionalPredictor(
         "Conditional branch predictor"
     )
@@ -247,6 +243,8 @@ class BranchPredictor(SimObject):
         NULL,
         "Secondary, overriding predictor which corrects the primary predictor",
     )
+=======
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
     indirectBranchPred = Param.IndirectPredictor(
         SimpleIndirectPredictor(),
         "Indirect branch predictor, set to NULL to disable "
@@ -262,7 +260,7 @@ class BranchPredictor(SimObject):
     )
 
 
-class LocalBP(ConditionalPredictor):
+class LocalBP(BranchPredictor):
     type = "LocalBP"
     cxx_class = "gem5::branch_prediction::LocalBP"
     cxx_header = "cpu/pred/2bit_local.hh"
@@ -271,7 +269,7 @@ class LocalBP(ConditionalPredictor):
     localCtrBits = Param.Unsigned(2, "Bits per counter")
 
 
-class TournamentBP(ConditionalPredictor):
+class TournamentBP(BranchPredictor):
     type = "TournamentBP"
     cxx_class = "gem5::branch_prediction::TournamentBP"
     cxx_header = "cpu/pred/tournament.hh"
@@ -285,7 +283,7 @@ class TournamentBP(ConditionalPredictor):
     choiceCtrBits = Param.Unsigned(2, "Bits of choice counters")
 
 
-class BiModeBP(ConditionalPredictor):
+class BiModeBP(BranchPredictor):
     type = "BiModeBP"
     cxx_class = "gem5::branch_prediction::BiModeBP"
     cxx_header = "cpu/pred/bi_mode.hh"
@@ -360,7 +358,7 @@ class TAGEBase(SimObject):
 
 # TAGE branch predictor as described in https://www.jilp.org/vol8/v8paper1.pdf
 # The default sizes below are for the 8C-TAGE configuration (63.5 Kbits)
-class TAGE(ConditionalPredictor):
+class TAGE(BranchPredictor):
     type = "TAGE"
     cxx_class = "gem5::branch_prediction::TAGE"
     cxx_header = "cpu/pred/tage.hh"
@@ -824,7 +822,7 @@ class TAGE_SC_L_8KB(TAGE_SC_L):
     statistical_corrector = TAGE_SC_L_8KB_StatisticalCorrector()
 
 
-class MultiperspectivePerceptron(ConditionalPredictor):
+class MultiperspectivePerceptron(BranchPredictor):
     type = "MultiperspectivePerceptron"
     cxx_class = "gem5::branch_prediction::MultiperspectivePerceptron"
     cxx_header = "cpu/pred/multiperspective_perceptron.hh"
@@ -1164,6 +1162,7 @@ class MultiperspectivePerceptronTAGE8KB(MultiperspectivePerceptronTAGE):
     tage = MPP_TAGE_8KB()
     loop_predictor = MPP_LoopPredictor_8KB()
     statistical_corrector = MPP_StatisticalCorrector_8KB()
+<<<<<<< HEAD
 
 
 class GshareBP(BranchPredictor):
@@ -1230,3 +1229,5 @@ class ITTAGE(IndirectPredictor):
     instShiftAmt = Param.Unsigned(
         Parent.instShiftAmt, "Number of bits to shift instructions by"
     )
+=======
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)

@@ -50,7 +50,8 @@ namespace RiscvISA
 PMP::PMP(const Params &params) :
     SimObject(params),
     pmpEntries(params.pmp_entries),
-    numRules(0)
+    numRules(0),
+    hasLockEntry(false)
 {
     pmpTable.resize(pmpEntries);
 }
@@ -60,12 +61,8 @@ PMP::pmpCheck(const RequestPtr &req, BaseMMU::Mode mode,
               PrivilegeMode pmode, ThreadContext *tc, Addr vaddr)
 {
     // First determine if pmp table should be consulted
-    if (numRules == 0) {
-        // If at least one PMP entry is implemented, but all PMP entries’ A
-        // fields are set to OFF, then all S-mode and U-mode memory accesses
-        // will fail.
-        return createDefaultFault(req, mode, pmode, vaddr);
-    }
+    if (!shouldCheckPMP(pmode, tc))
+        return NoFault;
 
     if (req->hasVaddr()) {
         DPRINTF(PMP, "Checking pmp permissions for va: %#x , pa: %#x\n",
@@ -117,7 +114,14 @@ PMP::pmpCheck(const RequestPtr &req, BaseMMU::Mode mode,
             }
         }
     }
-    return createDefaultFault(req, mode, pmode, vaddr);
+    // if no entry matched and we are not in M mode return fault
+    if (pmode == PrivilegeMode::PRV_M) {
+        return NoFault;
+    } else if (req->hasVaddr()) {
+        return createAddrfault(req->getVaddr(), mode);
+    } else {
+        return createAddrfault(vaddr, mode);
+    }
 }
 
 Fault
@@ -133,19 +137,6 @@ PMP::createAddrfault(Addr vaddr, BaseMMU::Mode mode)
     }
     warn("pmp access fault.\n");
     return std::make_shared<AddressFault>(vaddr, code);
-}
-
-Fault
-PMP::createDefaultFault(const RequestPtr &req, BaseMMU::Mode mode,
-                        PrivilegeMode pmode, Addr vaddr)
-{
-    if (pmode == PrivilegeMode::PRV_M || pmpEntries == 0) {
-        return NoFault;
-    } else if (req->hasVaddr()) {
-        return createAddrfault(req->getVaddr(), mode);
-    } else {
-        return createAddrfault(vaddr, mode);
-    }
 }
 
 inline uint8_t
@@ -186,6 +177,7 @@ PMP::pmpUpdateRule(uint32_t pmp_index)
     // pmpaddr/pmpcfg is written
 
     numRules = 0;
+    hasLockEntry = false;
     Addr prevAddr = 0;
 
     if (pmp_index >= 1) {
@@ -225,6 +217,11 @@ PMP::pmpUpdateRule(uint32_t pmp_index)
       if (PMP_OFF != a_field) {
           numRules++;
       }
+      hasLockEntry |= ((pmpTable[i].pmpCfg & PMP_LOCK) != 0);
+    }
+
+    if (hasLockEntry) {
+        DPRINTF(PMP, "Find lock entry\n");
     }
 }
 
@@ -272,6 +269,16 @@ PMP::pmpUpdateAddr(uint32_t pmp_index, Addr this_addr)
     }
 
     return true;
+}
+
+bool
+PMP::shouldCheckPMP(PrivilegeMode pmode, ThreadContext *tc)
+{
+    // The privilege mode of memory read and write
+    // is modified by TLB. It can just simply check if
+    // the numRule is not zero, then return true if
+    // privilege mode is not M or has any lock entry
+    return numRules != 0 && (pmode != PrivilegeMode::PRV_M || hasLockEntry);
 }
 
 AddrRange

@@ -14,15 +14,14 @@ concurrency:
 jobs:
     pre-commit:
     # runs on github hosted runner
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-latest
         if: github.event.pull_request.draft == false
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-python@v5
-              with:
-                  python-version: '3.10'
             - uses: pre-commit/action@v3.0.1
 
+<<<<<<< HEAD
     # Runs on the github hosted runner
     # Iterates through all of the commits in the the PR and runs
     # clang-format to make sure that nothing changes.
@@ -56,6 +55,8 @@ jobs:
                     exit 1
                   fi
 
+=======
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
     get-date:
     # We use the date to label caches. A cache is a a "hit" if the date is the
     # request binary and date are the same as what is stored in the cache.
@@ -66,7 +67,7 @@ jobs:
     # `src` directory contents and use it as a hash. We found there to be bugs
     # with the hash function where this task would timeout. This approach is
     # simple, works, and still provides some level of caching.
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-latest
         outputs:
             date: ${{ steps.date.outputs.date }}
         steps:
@@ -74,28 +75,38 @@ jobs:
               id: date
               run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
-    unittests-all-fast-opt:
-        strategy:
-            matrix:
-                type: [fast, opt]
+    unittests-all-opt:
         runs-on: [self-hosted, linux, x64]
         if: github.event.pull_request.draft == false
-        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:latest
-        needs: [pre-commit] # only runs if pre-commit passes.
+        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:v25-0
+        needs: [pre-commit, get-date] # only runs if pre-commit passes.
         timeout-minutes: 60
         steps:
             - uses: actions/checkout@v4
-            - name: CI Unittests (${{ matrix.type }})
+
+
+            # Restore the cache if available. As this just builds the unittests
+            # we only obtain the cache and do not provide if if is not
+            # available.
+            - name: Cache build/ALL
+              uses: actions/cache/restore@v4
+              with:
+                  path: build/ALL
+                  key: testlib-build-all-${{ needs.get-date.outputs.date }}
+                  restore-keys: |
+                      testlib-build-all
+
+            - name: CI Unittests
               working-directory: ${{ github.workspace }}
-              run: scons --no-compress-debug build/ALL/unittests.${{ matrix.type }} -j $(nproc)
+              run: scons --no-compress-debug build/ALL/unittests.opt -j $(nproc)
             - run: echo "This job's status is ${{ job.status }}."
 
     testlib-quick-matrix:
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-latest
         if: github.event.pull_request.draft == false
     # In order to make sure the environment is exactly the same, we run in
     # the same container we use to build gem5 and run the testlib tests. This
-        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:latest
+        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:v25-0
         needs: [pre-commit]
         steps:
             - uses: actions/checkout@v4
@@ -138,7 +149,7 @@ jobs:
         # for compilation error to be exposed.
         runs-on: [self-hosted, linux, x64]
         if: github.event.pull_request.draft == false
-        container: ghcr.io/gem5/clang-version-19:latest
+        container: ghcr.io/gem5/clang-version-19:v25-0
         needs: [pre-commit]
         timeout-minutes: 90
         steps:
@@ -147,49 +158,10 @@ jobs:
               working-directory: ${{ github.workspace }}
               run: scons build/ALL/gem5.fast -j $(nproc)
 
-    macos-compilation:
-        runs-on: macos-26
-        if: github.event.pull_request.draft == false
-        needs: [pre-commit, get-date]
-
-        strategy:
-            fail-fast: false
-            matrix:
-                type: [fast, opt]
-
-        steps:
-            - name: Checkout the gem5 repository
-              uses: actions/checkout@v4
-
-            - name: Install the gem5 dependencies
-              run: |
-                  brew update
-                  brew install \
-                    scons \
-                    python \
-                    pkg-config \
-                    protobuf \
-                    grpc \
-                    boost
-
-
-            - name: Restore macOS build/ALL cache
-              uses: actions/cache/restore@v4
-              with:
-                  path: build/ALL
-                  key: macos-all-gem5-${{ matrix.type }}-${{ needs.get-date.outputs.date }}
-                  restore-keys: |
-                      macos-all-gem5-${{ matrix.type }}
-
-            - name: Compile gem5.${{ matrix.type }}
-              working-directory: ${{ github.workspace }}
-              run: scons build/ALL/gem5.${{ matrix.type }} -j $(sysctl -n hw.ncpu)
-              timeout-minutes: 90
-
     testlib-quick-gem5-builds:
         runs-on: [self-hosted, linux, x64]
         if: github.event.pull_request.draft == false
-        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:latest
+        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:v25-0
         needs: [pre-commit, testlib-quick-matrix, get-date]
         strategy:
             matrix:
@@ -234,7 +206,7 @@ jobs:
         name: quick-tests
         runs-on: [self-hosted, linux, x64]
         if: github.event.pull_request.draft == false
-        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:latest
+        container: ghcr.io/gem5/ubuntu-24.04_all-dependencies:v25-0
         needs: [pre-commit, testlib-quick-matrix, testlib-quick-gem5-builds]
         timeout-minutes: 360 # 6 hours
         strategy:
@@ -281,7 +253,7 @@ jobs:
 
     gpu-tests:
         runs-on: [self-hosted, linux, x64]
-        container: ghcr.io/gem5/gcn-gpu:latest
+        container: ghcr.io/gem5/gcn-gpu:v25-0
         timeout-minutes: 180
         needs: [pre-commit, get-date]
         steps:
@@ -313,12 +285,11 @@ jobs:
     ci-tests:
     # It is 'testlib-quick' which needs to pass for the pull request to be
     # merged. This job is a dummy job that depends on all the other jobs.
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-latest
         needs:
             - testlib-quick-execution
             - clang-fast-compilation
-            - unittests-all-fast-opt
-            - macos-compilation
+            - unittests-all-opt
             - pre-commit
             - gpu-tests
         steps:

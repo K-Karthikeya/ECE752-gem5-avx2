@@ -27,6 +27,8 @@ from m5.objects.FastModel import (
     AmbaInitiatorSocket,
     AmbaTargetSocket,
 )
+from m5.objects.IntPin import IntSourcePin
+from m5.objects.ResetPort import ResetResponsePort
 from m5.objects.SystemC import SystemC_ScModule
 from m5.params import *
 

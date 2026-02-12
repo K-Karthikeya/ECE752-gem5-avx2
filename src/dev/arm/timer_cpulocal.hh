@@ -45,6 +45,7 @@
 #include "base/bitunion.hh"
 #include "base/types.hh"
 #include "dev/io_device.hh"
+#include "params/CpuLocalTimer.hh"
 #include "sim/serialize.hh"
 
 /** @file
@@ -57,8 +58,6 @@ namespace gem5
 
 class BaseGic;
 class ArmInterruptPin;
-
-struct CpuLocalTimerParams;
 
 class CpuLocalTimer : public BasicPioDevice
 {

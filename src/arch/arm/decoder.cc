@@ -45,7 +45,6 @@
 #include "base/cast.hh"
 #include "base/trace.hh"
 #include "debug/Decoder.hh"
-#include "params/ArmDecoder.hh"
 #include "sim/full_system.hh"
 
 namespace gem5

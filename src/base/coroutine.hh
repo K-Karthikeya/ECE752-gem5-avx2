@@ -38,7 +38,6 @@
 #ifndef __BASE_COROUTINE_HH__
 #define __BASE_COROUTINE_HH__
 
-#include <deque>
 #include <functional>
 #include <stack>
 
@@ -71,8 +70,8 @@ class Coroutine : public Fiber
     using ArgChannel = typename std::conditional_t<
         std::is_same_v<Arg, void>, Empty, std::stack<Arg>>;
 
-    using RetChannel = typename std::conditional_t<std::is_same_v<Ret, void>,
-                                                   Empty, std::deque<Ret>>;
+    using RetChannel = typename std::conditional_t<
+        std::is_same_v<Ret, void>, Empty, std::stack<Ret>>;
 
   public:
     /**
@@ -103,7 +102,7 @@ class Coroutine : public Fiber
         operator()(typename std::enable_if_t<
                    !std::is_same_v<T, void>, T> param)
         {
-            retChannel.push_front(param);
+            retChannel.push(param);
             callerFiber->run();
             return *this;
         }
@@ -155,15 +154,6 @@ class Coroutine : public Fiber
         Coroutine& coro;
         Fiber* callerFiber;
         RetChannel retChannel;
-
-        void
-        clear_channel()
-        {
-            if constexpr (!std::is_same_v<Ret, void>) {
-                retChannel.clear();
-                retChannel.shrink_to_fit();
-            }
-        }
     };
 
     /**
@@ -263,13 +253,8 @@ class Coroutine : public Fiber
             this->call();
         }
 
-        auto ret = ret_channel.front();
-        ret_channel.pop_front();
-
-        // If the channel is now empty, clear and shrink it to release memory.
-        if (ret_channel.empty()) {
-            caller.clear_channel();
-        }
+        auto ret = ret_channel.top();
+        ret_channel.pop();
         return ret;
     }
 

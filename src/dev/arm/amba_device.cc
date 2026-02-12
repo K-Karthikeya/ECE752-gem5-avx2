@@ -45,9 +45,6 @@
 #include "dev/arm/amba_fake.hh"
 #include "mem/packet.hh"
 #include "mem/packet_access.hh"
-#include "params/AmbaDmaDevice.hh"
-#include "params/AmbaIntDevice.hh"
-#include "params/AmbaPioDevice.hh"
 
 namespace gem5
 {

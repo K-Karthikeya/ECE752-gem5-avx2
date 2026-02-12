@@ -47,7 +47,6 @@
 #include "dev/arm/gic_v2.hh"
 #include "kern/system_events.hh"
 #include "params/ArmFsWorkload.hh"
-#include "params/ArmSystem.hh"
 
 namespace gem5
 {
@@ -143,13 +142,6 @@ FsWorkload::initState()
         if (!arm_sys->highestELIs64())
             arm_sys->threads[0]->pcState(kernelObj->entryPoint());
     }
-}
-
-void
-FsWorkload::setSystem(System *sys)
-{
-    KernelWorkload::setSystem(sys);
-    gdb = BaseRemoteGDB::build<RemoteGDB>(params().remote_gdb_port, system);
 }
 
 loader::ObjectFile *

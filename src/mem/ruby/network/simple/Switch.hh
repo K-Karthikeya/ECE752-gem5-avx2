@@ -13,7 +13,6 @@
  *
  * Copyright (c) 2020 Inria
  * Copyright (c) 1999-2008 Mark D. Hill and David A. Wood
- * Copyright (c) 2025 Google
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,6 +97,9 @@ class Switch : public BasicRouter
                     bool is_external,
                     PortDirection dst_inport = "");
 
+    void resetStats();
+    void collateStats();
+    void regStats();
     const statistics::Formula & getMsgCount(unsigned int type) const
     { return *(switchStats.m_msg_counts[type]); }
 
@@ -132,17 +134,12 @@ class Switch : public BasicRouter
   public:
     struct SwitchStats : public statistics::Group
     {
-      private:
-        Switch *parent;
-
-      public:
-        SwitchStats(Switch *parent);
-        void regStats() override; // Need to override as throttles creates late
+        SwitchStats(statistics::Group *parent);
 
         // Statistical variables
-        statistics::Formula percent_links_utilized;
-        std::vector<statistics::Formula *> m_msg_counts;
-        std::vector<statistics::Formula *> m_msg_bytes;
+        statistics::Formula m_avg_utilization;
+        statistics::Formula* m_msg_counts[MessageSizeType_NUM];
+        statistics::Formula* m_msg_bytes[MessageSizeType_NUM];
     } switchStats;
 };
 

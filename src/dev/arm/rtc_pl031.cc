@@ -45,7 +45,6 @@
 #include "dev/arm/amba_device.hh"
 #include "mem/packet.hh"
 #include "mem/packet_access.hh"
-#include "params/PL031.hh"
 
 namespace gem5
 {

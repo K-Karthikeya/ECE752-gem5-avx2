@@ -46,8 +46,12 @@
 
 #include "base/sat_counter.hh"
 #include "base/types.hh"
+<<<<<<< HEAD
 #include "cpu/pred/branch_type.hh"
 #include "cpu/pred/conditional.hh"
+=======
+#include "cpu/pred/bpred_unit.hh"
+>>>>>>> 1fcd2246e6 (Migrate all features from stable to develop)
 #include "params/LocalBP.hh"
 
 namespace gem5
@@ -63,7 +67,7 @@ namespace branch_prediction
  * predictor state that needs to be recorded or updated; the update can be
  * determined solely by the branch being taken or not taken.
  */
-class LocalBP : public ConditionalPredictor
+class LocalBP : public BPredUnit
 {
   public:
     /**
@@ -73,9 +77,6 @@ class LocalBP : public ConditionalPredictor
 
     // Overriding interface functions
     Prediction lookup(ThreadID tid, Addr pc, void *&bp_history) override;
-
-    void branchPlaceholder(ThreadID tid, Addr pc, bool uncond,
-                           void * &bpHistory) override;
 
     void updateHistories(ThreadID tid, Addr pc, bool uncond, bool taken,
                          Addr target, const StaticInstPtr &inst,

@@ -48,6 +48,8 @@
 namespace gem5
 {
 
+DrainManager DrainManager::_instance;
+
 DrainManager::DrainManager()
     : _count(0),
       _state(DrainState::Running)

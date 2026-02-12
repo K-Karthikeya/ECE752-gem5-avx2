@@ -40,6 +40,9 @@
 
 #include "base/bitunion.hh"
 #include "dev/io_device.hh"
+#include "params/RealViewCtrl.hh"
+#include "params/RealViewOsc.hh"
+#include "params/RealViewTemperatureSensor.hh"
 
 /** @file
  * This implements the simple real view registers on a PBXA9
@@ -47,10 +50,6 @@
 
 namespace gem5
 {
-
-struct RealViewCtrlParams;
-struct RealViewOscParams;
-struct RealViewTemperatureSensorParams;
 
 class RealViewCtrl : public BasicPioDevice
 {
@@ -230,7 +229,12 @@ class RealViewTemperatureSensor
     : public SimObject, RealViewCtrl::Device
 {
   public:
-    RealViewTemperatureSensor(const RealViewTemperatureSensorParams &p);
+    RealViewTemperatureSensor(const RealViewTemperatureSensorParams &p)
+    : SimObject(p),
+      RealViewCtrl::Device(*p.parent, RealViewCtrl::FUNC_TEMP,
+                           p.site, p.position, p.dcc, p.device),
+      system(p.system)
+    {}
     virtual ~RealViewTemperatureSensor() {};
 
   public: // RealViewCtrl::Device interface

@@ -27,6 +27,8 @@
 from pathlib import Path
 from typing import Type
 
+import m5.options
+
 
 def add_citation(sim_obj_cls: Type["SimObject"], citation: str):
     """Add a citation to a SimObject class.
@@ -44,13 +46,11 @@ def add_citation(sim_obj_cls: Type["SimObject"], citation: str):
     sim_obj_cls._citations += citation
 
 
-def gather_citations(root: "SimObject", output_dir: str):
+def gather_citations(root: "SimObject"):
     """Based on the root SimObject, walk the object hierarchy and gather all
     of the citations together and then print them to citations.bib in the
     output directory.
     """
-    # Note: this needs to be imported after `main` is run, because we set
-    # this variable in main.
 
     citations = {}
     for obj in root.descendants():
@@ -60,7 +60,7 @@ def gather_citations(root: "SimObject", output_dir: str):
             # If a key repeats, then just overwrite it
             citations[key] = cite
 
-    with open(Path(output_dir) / "citations.bib", "w") as output:
+    with open(Path(m5.options.outdir) / "citations.bib", "w") as output:
         output.writelines(citations.values())
 
 

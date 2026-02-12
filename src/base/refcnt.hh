@@ -43,8 +43,6 @@
 
 #include <type_traits>
 
-#include "base/compiler.hh"
-
 /**
  * @file base/refcnt.hh
  *
@@ -99,12 +97,13 @@ class RefCounted
     /// Increment the reference count
     void incref() const { ++count; }
 
-    /// Decrement the reference count and return true if all references
-    /// are gone.
-    bool
+    /// Decrement the reference count and destroy the object if all
+    /// references are gone.
+    void
     decref() const
     {
-        return --count <= 0;
+        if (--count <= 0)
+            delete this;
     }
 };
 
@@ -165,12 +164,11 @@ class RefCountingPtr
      * @attention this doesn't clear the pointer value, so a double
      * decref could happen if not careful.
      */
-    GEM5_NO_INLINE void
+    void
     del()
     {
-        if (data && data->decref()) {
-            delete data;
-        }
+        if (data)
+            data->decref();
     }
 
     /**
@@ -261,11 +259,7 @@ class RefCountingPtr
     bool operator!() const { return data == 0; }
 
     /// Check if the pointer is non-empty
-    explicit
-    operator bool() const
-    {
-        return data != 0;
-    }
+    operator bool() const { return data != 0; }
 };
 
 /// Check for equality of two reference counting pointers.

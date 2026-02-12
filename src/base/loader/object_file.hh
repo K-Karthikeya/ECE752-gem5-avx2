@@ -140,7 +140,6 @@ class ObjectFileFormat
 {
   protected:
     ObjectFileFormat();
-    virtual ~ObjectFileFormat() = default;
 
   public:
     ObjectFileFormat(const ObjectFileFormat &) = delete;

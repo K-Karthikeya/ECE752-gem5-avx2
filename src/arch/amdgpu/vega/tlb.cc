@@ -153,18 +153,12 @@ GpuTLB::pageAlign(Addr vaddr)
     return (vaddr & ~pageMask);
 }
 
-int
-GpuTLB::getSet(Addr va, unsigned int page_shift)
-{
-    return (va >> page_shift) & setMask;
-}
-
 VegaTlbEntry*
 GpuTLB::insert(Addr vpn, VegaTlbEntry &entry)
 {
     VegaTlbEntry *newEntry = nullptr;
 
-    int set = getSet(entry.vaddr, entry.logBytes);
+    int set = (entry.vaddr >> VegaISA::PageShift) & setMask;
 
     if (!freeList[set].empty()) {
         newEntry = freeList[set].front();
@@ -184,9 +178,9 @@ GpuTLB::insert(Addr vpn, VegaTlbEntry &entry)
 }
 
 GpuTLB::EntryList::iterator
-GpuTLB::lookupIt(Addr va, unsigned int ps, bool update_lru)
+GpuTLB::lookupIt(Addr va, bool update_lru)
 {
-    int set = getSet(va, ps);
+    int set = (va >> VegaISA::PageShift) & setMask;
 
     if (FA) {
         assert(!set);
@@ -196,8 +190,7 @@ GpuTLB::lookupIt(Addr va, unsigned int ps, bool update_lru)
     for (; entry != entryList[set].end(); ++entry) {
         int page_size = (*entry)->size();
 
-        if ((*entry)->vaddr <= va && (*entry)->vaddr + page_size > va &&
-            ps == (*entry)->logBytes) {
+        if ((*entry)->vaddr <= va && (*entry)->vaddr + page_size > va) {
             DPRINTF(GPUTLB, "Matched vaddr %#x to entry starting at %#x "
                     "with size %#x.\n", va, (*entry)->vaddr, page_size);
 
@@ -217,17 +210,14 @@ GpuTLB::lookupIt(Addr va, unsigned int ps, bool update_lru)
 VegaTlbEntry*
 GpuTLB::lookup(Addr va, bool update_lru)
 {
-    for (auto ps : logPageShiftList) {
-        int set = getSet(va, ps);
+    int set = (va >> VegaISA::PageShift) & setMask;
 
-        auto entry = lookupIt(va, ps, update_lru);
+    auto entry = lookupIt(va, update_lru);
 
-        if (entry == entryList[set].end())
-            continue;
-        else
-            return *entry;
-    }
-    return nullptr;
+    if (entry == entryList[set].end())
+        return nullptr;
+    else
+        return *entry;
 }
 
 void
@@ -247,15 +237,13 @@ GpuTLB::invalidateAll()
 void
 GpuTLB::demapPage(Addr va, uint64_t asn)
 {
-    DPRINTF(GPUTLB, "Demapping vaddr %#x.\n", va);
-    for (auto ps : logPageShiftList) {
-        int set = getSet(va, ps);
-        auto entry = lookupIt(va, ps, false);
 
-        if (entry != entryList[set].end()) {
-            freeList[set].push_back(*entry);
-            entryList[set].erase(entry);
-        }
+    int set = (va >> VegaISA::PageShift) & setMask;
+    auto entry = lookupIt(va, false);
+
+    if (entry != entryList[set].end()) {
+        freeList[set].push_back(*entry);
+        entryList[set].erase(entry);
     }
 }
 
@@ -495,7 +483,7 @@ GpuTLB::handleTranslationReturn(Addr virt_page_addr,
         local_entry = safe_cast<VegaTlbEntry *>(sender_state->tlbEntry);
     } else {
         DPRINTF(GPUTLB, "Translation Done - TLB Miss for addr %#x\n",
-            vaddr);
+                vaddr);
 
         /**
          * We are returning either from a page walk or from a hit at a

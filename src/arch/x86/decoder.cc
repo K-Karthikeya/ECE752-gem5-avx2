@@ -34,6 +34,7 @@
 #include "base/types.hh"
 #include "debug/Decode.hh"
 #include "debug/Decoder.hh"
+#include "debug/AVXVerbose.hh"
 
 namespace gem5
 {
@@ -49,9 +50,10 @@ Decoder::doResetState()
     instBytes.reset();
     chunkIdx = 0;
 
-    emi.rex = 0;
-    emi.legacy = 0;
-    emi.vex = 0;
+  emi.rex = 0;
+  emi.legacy = 0;
+  emi.evex = 0;
+  emi.vex_pp = 0;
 
     emi.opcode.type = BadOpcode;
     emi.opcode.op = 0;
@@ -189,12 +191,12 @@ Decoder::doPrefixState(uint8_t nextByte)
         break;
       case Vex2Prefix:
         DPRINTF(Decoder, "Found VEX two-byte prefix %#x.\n", nextByte);
-        emi.vex.present = 1;
+        emi.evex.vex_present = 1;
         nextState = Vex2Of2State;
         break;
       case Vex3Prefix:
         DPRINTF(Decoder, "Found VEX three-byte prefix %#x.\n", nextByte);
-        emi.vex.present = 1;
+        emi.evex.vex_present = 1;
         nextState = Vex2Of3State;
         break;
       case 0:
@@ -215,8 +217,9 @@ Decoder::doVex2Of2State(uint8_t nextByte)
 
     emi.rex.r = !vex.r;
 
-    emi.vex.l = vex.l;
-    emi.vex.v = ~vex.v;
+  emi.evex.l = vex.l;
+  emi.evex.v = ~vex.v;
+  emi.vex_pp = vex.p;
 
     switch (vex.p) {
       case 0:
@@ -232,7 +235,7 @@ Decoder::doVex2Of2State(uint8_t nextByte)
         break;
     }
 
-    emi.opcode.type = TwoByteOpcode;
+  emi.opcode.type = TwoByteOpcodeVEX;
 
     return VexOpcodeState;
 }
@@ -242,7 +245,7 @@ Decoder::doVex2Of3State(uint8_t nextByte)
 {
     if (emi.mode.submode != SixtyFourBitMode && bits(nextByte, 7, 6) == 0x3) {
         // This was actually an LDS instruction. Reroute to that path.
-        emi.vex.present = 0;
+  emi.evex.vex_present = 0;
         emi.opcode.type = OneByteOpcode;
         emi.opcode.op = 0xC4;
         return processOpcode(ImmediateTypeOneByte, UsesModRMOneByte,
@@ -258,7 +261,7 @@ Decoder::doVex2Of3State(uint8_t nextByte)
 
     switch (vex.m) {
       case 1:
-        emi.opcode.type = TwoByteOpcode;
+        emi.opcode.type = TwoByteOpcodeVEX;
         break;
       case 2:
         emi.opcode.type = ThreeByte0F38Opcode;
@@ -283,7 +286,7 @@ Decoder::doVex3Of3State(uint8_t nextByte)
 {
     if (emi.mode.submode != SixtyFourBitMode && bits(nextByte, 7, 6) == 0x3) {
         // This was actually an LES instruction. Reroute to that path.
-        emi.vex.present = 0;
+  emi.evex.vex_present = 0;
         emi.opcode.type = OneByteOpcode;
         emi.opcode.op = 0xC5;
         return processOpcode(ImmediateTypeOneByte, UsesModRMOneByte,
@@ -295,8 +298,9 @@ Decoder::doVex3Of3State(uint8_t nextByte)
 
     emi.rex.w = vex.w;
 
-    emi.vex.l = vex.l;
-    emi.vex.v = ~vex.v;
+  emi.evex.l = vex.l;
+  emi.evex.v = ~vex.v;
+  emi.vex_pp = vex.p;
 
     switch (vex.p) {
       case 0:
@@ -324,8 +328,20 @@ Decoder::doVexOpcodeState(uint8_t nextByte)
     consumeByte();
 
     switch (emi.opcode.type) {
-      case TwoByteOpcode:
+      case TwoByteOpcodeVEX:
+        // Already marked as VEX two-byte (set in earlier VEX prefix state).
+        // Reuse the standard two-byte opcode table with VEX_PRESENT set.
+        DPRINTF(Decoder, "VEX dispatch (pre-set): type=TwoByteVEX op=%#x L=%u present=%u\n",
+                emi.opcode.op, (unsigned)emi.evex.l, (unsigned)emi.evex.vex_present);
         return processOpcode(ImmediateTypeTwoByte, UsesModRMTwoByte);
+      case TwoByteOpcode:
+        // Use the same opcode tables but with VEX_PRESENT set; the
+        // generated decoder (via two_byte_opcodes_vex.isa include)
+        // will dispatch to the VEX variants.
+        DPRINTF(Decoder, "VEX dispatch: type=TwoByte op=%#x L=%u present=%u\n",
+                emi.opcode.op, (unsigned)emi.evex.l, (unsigned)emi.evex.vex_present);
+      emi.opcode.type = TwoByteOpcodeVEX;
+      return processOpcode(ImmediateTypeTwoByte, UsesModRMTwoByte);
       case ThreeByte0F38Opcode:
         return processOpcode(ImmediateTypeThreeByte0F38,
                              UsesModRMThreeByte0F38);
@@ -416,6 +432,14 @@ Decoder::State
 Decoder::processOpcode(ByteTable &immTable, ByteTable &modrmTable,
                        bool addrSizedImm)
 {
+      // Always print opcode + VEX summary to diagnose path selection
+      DPRINTF(AVXVerbose,
+          "[OPCODE] type=%u op=%#x | VEX_PRESENT=%u VEX_L=%u VEX_vvvv=%u\\n",
+          (unsigned)emi.opcode.type,
+          (unsigned)emi.opcode.op,
+          (unsigned)emi.evex.vex_present,
+          (unsigned)emi.evex.l,
+          (unsigned)emi.evex.v);
     State nextState = ErrorState;
     const uint8_t opcode = emi.opcode.op;
 
@@ -477,7 +501,12 @@ Decoder::doModRMState(uint8_t nextByte)
 {
     State nextState = ErrorState;
     ModRM modRM = nextByte;
-    DPRINTF(Decoder, "Found modrm byte %#x.\n", nextByte);
+        // Always print detailed ModRM info to stderr for debugging specialization
+        DPRINTF(AVXVerbose, "[MODRM] byte=%#x mod=%u reg=%u rm=%u | REX_B=%u VEX_L=%u opcodeType=%u op=%#x\\n",
+          nextByte,
+          (unsigned)modRM.mod, (unsigned)modRM.reg, (unsigned)modRM.rm,
+          (unsigned)emi.rex.b, (unsigned)emi.evex.l,
+          (unsigned)emi.opcode.type, (unsigned)emi.opcode.op);
     if (emi.addrSize == 2) {
         // Figure out 16 bit displacement size.
         if ((modRM.mod == 0 && modRM.rm == 6) || modRM.mod == 2)
@@ -700,14 +729,7 @@ Decoder::decode(PCStateBase &next_pc)
 StaticInstPtr
 Decoder::fetchRomMicroop(MicroPC micropc, StaticInstPtr curMacroop)
 {
-    // The decoupled front-end and return address predictor require
-    // the instruction size to be set. '4' is of no particular reason and
-    // may require a better method. However, since the microop addresses
-    // are anyway not used in the branch predictor and rom instructions
-    // are rare it should not make a large difference.
-    auto si = microcodeRom.fetchMicroop(micropc, curMacroop);
-    si->size(4);
-    return si;
+    return microcodeRom.fetchMicroop(micropc, curMacroop);
 }
 
 } // namespace X86ISA
