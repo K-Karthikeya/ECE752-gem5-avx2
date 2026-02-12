@@ -1,4 +1,4 @@
-microcode = '''
+microcode = """
 # VFMADD231PS: dest = (vvvv * modrm) + dest_input
 # Instruction semantics: result = (src1 * src2) + accumulator
 # Macroop parameters: dest=accumulator, src1=vvvv (first multiplier), src2=modrm (second multiplier)
@@ -36,4 +36,4 @@ def macroop VFMADD231PS_256_XMM_P {
     vfmadd231f dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=32
     vclear dest=xmm4, destVL=32
 };
-'''
+"""

@@ -1,4 +1,4 @@
-microcode = '''
+microcode = """
 # VMOVDQU: unaligned move of packed dword/qword integers
 # Pattern: load directly into xmm0, store directly from xmm0
 
@@ -33,4 +33,4 @@ def macroop VMOVDQU_M_256_P {
     rdip t7
     stfp256 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
 };
-'''
+"""

@@ -10,7 +10,7 @@ CC ?= gcc
 # - C:   use -mno-avx and disable vectorization/builtins to avoid emitting unsupported AVX.
 CFLAGS_ASM ?= -O2 -mavx -Wall -Wextra
 CFLAGS_C   ?= -O2 -mno-avx -mno-sse2avx -Wall -Wextra -fno-tree-vectorize -fno-builtin
-LDFLAGS ?= 
+LDFLAGS ?=
 
 SRC_ASM := avx_subset.S
 SRC_C   := harness.c

@@ -62,17 +62,17 @@ for workload in $workloads; do
         # Use ROI stats files (stats1.txt) which contain only kernel execution
         sse_stats="$SSE_DIR/${workload}_${size}_stats1.txt"
         avx_stats="$AVX_DIR/${workload}_${size}_stats1.txt"
-        
+
         if [ -f "$sse_stats" ] && [ -f "$avx_stats" ]; then
             # Extract simulation ticks from ROI (kernel-only measurements)
             sse_ticks=$(grep "simTicks" "$sse_stats" | head -1 | awk '{print $2}')
             avx_ticks=$(grep "simTicks" "$avx_stats" | head -1 | awk '{print $2}')
-            
+
             if [ -n "$sse_ticks" ] && [ -n "$avx_ticks" ] && [ "$avx_ticks" != "0" ]; then
                 # Calculate speedup
                 speedup=$(echo "scale=3; $sse_ticks / $avx_ticks" | bc)
                 theo=${theoretical[$workload]}
-                
+
                 # Color code speedup based on performance
                 if (( $(echo "$speedup >= $theo * 0.9" | bc -l) )); then
                     color=$GREEN
@@ -81,13 +81,13 @@ for workload in $workloads; do
                 else
                     color=$RED
                 fi
-                
+
                 printf "%-15s %-10s %-15s %-15s ${color}%-10s${NC} %-15s\n" \
                     "$workload" "$size" "$sse_ticks" "$avx_ticks" "${speedup}x" "${theo}x"
-                
+
                 # Save to CSV
                 echo "$workload,$size,$sse_ticks,$avx_ticks,$speedup,$theo" >> "$comparison_csv"
-                
+
                 total_speedup=$(echo "$total_speedup + $speedup" | bc)
                 count=$((count + 1))
             fi
@@ -167,7 +167,7 @@ for workload in $workloads; do
     # Calculate average for this workload
     workload_sum=0
     workload_count=0
-    
+
     for size in ${sizes[$workload]}; do
         speedup=$(grep "^$workload,$size," "$comparison_csv" | cut -d',' -f5)
         if [ -n "$speedup" ]; then
@@ -175,12 +175,12 @@ for workload in $workloads; do
             workload_count=$((workload_count + 1))
         fi
     done
-    
+
     if [ $workload_count -gt 0 ]; then
         workload_avg=$(echo "scale=2; $workload_sum / $workload_count" | bc)
         theo=${theoretical[$workload]}
         efficiency=$(echo "scale=1; ($workload_avg / $theo) * 100" | bc)
-        
+
         echo -e "  ${BOLD}$workload:${NC} ${workload_avg}x average (${efficiency}% of ${theo}x theoretical)"
     fi
 done

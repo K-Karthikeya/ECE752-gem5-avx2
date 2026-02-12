@@ -40,9 +40,9 @@ if [ "$SKIP_BUILD" != "true" ]; then
     for workload in simple_vadd saxpy matmul; do
         workload_dir="$WORKLOADS_DIR/$workload"
         echo -n "  Building $workload..."
-        
+
         (cd "$workload_dir" && make clean > /dev/null 2>&1 && make > /dev/null 2>&1)
-        
+
         if [ $? -eq 0 ]; then
             echo -e " ${GREEN}✓${NC}"
         else
@@ -76,11 +76,11 @@ for workload_name in simple_vadd saxpy matmul; do
     binary_name="${config%%:*}"
     sizes="${config#*:}"
     binary_path="$WORKLOADS_DIR/$workload_name/$binary_name"
-    
+
     echo -e "${CYAN}========================================${NC}"
     echo -e "${CYAN}Workload: $workload_name${NC}"
     echo -e "${CYAN}========================================${NC}"
-    
+
     IFS=',' read -ra size_array <<< "$sizes"
     for size in "${size_array[@]}"; do
         # Determine options format
@@ -89,37 +89,37 @@ for workload_name in simple_vadd saxpy matmul; do
         else
             options="$size"
         fi
-        
+
         # gem5 prepends m5out/ to stats file path, so use just filename
         stats_file="${workload_name}_${size}_stats.txt"
         output_file="$OUTPUT_DIR/${workload_name}_${size}_output.txt"
-        
+
         echo -e "${YELLOW}Running: $workload_name with size $size${NC}"
         echo "  Command: $GEM5_BIN --stats-file=\"$stats_file\" $CONFIG_SCRIPT --cmd=\"$binary_path\" --options=\"$options\" --cpu-type=$CPU_TYPE"
-        
+
         # Run gem5 - use eval to properly handle quoted arguments
         eval "$GEM5_BIN --stats-file=\"$stats_file\" $CONFIG_SCRIPT --cmd=\"$binary_path\" --options=\"$options\" --cpu-type=$CPU_TYPE" > "$output_file" 2>&1
         exit_code=$?
-        
+
         # Move stats file from m5out/ to our output directory
         full_stats_path="$OUTPUT_DIR/$stats_file"
         if [ -f "m5out/$stats_file" ]; then
             mv "m5out/$stats_file" "$full_stats_path"
         fi
-        
+
         # Extract ROI statistics (2nd region between m5_dump_reset_stats calls)
         roi_stats_file="${workload_name}_${size}_stats1.txt"
         roi_stats_path="$OUTPUT_DIR/$roi_stats_file"
-        
+
         if [ -f "$full_stats_path" ]; then
             # Count statistics regions in the file
             region_count=$(grep -c "^---------- Begin Simulation Statistics ----------$" "$full_stats_path")
-            
+
             if [ "$region_count" -ge 2 ]; then
                 # Extract 2nd region (ROI) using awk
                 awk '
                     BEGIN { region = 0; capture = 0 }
-                    /^---------- Begin Simulation Statistics ----------$/ { 
+                    /^---------- Begin Simulation Statistics ----------$/ {
                         region++
                         if (region == 2) { capture = 1; print }
                         next
@@ -130,7 +130,7 @@ for workload_name in simple_vadd saxpy matmul; do
                     }
                     capture { print }
                 ' "$full_stats_path" > "$roi_stats_path"
-                
+
                 if [ -s "$roi_stats_path" ]; then
                     echo -e "  ${GREEN}✓ Extracted ROI statistics (region 2 of $region_count)${NC}"
                 else
@@ -141,9 +141,9 @@ for workload_name in simple_vadd saxpy matmul; do
                 echo -e "  ${YELLOW}⚠ Expected 2+ regions, found $region_count (m5ops may not be working)${NC}"
             fi
         fi
-        
+
         total_count=$((total_count + 1))
-        
+
         if [ $exit_code -eq 0 ]; then
             # Check if workload passed verification
             if grep -q "PASSED" "$output_file"; then
@@ -158,17 +158,17 @@ for workload_name in simple_vadd saxpy matmul; do
                 echo -e "  ${YELLOW}⚠ Completed but no verification result found${NC}"
                 status="UNKNOWN"
             fi
-            
+
             # Extract statistics from ROI stats file (kernel execution only)
             roi_stats_path="$OUTPUT_DIR/$roi_stats_file"
             if [ -f "$roi_stats_path" ]; then
                 sim_ticks=$(grep "simTicks" "$roi_stats_path" | head -1 | awk '{print $2}')
                 sim_seconds=$(grep "simSeconds" "$roi_stats_path" | head -1 | awk '{print $2}')
                 sim_freq=$(grep "simFreq" "$roi_stats_path" | head -1 | awk '{print $2}')
-                
+
                 echo "  ROI Simulation ticks: $sim_ticks (kernel only)"
                 echo "  ROI Simulation time: $sim_seconds seconds (kernel only)"
-                
+
                 # Store results
                 echo "$workload_name,$size,$status,$sim_ticks,$sim_seconds,$sim_freq" >> "$results_csv"
             else
@@ -181,7 +181,7 @@ for workload_name in simple_vadd saxpy matmul; do
             error_count=$((error_count + 1))
             echo "$workload_name,$size,$status,N/A,N/A,N/A" >> "$results_csv"
         fi
-        
+
         echo ""
     done
 done

@@ -1,13 +1,13 @@
 /**
  * SAXPY Benchmark: Y = a*X + Y
- * 
+ *
  * This benchmark implements the classic SAXPY operation (Single-precision A*X Plus Y)
  * using AVX-256 vectorization with FMA instructions.
- * 
+ *
  * SAXPY is compute-bound and benefits heavily from:
  * - 8-wide SIMD (256-bit AVX)
  * - FMA (Fused Multiply-Add) instructions
- * 
+ *
  * Verification is done against a C reference implementation.
  */
 
@@ -54,11 +54,11 @@ void saxpy_reference(float *y, const float *x, float a, size_t n) {
 int verify_results(const float *y_ref, const float *y_avx, size_t n) {
     const float epsilon = 1e-5f;
     int errors = 0;
-    
+
     for (size_t i = 0; i < n; i++) {
         float diff = y_ref[i] - y_avx[i];
         if (diff < 0) diff = -diff;
-        
+
         if (diff > epsilon) {
             if (errors < 10) {  // Only print first 10 errors
                 printf("Mismatch at index %zu: reference=%f avx=%f diff=%f\n",
@@ -67,7 +67,7 @@ int verify_results(const float *y_ref, const float *y_avx, size_t n) {
             errors++;
         }
     }
-    
+
     return errors;
 }
 
@@ -79,33 +79,33 @@ int main(int argc, char **argv) {
         // Round up to multiple of 8 for AVX alignment
         n = (n + 7) & ~7;
     }
-    
+
     printf("SAXPY Benchmark\n");
     printf("===============\n");
-    printf("Array size: %zu elements (%.2f KB per array)\n", 
+    printf("Array size: %zu elements (%.2f KB per array)\n",
            n, (n * sizeof(float)) / 1024.0);
     printf("Operation: Y = %.2f * X + Y\n\n", 2.5f);
-    
+
     // Allocate aligned memory (32-byte alignment for AVX)
     float *x = (float*)aligned_alloc(32, n * sizeof(float));
     float *y_ref = (float*)aligned_alloc(32, n * sizeof(float));
     float *y_avx = (float*)aligned_alloc(32, n * sizeof(float));
-    
+
     if (!x || !y_ref || !y_avx) {
         fprintf(stderr, "Memory allocation failed\n");
         return 1;
     }
-    
+
     // Initialize data
     init_arrays(x, y_ref, n);
     memcpy(y_avx, y_ref, n * sizeof(float));
-    
+
     const float a = 2.5f;
-    
+
     // Run C reference version for verification
     printf("Running C reference version...\n");
     saxpy_reference(y_ref, x, a, n);
-    
+
     // Run AVX version with timing
     printf("Running AVX-256 version...\n");
     uint64_t start = rdtsc();
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
     saxpy_avx256(y_avx, x, a, n);
     m5_dump_reset_stats(0, 0);
     uint64_t avx_cycles = rdtsc() - start;
-    
+
     // Verify correctness
     printf("\nVerifying results...\n");
     int errors = verify_results(y_ref, y_avx, n);
@@ -122,18 +122,18 @@ int main(int argc, char **argv) {
     } else {
         printf("PASSED: Results match\n");
     }
-    
+
     // Report performance
     printf("\nPerformance Results:\n");
     printf("--------------------\n");
     printf("AVX-256 cycles: %llu\n", (unsigned long long)avx_cycles);
     printf("Cycles/element: %.2f\n", (double)avx_cycles / n);
     printf("Operations:     %zu FMAs (2 ops each = %zu total ops)\n", n, n * 2);
-    
+
     // Cleanup
     free(x);
     free(y_ref);
     free(y_avx);
-    
+
     return (errors > 0) ? 1 : 0;
 }

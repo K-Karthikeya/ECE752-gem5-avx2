@@ -1,4 +1,4 @@
-microcode = '''
+microcode = """
 # VPBROADCASTD: broadcast 32-bit integer to all lanes
 # Source is a 32-bit value (from reg or memory), replicated to all lanes
 
@@ -41,4 +41,4 @@ def macroop VPBROADCASTD_256_XMM_P {
     mov2fp ufp0, t1, 0, size=4
     vbroadcasti dest=xmm0, src1=ufp0, size=4, VL=32
 };
-'''
+"""

@@ -391,43 +391,43 @@ int main(void)
         uint32_t a[4] = {10, 20, 30, 40};
         uint32_t b[4] = {5, 15, 25, 35};
         uint32_t out[4];
-        
+
         // VPADDD 128-bit
         uint32_t exp_add[4];
         for (int i = 0; i < 4; i++) exp_add[i] = a[i] + b[i];
         avx_vpaddd_128(a, b, out);
         if (!check_vec_u32(out, exp_add, 4)) pass = 0; else printf("PASS vpaddd_128\n");
-        
+
         // VPAND 128-bit
         uint32_t exp_and[4];
         for (int i = 0; i < 4; i++) exp_and[i] = a[i] & b[i];
         avx_vpand_128(a, b, out);
         if (!check_vec_u32(out, exp_and, 4)) pass = 0; else printf("PASS vpand_128\n");
-        
+
         // VPXOR 128-bit
         uint32_t exp_xor[4];
         for (int i = 0; i < 4; i++) exp_xor[i] = a[i] ^ b[i];
         avx_vpxor_128(a, b, out);
         if (!check_vec_u32(out, exp_xor, 4)) pass = 0; else printf("PASS vpxor_128\n");
-        
+
         // VPOR 128-bit
         uint32_t exp_or[4];
         for (int i = 0; i < 4; i++) exp_or[i] = a[i] | b[i];
         avx_vpor_128(a, b, out);
         if (!check_vec_u32(out, exp_or, 4)) pass = 0; else printf("PASS vpor_128\n");
-        
+
         // VPSUBD 128-bit
         uint32_t exp_sub[4];
         for (int i = 0; i < 4; i++) exp_sub[i] = a[i] - b[i];
         avx_vpsubd_128(a, b, out);
         if (!check_vec_u32(out, exp_sub, 4)) pass = 0; else printf("PASS vpsubd_128\n");
-        
+
         // VPMULLD 128-bit
         uint32_t exp_mul[4];
         for (int i = 0; i < 4; i++) exp_mul[i] = a[i] * b[i];
         avx_vpmulld_128(a, b, out);
         if (!check_vec_u32(out, exp_mul, 4)) pass = 0; else printf("PASS vpmulld_128\n");
-        
+
         // VPMINSD 128-bit
         int32_t sa[4] = {-10, 50, -100, 200};
         int32_t sb[4] = {20, -30, -50, 150};
@@ -436,30 +436,30 @@ int main(void)
         for (int i = 0; i < 4; i++) exp_min[i] = (sa[i] < sb[i]) ? sa[i] : sb[i];
         avx_vpminsd_128(sa, sb, sout);
         if (!check_vec_u32((uint32_t*)sout, (uint32_t*)exp_min, 4)) pass = 0; else printf("PASS vpminsd_128\n");
-        
+
         // VPBROADCASTD 128-bit
         uint32_t broadcast_val = 0x12345678;
         uint32_t exp_broadcast[4] = {broadcast_val, broadcast_val, broadcast_val, broadcast_val};
         avx_vpbroadcastd_128(&broadcast_val, out);
         if (!check_vec_u32(out, exp_broadcast, 4)) pass = 0; else printf("PASS vpbroadcastd_128\n");
-        
+
         // VMOVDQU load/store 128-bit
         uint32_t src[4] = {0xDEADBEEF, 0xCAFEBABE, 0x12345678, 0x87654321};
         uint32_t dst[4] = {0};
         avx_vmovdqu_ld_128(src, dst);
         if (!check_vec_u32(dst, src, 4)) pass = 0; else printf("PASS vmovdqu_ld_128\n");
-        
+
         uint32_t dst2[4] = {0};
         avx_vmovdqu_st_128(src, dst2);
         if (!check_vec_u32(dst2, src, 4)) pass = 0; else printf("PASS vmovdqu_st_128\n");
-        
+
         // VMOVD - GPR to XMM
         uint32_t gpr_val = 0xDEADBEEF;
         uint32_t xmm_result[4] = {0};
         avx_vmovd_xmm_r(gpr_val, xmm_result);
         uint32_t expected_movd[4] = {gpr_val, 0, 0, 0};
         if (!check_vec_u32(xmm_result, expected_movd, 4)) pass = 0; else printf("PASS vmovd_xmm_r\n");
-        
+
         // VMOVD - XMM to GPR
         uint32_t xmm_src[4] = {0x12345678, 0xAABBCCDD, 0x11223344, 0x55667788};
         uint32_t gpr_result = avx_vmovd_r_xmm(xmm_src);
@@ -476,43 +476,43 @@ int main(void)
         uint32_t a[8] = {10, 20, 30, 40, 50, 60, 70, 80};
         uint32_t b[8] = {5, 15, 25, 35, 45, 55, 65, 75};
         uint32_t out[8];
-        
+
         // VPADDD 256-bit
         uint32_t exp_add[8];
         for (int i = 0; i < 8; i++) exp_add[i] = a[i] + b[i];
         avx_vpaddd_256(a, b, out);
         if (!check_vec_u32(out, exp_add, 8)) pass = 0; else printf("PASS vpaddd_256\n");
-        
+
         // VPAND 256-bit
         uint32_t exp_and[8];
         for (int i = 0; i < 8; i++) exp_and[i] = a[i] & b[i];
         avx_vpand_256(a, b, out);
         if (!check_vec_u32(out, exp_and, 8)) pass = 0; else printf("PASS vpand_256\n");
-        
+
         // VPXOR 256-bit
         uint32_t exp_xor[8];
         for (int i = 0; i < 8; i++) exp_xor[i] = a[i] ^ b[i];
         avx_vpxor_256(a, b, out);
         if (!check_vec_u32(out, exp_xor, 8)) pass = 0; else printf("PASS vpxor_256\n");
-        
+
         // VPOR 256-bit
         uint32_t exp_or[8];
         for (int i = 0; i < 8; i++) exp_or[i] = a[i] | b[i];
         avx_vpor_256(a, b, out);
         if (!check_vec_u32(out, exp_or, 8)) pass = 0; else printf("PASS vpor_256\n");
-        
+
         // VPSUBD 256-bit
         uint32_t exp_sub[8];
         for (int i = 0; i < 8; i++) exp_sub[i] = a[i] - b[i];
         avx_vpsubd_256(a, b, out);
         if (!check_vec_u32(out, exp_sub, 8)) pass = 0; else printf("PASS vpsubd_256\n");
-        
+
         // VPMULLD 256-bit
         uint32_t exp_mul[8];
         for (int i = 0; i < 8; i++) exp_mul[i] = a[i] * b[i];
         avx_vpmulld_256(a, b, out);
         if (!check_vec_u32(out, exp_mul, 8)) pass = 0; else printf("PASS vpmulld_256\n");
-        
+
         // VPMINSD 256-bit
         int32_t sa[8] = {-10, 50, -100, 200, -300, 400, -500, 600};
         int32_t sb[8] = {20, -30, -50, 150, -200, 300, -400, 500};
@@ -521,21 +521,21 @@ int main(void)
         for (int i = 0; i < 8; i++) exp_min[i] = (sa[i] < sb[i]) ? sa[i] : sb[i];
         avx_vpminsd_256(sa, sb, sout);
         if (!check_vec_u32((uint32_t*)sout, (uint32_t*)exp_min, 8)) pass = 0; else printf("PASS vpminsd_256\n");
-        
+
         // VPBROADCASTD 256-bit
         uint32_t broadcast_val = 0xABCDEF01;
         uint32_t exp_broadcast[8];
         for (int i = 0; i < 8; i++) exp_broadcast[i] = broadcast_val;
         avx_vpbroadcastd_256(&broadcast_val, out);
         if (!check_vec_u32(out, exp_broadcast, 8)) pass = 0; else printf("PASS vpbroadcastd_256\n");
-        
+
         // VMOVDQU load/store 256-bit
-        uint32_t src[8] = {0xDEADBEEF, 0xCAFEBABE, 0x12345678, 0x87654321, 
+        uint32_t src[8] = {0xDEADBEEF, 0xCAFEBABE, 0x12345678, 0x87654321,
                            0xFEEDFACE, 0x13579BDF, 0x2468ACE0, 0xAABBCCDD};
         uint32_t dst[8] = {0};
         avx_vmovdqu_ld_256(src, dst);
         if (!check_vec_u32(dst, src, 8)) pass = 0; else printf("PASS vmovdqu_ld_256\n");
-        
+
         uint32_t dst2[8] = {0};
         avx_vmovdqu_st_256(src, dst2);
         if (!check_vec_u32(dst2, src, 8)) pass = 0; else printf("PASS vmovdqu_st_256\n");

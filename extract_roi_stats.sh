@@ -1,6 +1,6 @@
 #!/bin/bash
 # Extract ROI (Region of Interest) statistics from gem5 stats files
-# 
+#
 # gem5 with m5_dump_reset_stats() generates multiple statistics regions
 # within a single stats.txt file, separated by markers:
 # ---------- Begin Simulation Statistics ----------
@@ -49,7 +49,7 @@ echo "Extracting region 2 (ROI - kernel execution only)..."
 # Using awk to extract the specific region
 awk '
     BEGIN { region = 0; capture = 0 }
-    /^---------- Begin Simulation Statistics ----------$/ { 
+    /^---------- Begin Simulation Statistics ----------$/ {
         region++
         if (region == 2) capture = 1
         next
@@ -68,7 +68,7 @@ if [ $? -eq 0 ] && [ -s "$OUTPUT_FILE" ]; then
     lines=$(wc -l < "$OUTPUT_FILE")
     echo "Successfully extracted ROI statistics ($lines lines)"
     echo "Output: $OUTPUT_FILE"
-    
+
     # Show a sample of key metrics
     echo ""
     echo "Sample ROI metrics:"

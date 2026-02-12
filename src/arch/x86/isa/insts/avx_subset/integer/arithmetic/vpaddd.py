@@ -1,4 +1,4 @@
-microcode = '''
+microcode = """
 # VPADDD: packed 32-bit signed integer addition
 # dest = src1 + src2 (per 32-bit lane)
 
@@ -29,4 +29,4 @@ def macroop VPADDD_256_XMM_P {
     ldfp256 ufp0, seg, riprel, "DISPLACEMENT", dataSize=8
     vaddi dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=32
 };
-'''
+"""

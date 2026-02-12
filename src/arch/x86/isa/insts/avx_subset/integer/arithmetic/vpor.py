@@ -1,4 +1,4 @@
-microcode = '''
+microcode = """
 # VPOR: packed 32-bit bitwise OR
 # dest = src1 OR src2 (per 32-bit lane)
 
@@ -29,4 +29,4 @@ def macroop VPOR_256_XMM_P {
     ldfp256 ufp0, seg, riprel, "DISPLACEMENT", dataSize=8
     vori dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=32
 };
-'''
+"""

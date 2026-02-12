@@ -36,28 +36,28 @@ skip_count=0
 for stats_file in "$RESULTS_DIR"/*_stats.txt; do
     # Skip if no files found
     [ -e "$stats_file" ] || continue
-    
+
     # Skip if it's already a numbered stats file
     if [[ "$stats_file" =~ _stats[0-9]+\.txt$ ]]; then
         continue
     fi
-    
+
     # Generate output filename by inserting '1' before .txt
     base_name="${stats_file%.txt}"
     roi_file="${base_name}1.txt"
-    
+
     # Check if ROI file already exists
     if [ -f "$roi_file" ]; then
         echo -e "${YELLOW}⊙${NC} Skipping (already exists): $(basename "$stats_file")"
         skip_count=$((skip_count + 1))
         continue
     fi
-    
+
     echo -n "Processing: $(basename "$stats_file") ... "
-    
+
     # Extract ROI
     ./extract_roi_stats.sh "$stats_file" "$roi_file" > /dev/null 2>&1
-    
+
     if [ $? -eq 0 ] && [ -s "$roi_file" ]; then
         echo -e "${GREEN}✓${NC}"
         success_count=$((success_count + 1))

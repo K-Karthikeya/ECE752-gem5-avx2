@@ -28,7 +28,7 @@ run: $(BIN)
 
 # Disassembly helpers (Intel syntax)
 disasm-bin: $(BIN)
-	$(OBJDUMP) -d -M intel $(BIN) 
+	$(OBJDUMP) -d -M intel $(BIN)
 
 disasm-obj: $(OBJ)
 	$(OBJDUMP) -d -M intel avx_fma.o\

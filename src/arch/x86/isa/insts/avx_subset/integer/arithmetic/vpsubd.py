@@ -1,4 +1,4 @@
-microcode = '''
+microcode = """
 # VPSUBD: packed 32-bit integer subtraction
 # dest = src1 - src2 (per 32-bit lane)
 
@@ -29,4 +29,4 @@ def macroop VPSUBD_256_XMM_P {
     ldfp256 ufp0, seg, riprel, "DISPLACEMENT", dataSize=8
     vsubi dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=32
 };
-'''
+"""

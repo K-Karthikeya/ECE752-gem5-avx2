@@ -1,4 +1,4 @@
-microcode = '''
+microcode = """
 # VCMPPS with imm8 predicate (lower 5 bits used by microop).
 # Inst format generates multiple mnemonic variants; we define only the fully-qualified ones.
 # XMM reg-reg forms
@@ -31,4 +31,4 @@ def macroop VCMPPS_256_XMM_P_I {
     ldfp256 ufp0, seg, sib, "DISPLACEMENT", dataSize=8
     vcmpf dest=xmm0, src1=xmm0v, src2=ufp0, size=4, VL=32, ext="IMMEDIATE"
 };
-'''
+"""

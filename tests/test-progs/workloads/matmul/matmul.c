@@ -1,13 +1,13 @@
 /**
  * Matrix Multiplication Benchmark
- * 
+ *
  * Implements C = A * B for square matrices using AVX-256 vectorization.
- * 
+ *
  * This demonstrates:
  * - 8-wide SIMD vectorization in inner loop
  * - FMA benefits for multiply-accumulate
  * - Row-major memory access patterns
- * 
+ *
  * Verification is done against a C reference implementation (naive triple-nested loop).
  */
 
@@ -60,11 +60,11 @@ void matmul_reference(float *C, const float *A, const float *B, size_t N) {
 int verify_matrices(const float *C_ref, const float *C_avx, size_t N) {
     const float epsilon = 1e-3f;  // Larger tolerance due to accumulated FP error
     int errors = 0;
-    
+
     for (size_t i = 0; i < N * N; i++) {
         float diff = C_ref[i] - C_avx[i];
         if (diff < 0) diff = -diff;
-        
+
         if (diff > epsilon) {
             if (errors < 10) {
                 printf("Mismatch at index %zu: scalar=%f avx=%f diff=%f\n",
@@ -73,7 +73,7 @@ int verify_matrices(const float *C_ref, const float *C_avx, size_t N) {
             errors++;
         }
     }
-    
+
     return errors;
 }
 
@@ -85,34 +85,34 @@ int main(int argc, char **argv) {
         // Round up to multiple of 8 for AVX
         N = (N + 7) & ~7;
     }
-    
+
     printf("Matrix Multiplication Benchmark\n");
     printf("================================\n");
     printf("Matrix size: %zux%zu (%.2f MB per matrix)\n",
            N, N, (N * N * sizeof(float)) / (1024.0 * 1024.0));
     printf("Operation: C = A * B\n\n");
-    
+
     // Allocate aligned memory
     float *A = (float*)aligned_alloc(32, N * N * sizeof(float));
     float *B = (float*)aligned_alloc(32, N * N * sizeof(float));
     float *C_ref = (float*)aligned_alloc(32, N * N * sizeof(float));
     float *C_avx = (float*)aligned_alloc(32, N * N * sizeof(float));
-    
+
     if (!A || !B || !C_ref || !C_avx) {
         fprintf(stderr, "Memory allocation failed\n");
         return 1;
     }
-    
+
     // Initialize matrices
     init_matrix(A, N);
     init_matrix(B, N);
     memset(C_ref, 0, N * N * sizeof(float));
     memset(C_avx, 0, N * N * sizeof(float));
-    
+
     // Run C reference version for verification
     printf("Running C reference version...\n");
     matmul_reference(C_ref, A, B, N);
-    
+
     // Run AVX version with timing
     printf("Running AVX-256 version...\n");
     uint64_t start = rdtsc();
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
     matmul_avx256(C_avx, A, B, N);
     m5_dump_reset_stats(0, 0);
     uint64_t avx_cycles = rdtsc() - start;
-    
+
     // Verify
     printf("\nVerifying results...\n");
     int errors = verify_matrices(C_ref, C_avx, N);
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
     } else {
         printf("PASSED: Results match\n");
     }
-    
+
     // Performance metrics
     double flops = 2.0 * N * N * N;  // N^3 multiplies + N^3 adds
     printf("\nPerformance Results:\n");
@@ -137,12 +137,12 @@ int main(int argc, char **argv) {
     printf("AVX-256 cycles: %llu\n", (unsigned long long)avx_cycles);
     printf("Total FLOPs:    %.0f\n", flops);
     printf("Cycles/FLOP:    %.2f\n", avx_cycles / flops);
-    
+
     // Cleanup
     free(A);
     free(B);
     free(C_ref);
     free(C_avx);
-    
+
     return (errors > 0) ? 1 : 0;
 }

@@ -1,4 +1,4 @@
-microcode = '''
+microcode = """
 # VPMINSD: packed 32-bit signed integer minimum
 # dest = min(src1, src2) per 32-bit lane
 
@@ -60,4 +60,4 @@ def macroop VPMINSQ_256_XMM_P {
     ldfp256 ufp0, seg, riprel, "DISPLACEMENT", dataSize=8
     vmini dest=xmm0, src1=xmm0v, src2=ufp0, size=8, VL=32
 };
-'''
+"""

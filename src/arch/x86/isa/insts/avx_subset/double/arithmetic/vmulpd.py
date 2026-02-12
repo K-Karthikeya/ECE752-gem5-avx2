@@ -1,4 +1,4 @@
-microcode = '''
+microcode = """
 def macroop VMULPD_128_XMM_XMM {
     vmulf dest=xmm0, src1=xmm0v, src2=xmmrm, size=8, VL=16
     vclear dest=xmm2, destVL=16
@@ -26,4 +26,4 @@ def macroop VMULPD_256_XMM_P {
     ldfp256 ufp0, seg, riprel, "DISPLACEMENT", dataSize=8
     vmulf dest=xmm0, src1=xmm0v, src2=ufp0, size=8, VL=32
 };
-'''
+"""

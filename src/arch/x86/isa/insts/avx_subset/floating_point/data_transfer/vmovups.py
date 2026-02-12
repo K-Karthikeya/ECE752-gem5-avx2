@@ -1,4 +1,4 @@
-microcode = '''
+microcode = """
 def macroop VMOVUPS_128_M {
     ldfp128 xmm0, seg, sib, "DISPLACEMENT", dataSize=8
     vclear dest=xmm2, destVL=16
@@ -33,5 +33,4 @@ def macroop VMOVUPS_M_256_P {
     rdip t7
     stfp256 xmm0, seg, riprel, "DISPLACEMENT", dataSize=8
 };
-'''
-
+"""

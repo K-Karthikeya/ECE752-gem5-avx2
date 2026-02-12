@@ -26,7 +26,7 @@ static void init(double *a, double *b) {
 }
 
 int main(void) {
-    
+
     double *a   = (double*)aligned_alloc(32, 32);
     double *b   = (double*)aligned_alloc(32, 32);
     // out needs space for up to 32 doubles to tolerate wider stores

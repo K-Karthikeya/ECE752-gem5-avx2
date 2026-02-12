@@ -1,4 +1,4 @@
-microcode = '''
+microcode = """
 # VMOVD: Move 32-bit integer between GPR and XMM register
 # Zero-extends when loading into XMM, extracts lower 32 bits when storing
 
@@ -34,4 +34,4 @@ def macroop VMOVD_P_XMM {
     rdip t7
     stfp xmml, seg, riprel, disp, dataSize=4
 };
-'''
+"""

@@ -111,7 +111,7 @@ class MacroopBase : public X86StaticInst
         DPRINTF(AVXVerbose, "[MACROOP-SIZE] mnemonic=%s numMicroops=%u newSize=%zu\n",
                 mnemonic, numMicroops, newSize);
         for (int i = 0; i < numMicroops; i++) {
-            DPRINTF(AVXVerbose, "[MACROOP-SIZE]   microop[%d] = %p\n", i, 
+            DPRINTF(AVXVerbose, "[MACROOP-SIZE]   microop[%d] = %p\n", i,
                     (void*)microops[i].get());
             if (!microops[i]) {
                 DPRINTF(AVXVerbose, "[MACROOP-SIZE] ERROR: microop[%d] is NULL!\n", i);

@@ -297,12 +297,12 @@ X86StaticInst::divideStep(uint64_t dividend, uint64_t divisor,
 {
     // Single step of division: attempt to divide current remainder/dividend by divisor
     // The caller manages shifting dividend bits in; we just do the trial subtraction.
-    
+
     if (divisor == 0) {
         // Avoid division by zero; caller should have checked but be defensive
         return;
     }
-    
+
     // Try to subtract divisor from current dividend/remainder
     if (dividend >= divisor) {
         quotient++;

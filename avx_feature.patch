@@ -16,7 +16,7 @@ index e24e7a30e6..c9e1f54819 100644
 +
 +Original README ------------------------------------------------------------
  This is the gem5 simulator.
- 
+
  The main website can be found at http://www.gem5.org
 diff --git a/avx-test/Makefile b/avx-test/Makefile
 new file mode 100644
@@ -25,7 +25,7 @@ index 0000000000..052b6e81da
 +++ b/avx-test/Makefile
 @@ -0,0 +1,6 @@
 +test: dense_mv_blk.exe
-+	../build/X86/gem5.opt ../configs/example/se.py --cmd='./dense_mv_blk.exe' --cpu-type=DerivO3CPU --caches 
++	../build/X86/gem5.opt ../configs/example/se.py --cmd='./dense_mv_blk.exe' --cpu-type=DerivO3CPU --caches
 +
 +%.exe: %.c
 +	gcc -O3 -mavx512f -static $^ -o $@
@@ -128,7 +128,7 @@ index ff54889fe7..c616461d10 100755
                      print('#define __SPLIT %u' % i, file=f)
                  print('#include "%s"' % fn, file=f)
                  print('}', file=f)
-+        
++
 +        # max_inst_regs.hh
 +        # ! Make sure x86 has at least 8 dest regs and 24 src regs.
 +        if self.namespace == 'X86ISAInst':
@@ -136,7 +136,7 @@ index ff54889fe7..c616461d10 100755
 +                self.maxInstDestRegs = 8
 +            if self.maxInstSrcRegs < 24:
 +                self.maxInstSrcRegs = 24
- 
+
          # max_inst_regs.hh
          self.update('max_inst_regs.hh',
 diff --git a/src/arch/x86/SConscript b/src/arch/x86/SConscript
@@ -144,7 +144,7 @@ index f790ec19b6..f5ce07b648 100644
 --- a/src/arch/x86/SConscript
 +++ b/src/arch/x86/SConscript
 @@ -42,9 +42,9 @@ Import('*')
- 
+
  if env['TARGET_ISA'] != 'x86':
      Return()
 -
@@ -167,7 +167,7 @@ index f790ec19b6..f5ce07b648 100644
  DebugFlag('Decoder', "Decoder debug output")
  DebugFlag('X86', "Generic X86 ISA debugging")
 +DebugFlag('X86MediaMicroop', "X86 Media Microop debugging")
- 
+
  python_files = (
      '__init__.py',
 diff --git a/src/arch/x86/decoder.cc b/src/arch/x86/decoder.cc
@@ -177,14 +177,14 @@ index 415c7b4c84..2b600db396 100644
 @@ -47,9 +47,11 @@ Decoder::doResetState()
      instBytes = &decodePages->lookup(origPC);
      chunkIdx = 0;
- 
+
 +    name();
 +
      emi.rex = 0;
      emi.legacy = 0;
 -    emi.vex = 0;
 +    emi.evex = 0;
- 
+
      emi.opcode.type = BadOpcode;
      emi.opcode.op = 0;
 @@ -73,11 +75,11 @@ Decoder::doResetState()
@@ -193,7 +193,7 @@ index 415c7b4c84..2b600db396 100644
  {
 -    // This function drives the decoder state machine.
 +    //This function drives the decoder state machine.
- 
+
 -    // Some sanity checks. You shouldn't try to process more bytes if
 -    // there aren't any, and you shouldn't overwrite an already decoded
 -    // ExtMachInst.
@@ -202,11 +202,11 @@ index 415c7b4c84..2b600db396 100644
 +    //decoder ExtMachInst.
      assert(!outOfBytes);
      assert(!instDone);
- 
+
 @@ -89,7 +91,7 @@ Decoder::process()
          instBytes->chunks.push_back(fetchChunk);
      }
- 
+
 -    // While there's still something to do...
 +    //While there's still something to do...
      while (!instDone && !outOfBytes) {
@@ -231,7 +231,7 @@ index 415c7b4c84..2b600db396 100644
 @@ -172,8 +183,8 @@ Decoder::doFromCacheState()
      }
  }
- 
+
 -// Either get a prefix and record it in the ExtMachInst, or send the
 -// state machine on to get the opcode(s).
 +//Either get a prefix and record it in the ExtMachInst, or send the
@@ -283,14 +283,14 @@ index 415c7b4c84..2b600db396 100644
          nextState = OneByteOpcodeState;
          break;
 @@ -248,8 +265,8 @@ Decoder::doVex2Of2State(uint8_t nextByte)
- 
+
      emi.rex.r = !vex.r;
- 
+
 -    emi.vex.l = vex.l;
 -    emi.vex.v = ~vex.v;
 +    emi.evex.l = vex.l;
 +    emi.evex.v = ~vex.v;
- 
+
      switch (vex.p) {
        case 0:
 @@ -275,7 +292,7 @@ Decoder::doVex2Of3State(uint8_t nextByte)
@@ -312,14 +312,14 @@ index 415c7b4c84..2b600db396 100644
          emi.opcode.op = 0xC5;
          return processOpcode(ImmediateTypeOneByte, UsesModRMOneByte,
 @@ -328,8 +345,8 @@ Decoder::doVex3Of3State(uint8_t nextByte)
- 
+
      emi.rex.w = vex.w;
- 
+
 -    emi.vex.l = vex.l;
 -    emi.vex.v = ~vex.v;
 +    emi.evex.l = vex.l;
 +    emi.evex.v = ~vex.v;
- 
+
      switch (vex.p) {
        case 0:
 @@ -359,9 +376,10 @@ Decoder::doVexOpcodeState(uint8_t nextByte)
@@ -337,7 +337,7 @@ index 415c7b4c84..2b600db396 100644
 @@ -370,6 +388,100 @@ Decoder::doVexOpcodeState(uint8_t nextByte)
      }
  }
- 
+
 +Decoder::State
 +Decoder::doEVex2Of4State(uint8_t nextByte)
 +{
@@ -442,11 +442,11 @@ index 415c7b4c84..2b600db396 100644
 -
      return processOpcode(ImmediateTypeThreeByte0F38, UsesModRMThreeByte0F38);
  }
- 
+
 @@ -452,8 +563,8 @@ Decoder::processOpcode(ByteTable &immTable, ByteTable &modrmTable,
      State nextState = ErrorState;
      const uint8_t opcode = emi.opcode.op;
- 
+
 -    // Figure out the effective operand size. This can be overriden to
 -    // a fixed value at the decoder level.
 +    //Figure out the effective operand size. This can be overriden to
@@ -457,11 +457,11 @@ index 415c7b4c84..2b600db396 100644
 @@ -462,33 +573,33 @@ Decoder::processOpcode(ByteTable &immTable, ByteTable &modrmTable,
      else
          logOpSize = defOp;
- 
+
 -    // Set the actual op size.
 +    //Set the actual op size
      emi.opSize = 1 << logOpSize;
- 
+
 -    // Figure out the effective address size. This can be overriden to
 -    // a fixed value at the decoder level.
 +    //Figure out the effective address size. This can be overriden to
@@ -471,17 +471,17 @@ index 415c7b4c84..2b600db396 100644
          logAddrSize = altAddr;
      else
          logAddrSize = defAddr;
- 
+
 -    // Set the actual address size.
 +    //Set the actual address size
      emi.addrSize = 1 << logAddrSize;
- 
+
 -    // Figure out the effective stack width. This can be overriden to
 -    // a fixed value at the decoder level.
 +    //Figure out the effective stack width. This can be overriden to
 +    //a fixed value at the decoder level.
      emi.stackSize = 1 << stack;
- 
+
 -    // Figure out how big of an immediate we'll retreive based
 -    // on the opcode.
 +    //Figure out how big of an immediate we'll retreive based
@@ -491,7 +491,7 @@ index 415c7b4c84..2b600db396 100644
          immediateSize = SizeTypeToSize[logAddrSize - 1][immType];
      else
          immediateSize = SizeTypeToSize[logOpSize - 1][immType];
- 
+
 -    // Determine what to expect next.
 +    //Determine what to expect next
      if (modrmTable[opcode]) {
@@ -504,7 +504,7 @@ index 415c7b4c84..2b600db396 100644
 +
      return nextState;
  }
- 
+
 -// Get the ModRM byte and determine what displacement, if any, there is.
 -// Also determine whether or not to get the SIB byte, displacement, or
 -// immediate next.
@@ -535,7 +535,7 @@ index 415c7b4c84..2b600db396 100644
 @@ -538,8 +650,8 @@ Decoder::doModRMState(uint8_t nextByte)
             immediateSize = (emi.opSize == 8) ? 4 : emi.opSize;
      }
- 
+
 -    // If there's an SIB, get that next.
 -    // There is no SIB in 16 bit mode.
 +    //If there's an SIB, get that next.
@@ -553,7 +553,7 @@ index 415c7b4c84..2b600db396 100644
      emi.modRM = modRM;
      return nextState;
  }
- 
+
 -// Get the SIB byte. We don't do anything with it at this point, other
 -// than storing it in the ExtMachInst. Determine if we need to get a
 -// displacement or immediate next.
@@ -566,7 +566,7 @@ index 415c7b4c84..2b600db396 100644
 @@ -580,7 +692,8 @@ Decoder::doSIBState(uint8_t nextByte)
      return nextState;
  }
- 
+
 -// Gather up the displacement, or at least as much of it as we can get.
 +//Gather up the displacement, or at least as much of it
 +//as we can get.
@@ -575,7 +575,7 @@ index 415c7b4c84..2b600db396 100644
  {
 @@ -594,9 +707,9 @@ Decoder::doDisplacementState()
              displacementSize, immediateCollected);
- 
+
      if (displacementSize == immediateCollected) {
 -        // Reset this for other immediates.
 +        //Reset this for other immediates.
@@ -610,7 +610,7 @@ index 415c7b4c84..2b600db396 100644
          nextState = DisplacementState;
      return nextState;
  }
- 
+
 -// Gather up the immediate, or at least as much of it as we can get.
 +//Gather up the immediate, or at least as much of it
 +//as we can get
@@ -618,22 +618,22 @@ index 415c7b4c84..2b600db396 100644
  Decoder::doImmediateState()
  {
      State nextState = ErrorState;
- 
+
 -    getImmediate(immediateCollected, emi.immediate, immediateSize);
 +    getImmediate(immediateCollected,
 +            emi.immediate,
 +            immediateSize);
- 
+
      DPRINTF(Decoder, "Collecting %d byte immediate, got %d bytes.\n",
              immediateSize, immediateCollected);
- 
+
 -    if (immediateSize == immediateCollected) {
 -        // Reset this for other immediates.
 +    if (immediateSize == immediateCollected)
 +    {
 +        //Reset this for other immediates.
          immediateCollected = 0;
- 
+
          //XXX Warning! The following is an observed pattern and might
 -        // not always be true!
 -
@@ -666,10 +666,10 @@ index 415c7b4c84..2b600db396 100644
 +        nextState = ImmediateState;
      return nextState;
  }
- 
+
 @@ -679,6 +799,12 @@ Decoder::decode(ExtMachInst mach_inst, Addr addr)
          return iter->second;
- 
+
      StaticInstPtr si = decodeInst(mach_inst);
 +    if (mach_inst.evex.present) {
 +        if (si->getName() == "ud2" || si->getName() == "unknown") {
@@ -685,9 +685,9 @@ index 94ebd0cf2f..7c95ab1619 100644
 --- a/src/arch/x86/decoder.hh
 +++ b/src/arch/x86/decoder.hh
 @@ -84,59 +84,60 @@ class Decoder : public InstDecoder
- 
+
      static InstBytes dummy;
- 
+
 -    // The bytes to be predecoded.
 +    // For DPRINTF.
 +    const std::string _name;
@@ -737,7 +737,7 @@ index 94ebd0cf2f..7c95ab1619 100644
      {
          return ((uint8_t *)&fetchChunk)[offset];
      }
- 
+
 -    void
 -    getImmediate(int &collected, uint64_t &current, int size)
 +    void getImmediate(int &collected, uint64_t &current, int size)
@@ -753,7 +753,7 @@ index 94ebd0cf2f..7c95ab1619 100644
 -        // Get as much as we need, up to the amount available.
 +        //Get as much as we need, up to the amount available.
          toGet = toGet > remaining ? remaining : toGet;
- 
+
 -        // Shift the bytes we want to be all the way to the right
 +        //Shift the bytes we want to be all the way to the right
          uint64_t partialImm = fetchChunk >> (offset * 8);
@@ -771,7 +771,7 @@ index 94ebd0cf2f..7c95ab1619 100644
          collected += toGet;
          consumeBytes(toGet);
      }
- 
+
 -    void
 -    updateOffsetState()
 +    void updateOffsetState()
@@ -781,7 +781,7 @@ index 94ebd0cf2f..7c95ab1619 100644
 @@ -153,32 +154,30 @@ class Decoder : public InstDecoder
          }
      }
- 
+
 -    void
 -    consumeByte()
 +    void consumeByte()
@@ -789,7 +789,7 @@ index 94ebd0cf2f..7c95ab1619 100644
          offset++;
          updateOffsetState();
      }
- 
+
 -    void
 -    consumeBytes(int numBytes)
 +    void consumeBytes(int numBytes)
@@ -797,7 +797,7 @@ index 94ebd0cf2f..7c95ab1619 100644
          offset += numBytes;
          updateOffsetState();
      }
- 
+
 -    // State machine state.
 +    //State machine state
    protected:
@@ -820,7 +820,7 @@ index 94ebd0cf2f..7c95ab1619 100644
 +    //This is how much of any immediate value we've gotten. This is used
 +    //for both the actual immediate and the displacement.
      int immediateCollected;
- 
+
      enum State {
 @@ -189,6 +188,9 @@ class Decoder : public InstDecoder
          Vex2Of3State,
@@ -840,10 +840,10 @@ index 94ebd0cf2f..7c95ab1619 100644
 +        //We should never get to this state. Getting here is an error.
          ErrorState
      };
- 
+
 -    State state = ResetState;
 +    State state;
- 
+
 -    // Functions to handle each of the states
 +    //Functions to handle each of the states
      State doResetState();
@@ -861,34 +861,34 @@ index 94ebd0cf2f..7c95ab1619 100644
 @@ -220,37 +225,53 @@ class Decoder : public InstDecoder
      State doDisplacementState();
      State doImmediateState();
- 
+
 -    // Process the actual opcode found earlier, using the supplied tables.
 +    //Process the actual opcode found earlier, using the supplied tables.
      State processOpcode(ByteTable &immTable, ByteTable &modrmTable,
                          bool addrSizedImm = false);
      // Process the opcode found with VEX / XOP prefix.
      State processExtendedOpcode(ByteTable &immTable);
- 
+
 +    // Process the Compressed displacement in EVEX.
 +    void processCompressedDisplacement();
 +
    protected:
      /// Caching for decoded instruction objects.
- 
+
      typedef RegVal CacheKey;
- 
+
      typedef DecodeCache::AddrMap<Decoder::InstBytes> DecodePages;
 -    DecodePages *decodePages = nullptr;
 +    DecodePages *decodePages;
      typedef std::unordered_map<CacheKey, DecodePages *> AddrCacheMap;
      AddrCacheMap addrCacheMap;
- 
+
 -    DecodeCache::InstMap<ExtMachInst> *instMap = nullptr;
 +    DecodeCache::InstMap<ExtMachInst> *instMap;
      typedef std::unordered_map<
              CacheKey, DecodeCache::InstMap<ExtMachInst> *> InstCacheMap;
      static InstCacheMap instCacheMap;
- 
+
    public:
 -    Decoder(ISA *isa=nullptr)
 +    Decoder(ISA* isa = nullptr, int thread_id = 0)
@@ -911,7 +911,7 @@ index 94ebd0cf2f..7c95ab1619 100644
 +        decodePages = NULL;
 +        instMap = NULL;
      }
- 
+
 -    void
 -    setM5Reg(HandyM5Reg m5Reg)
 +    void setM5Reg(HandyM5Reg m5Reg)
@@ -921,7 +921,7 @@ index 94ebd0cf2f..7c95ab1619 100644
 @@ -279,8 +300,7 @@ class Decoder : public InstDecoder
          }
      }
- 
+
 -    void
 -    takeOverFrom(Decoder *old)
 +    void takeOverFrom(Decoder *old)
@@ -941,15 +941,15 @@ index 94ebd0cf2f..7c95ab1619 100644
 +            this->instMap = old->instMap;
 +        }
      }
- 
+
 -    void reset() { state = ResetState; }
 +    void reset()
 +    {
 +        state = ResetState;
 +    }
- 
+
      void process();
- 
+
 -    // Use this to give data to the decoder. This should be used
 -    // when there is control flow.
 -    void
@@ -963,7 +963,7 @@ index 94ebd0cf2f..7c95ab1619 100644
 @@ -310,8 +340,15 @@ class Decoder : public InstDecoder
          process();
      }
- 
+
 -    bool needMoreBytes() { return outOfBytes; }
 -    bool instReady() { return instDone; }
 +    bool needMoreBytes()
@@ -975,7 +975,7 @@ index 94ebd0cf2f..7c95ab1619 100644
 +    {
 +        return instDone;
 +    }
- 
+
      void
      updateNPC(X86ISA::PCState &nextPC)
 diff --git a/src/arch/x86/decoder_tables.cc b/src/arch/x86/decoder_tables.cc
@@ -987,7 +987,7 @@ index 7ee5e0185a..a68ecf75fa 100644
      const uint8_t V2 = Vex2Prefix;
      const uint8_t V3 = Vex3Prefix;
 +    const uint8_t EV = EVexPrefix;
- 
+
      //This table identifies whether a byte is a prefix, and if it is,
      //which prefix it is.
 @@ -67,7 +68,7 @@ namespace X86ISA
@@ -1445,7 +1445,7 @@ index 5b27127e97..aba09fb3aa 100644
 +++ b/src/arch/x86/insts/macroop.hh
 @@ -73,7 +73,7 @@ class MacroopBase : public X86StaticInst
      StaticInstPtr * microops;
- 
+
      StaticInstPtr
 -    fetchMicroop(MicroPC microPC) const override
 +    fetchMicroop(MicroPC microPC) const
@@ -1454,7 +1454,7 @@ index 5b27127e97..aba09fb3aa 100644
              return badMicroop;
 @@ -82,8 +82,7 @@ class MacroopBase : public X86StaticInst
      }
- 
+
      std::string
 -    generateDisassembly(Addr pc,
 -                        const Loader::SymbolTable *symtab) const override
@@ -1470,7 +1470,7 @@ index 5b27127e97..aba09fb3aa 100644
 +    uint32_t getNumMicroops() const { return this->numMicroops; }
  };
  }
- 
+
 diff --git a/src/arch/x86/insts/microavxop.cc b/src/arch/x86/insts/microavxop.cc
 new file mode 100644
 index 0000000000..c87bef3596
@@ -1761,13 +1761,13 @@ index f1dc15b22d..d13af317b0 100644
 +++ b/src/arch/x86/insts/microfpop.hh
 @@ -75,7 +75,7 @@ namespace X86ISA
          bool checkCondition(uint64_t flags) const;*/
- 
+
          std::string generateDisassembly(
 -                Addr pc, const Loader::SymbolTable *symtab) const override;
 +                Addr pc, const Loader::SymbolTable *symtab) const;
      };
  }
- 
+
 diff --git a/src/arch/x86/insts/static_inst.cc b/src/arch/x86/insts/static_inst.cc
 index 387ed903d6..c6af9a8277 100644
 --- a/src/arch/x86/insts/static_inst.cc
@@ -1812,7 +1812,7 @@ index 9522a8d5bc..a841a96098 100644
 @@ -86,5 +86,10 @@ def bitfield MODE mode;
  def bitfield MODE_MODE mode.mode;
  def bitfield MODE_SUBMODE mode.submode;
- 
+
 -def bitfield VEX_V vex.v;
 -def bitfield VEX_L vex.l;
 +def bitfield VEX_PRESENT      evex.vex_present;
@@ -1830,7 +1830,7 @@ index 69fb3d5a0d..b8de75991a 100644
 @@ -38,15 +38,28 @@
  // The actual decoder specification
  //
- 
+
 -decode LEGACY_LOCK default Unknown::unknown()
 -{
 +decode LEGACY_LOCK default Unknown::unknown() {
@@ -2888,7 +2888,7 @@ index 918951c95e..3aef534f66 100644
 --- a/src/arch/x86/isa/insts/__init__.py
 +++ b/src/arch/x86/isa/insts/__init__.py
 @@ -35,6 +35,7 @@
- 
+
  categories = ["romutil",
                "general_purpose",
 +              "simd512",
@@ -2910,7 +2910,7 @@ index f5279497ad..3d3141896d 100644
 +    mxor xmm6, xmm6, xmm6
 +    mxor xmm7, xmm7, xmm7
  };
- 
+
  def macroop PXOR_XMM_M {
 @@ -45,6 +51,12 @@ def macroop PXOR_XMM_M {
      ldfp ufp2, seg, [1, t0, t1], 8, dataSize=8
@@ -2923,7 +2923,7 @@ index f5279497ad..3d3141896d 100644
 +    mxor xmm6, xmm6, xmm6
 +    mxor xmm7, xmm7, xmm7
  };
- 
+
  def macroop PXOR_XMM_P {
 @@ -54,5 +66,11 @@ def macroop PXOR_XMM_P {
      ldfp ufp2, seg, [1, t0, t1], 8, dataSize=8
@@ -7511,7 +7511,7 @@ index ccd065a6c2..d65fb85b23 100644
 +            }
          }
  }};
- 
+
 @@ -307,6 +315,12 @@ let {{
                  self.dataSize = "(REX_W ? 8 : 4)"
              elif self.size == 'q':
@@ -7849,7 +7849,7 @@ index 0000000000..e85f74a2dd
 +        code = '''
 +            this->doPackedBinaryOp(xc, BinaryOp::SIntMin);
 +        '''
-+    
++
 +    class Vfused(AVXOp):
 +        # Used in packed arithmetic ops with three operands, e.g. vfmaddps
 +        abstract = True
@@ -7870,7 +7870,7 @@ index 0000000000..e85f74a2dd
 +                setSrcRegIdx(i * 3 + 2, RegId(FloatRegClass, dest + i));
 +            }
 +        '''
-+    
++
 +    class Vfmadd231f(Vfused):
 +        opClass = 'SimdFloatMultOp'
 +        code = '''
@@ -8067,12 +8067,12 @@ index 238fa93108..976fb5ea86 100644
                  const char * instMnem, uint64_t setFlags,
                  InstRegIndex _src1, InstRegIndex _src2, InstRegIndex _dest,
                  uint8_t _dataSize, int8_t _spm);
- 
+
 -        Fault execute(ExecContext *, Trace::InstRecord *) const override;
 +        Fault execute(ExecContext *, Trace::InstRecord *) const;
      };
  }};
- 
+
 @@ -98,7 +95,6 @@ def template MicroFpOpConstructor {{
                  _src1, _src2, _dest, _dataSize, _spm,
                  %(op_class)s)
@@ -8083,7 +8083,7 @@ index 238fa93108..976fb5ea86 100644
  }};
 @@ -272,8 +268,69 @@ let {{
                  "spm" : self.spm}
- 
+
      class Movfp(FpUnaryOp):
 -        code = 'FpDestReg_uqw = FpSrcReg1_uqw;'
 -        else_code = 'FpDestReg_uqw = FpDestReg_uqw;'
@@ -8156,7 +8156,7 @@ index 238fa93108..976fb5ea86 100644
 @@ -285,6 +342,27 @@ let {{
          code = 'FpDestReg = sqrt(FpSrcReg2);'
          op_class = 'FloatSqrtOp'
- 
+
 +    class Movfph2h(FpUnaryOp):
 +        code = '''
 +            uint64_t v = bits(FpSrcReg1_uqw, 63, 32);
@@ -8187,7 +8187,7 @@ index 79aadfa887..1276bd88cd 100644
 +++ b/src/arch/x86/isa/microops/ldstop.isa
 @@ -449,15 +449,23 @@ let {{
          name = mnemonic.lower()
- 
+
          # Build up the all register version of this micro op
 -        iops = [InstObjParams(name, Name, 'X86ISA::LdStOp',
 -                              { "code": code,
@@ -8218,9 +8218,9 @@ index 79aadfa887..1276bd88cd 100644
              header_output += MicroLdStOpDeclare.subst(iop)
              decoder_output += MicroLdStOpConstructor.subst(iop)
 @@ -505,6 +513,28 @@ let {{
- 
+
      defineMicroLoadOp('Ldfp', code='FpData_uqw = Mem', big = False)
- 
+
 +    # Used to implement AVX512 load, only used with 32/64-byte data.
 +    defineMicroLoadOp('Ldfp128', code='''
 +        FpData0_uqw = Mem_u2qw[0];
@@ -8247,9 +8247,9 @@ index 79aadfa887..1276bd88cd 100644
          switch (dataSize)
          {
 @@ -634,6 +664,28 @@ let {{
- 
+
      defineMicroStoreOp('Stfp', code='Mem = FpData_uqw;')
- 
+
 +    # Used to implement AVX512.
 +    defineMicroStoreOp('Stfp128', code='''
 +        Mem_u2qw[0] = FpData0_uqw;
@@ -8281,11 +8281,11 @@ index bf5fc67664..aea2197551 100644
 +++ b/src/arch/x86/isa/microops/mediaop.isa
 @@ -125,7 +125,7 @@ let {{
              MediaOpExecute)
- 
+
      class MediaOpMeta(type):
 -        def buildCppClasses(self, name, Name, suffix, code):
 +        def buildCppClasses(self, name, Name, suffix, code, additional_params):
- 
+
              # Globals to stick the output in
              global header_output
 @@ -142,9 +142,9 @@ let {{
@@ -8298,18 +8298,18 @@ index bf5fc67664..aea2197551 100644
 -                        matcher.sub("imm8", code))
 +                        matcher.sub("imm8", code), additional_params)
                  return
- 
+
              base = "X86ISA::MediaOp"
 @@ -188,7 +188,10 @@ let {{
                  code = cls.code
- 
+
                  # Set up the C++ classes
 -                mcls.buildCppClasses(cls, name, Name, "", code)
 +                additional_params = []
 +                if hasattr(cls, 'op_class'):
 +                    additional_params.append(cls.op_class)
 +                mcls.buildCppClasses(cls, name, Name, "", code, additional_params)
- 
+
                  # Hook into the microassembler dict
                  global microopClasses
 @@ -365,6 +368,137 @@ let {{
@@ -8449,7 +8449,7 @@ index bf5fc67664..aea2197551 100644
 +                result = insertBits(result, 64, 32, 0);
              FpDestReg_uqw = result;
          '''
- 
+
 @@ -790,12 +924,20 @@ let {{
                      arg1.i = arg1Bits;
                      arg2.i = arg2Bits;
@@ -8470,7 +8470,7 @@ index bf5fc67664..aea2197551 100644
 +                        destRegIdx(0), res.d);
                      resBits = res.i;
                  }
- 
+
 @@ -837,6 +979,9 @@ let {{
                      arg1.i = arg1Bits;
                      arg2.i = arg2Bits;
@@ -8501,11 +8501,11 @@ index bf5fc67664..aea2197551 100644
 +                        destRegIdx(0), res.d);
                      resBits = res.i;
                  }
- 
+
 @@ -961,6 +1114,12 @@ let {{
                  uint64_t arg2Bits = bits(FpSrcReg2_uqw, hiIndex, loIndex);
                  uint64_t resBits = arg1Bits + arg2Bits;
- 
+
 +                DPRINTF(X86MediaMicroop, "MAddi %d %s(%#x) + %s(#x) = %s(#x), rm %d, v %d.\\n",
 +                    i, srcRegIdx(0), arg1Bits,
 +                    srcRegIdx(1), arg2Bits,
@@ -8518,7 +8518,7 @@ index bf5fc67664..aea2197551 100644
 @@ -1322,6 +1481,70 @@ let {{
                      (0 - (argBits & (ULL(1) << (srcSizeBits - 1))));
                  double arg = sArg;
- 
+
 +                if (destSize == 4) {
 +                    floatInt fi;
 +                    fi.f = arg;
@@ -8593,13 +8593,13 @@ index a8ae2da4e4..05bbf37b28 100644
 @@ -51,6 +51,9 @@
  //Media microop definitions
  ##include "mediaop.isa"
- 
+
 +//AVX microop definitions
 +##include "avxop.isa"
 +
  //Control flow microop definitions
  ##include "seqop.isa"
- 
+
 diff --git a/src/arch/x86/isa/operands.isa b/src/arch/x86/isa/operands.isa
 index 504deb73fe..0941c4933f 100644
 --- a/src/arch/x86/isa/operands.isa
@@ -8677,7 +8677,7 @@ index 946732f260..0bdf5ab1e6 100644
 --- a/src/arch/x86/isa/specialize.isa
 +++ b/src/arch/x86/isa/specialize.isa
 @@ -104,7 +104,8 @@ let {{
- 
+
  let {{
      class OpType(object):
 -        parser = re.compile(r"(?P<tag>[A-Z]+)(?P<size>[a-z]*)|(r(?P<reg>[A-Z0-9]+)(?P<rsize>[a-z]*))")
@@ -8689,7 +8689,7 @@ index 946732f260..0bdf5ab1e6 100644
 @@ -116,8 +117,10 @@ let {{
              if not self.size:
                  self.size = match.group("rsize")
- 
+
 -    ModRMRegIndex = "(MODRM_REG | (REX_R << 3))"
 -    ModRMRMIndex = "(MODRM_RM | (REX_B << 3))"
 +    # EVEX will extend ModRMReg with EVEX_R'.
@@ -8697,17 +8697,17 @@ index 946732f260..0bdf5ab1e6 100644
 +    # EVEX will extend ModRMRM with REX_X.
 +    ModRMRMIndex = "(MODRM_RM | (REX_B << 3) | ((EVEX_PRESENT ? REX_X : 0) << 4))"
      InstRegIndex = "(OPCODE_OP_BOTTOM3 | (REX_B << 3))"
- 
+
      # This function specializes the given piece of code to use a particular
 @@ -129,7 +132,7 @@ let {{
              opType = OpType(opTypes[0])
              opTypes.pop(0)
- 
+
 -            if opType.tag not in ("I", "J", "P", "PR", "Q", "V", "VR", "W"):
 +            if opType.tag not in ("I", "J", "P", "PR", "Q", "V", "VR", "W", "WY", "WZ"):
                  if opType.size:
                      env.setSize(opType.size)
- 
+
 @@ -184,7 +187,7 @@ let {{
                  env.addToDisassembly(
                          "printSegment(out, %s);\n" % ModRMRegIndex)
@@ -8719,7 +8719,7 @@ index 946732f260..0bdf5ab1e6 100644
                  env.addToDisassembly(
 @@ -192,13 +195,16 @@ let {{
                                                                   ModRMRegIndex)
- 
+
                  if opType.tag == "P":
 -
                      Name += "_MMX"
@@ -8794,7 +8794,7 @@ index 35dfac6b05..e5eb87b574 100644
 +        return writePackedMem<uint64_t, N>(xc, mem, addr, flags, res);
      }
  }
- 
+
 @@ -245,7 +248,8 @@ writeMemAtomic(ExecContext *xc, Trace::InstRecord *traceData,
          fault = writePackedMem<uint64_t, N>(xc, mem, addr, flags, res);
          break;
@@ -8803,7 +8803,7 @@ index 35dfac6b05..e5eb87b574 100644
 +        panic_if(dataSize != sizeof(mem), "Unhandled element size in writeMemAtomic.\n");
 +        fault = writePackedMem<uint64_t, N>(xc, mem, addr, flags, res);
      }
- 
+
      if (fault == NoFault && res)
 diff --git a/src/arch/x86/registers.hh b/src/arch/x86/registers.hh
 index c041a07f97..53bf964ec6 100644
@@ -8815,7 +8815,7 @@ index c041a07f97..53bf964ec6 100644
  const int NumFloatRegs =
 -    NumMMXRegs + 2 * NumXMMRegs + NumMicroFpRegs + 8;
 +    NumMMXRegs + NumXMMSubRegs * NumXMMRegs + NumMicroFpRegs + 8;
- 
+
  // These enumerate all the registers for dependence tracking.
  enum DependenceTags {
 diff --git a/src/arch/x86/regs/float.hh b/src/arch/x86/regs/float.hh
@@ -8824,7 +8824,7 @@ index 6cba603fb1..0246d9943f 100644
 +++ b/src/arch/x86/regs/float.hh
 @@ -67,40 +67,51 @@ namespace X86ISA
          FLOATREG_FPR7,
- 
+
          FLOATREG_XMM_BASE = FLOATREG_MMX_BASE + NumMMXRegs,
 -        FLOATREG_XMM0_LOW = FLOATREG_XMM_BASE,
 -        FLOATREG_XMM0_HIGH,
@@ -8901,7 +8901,7 @@ index 6cba603fb1..0246d9943f 100644
 +        FLOATREG_XMM_IDX(30),
 +        FLOATREG_XMM_IDX(31),
 +#undef FLOATREG_XMM_IDX
- 
+
 -        FLOATREG_MICROFP_BASE = FLOATREG_XMM_BASE + 2 * NumXMMRegs,
 +        FLOATREG_MICROFP_BASE = FLOATREG_XMM_BASE + NumXMMSubRegs * NumXMMRegs,
          FLOATREG_MICROFP0 = FLOATREG_MICROFP_BASE,
@@ -8919,7 +8919,7 @@ index 6cba603fb1..0246d9943f 100644
 +        FLOATREG_MICROFP13,
 +        FLOATREG_MICROFP14,
 +        FLOATREG_MICROFP15,
- 
+
          NUM_FLOATREGS = FLOATREG_MICROFP_BASE + NumMicroFpRegs
      };
 @@ -128,13 +147,19 @@ namespace X86ISA
@@ -8929,7 +8929,7 @@ index 6cba603fb1..0246d9943f 100644
 -        return (FloatRegIndex)(FLOATREG_XMM_BASE + 2 * index);
 +        return (FloatRegIndex)(FLOATREG_XMM_BASE + NumXMMSubRegs * index);
      }
- 
+
      static inline FloatRegIndex
      FLOATREG_XMM_HIGH(int index)
      {
@@ -8942,7 +8942,7 @@ index 6cba603fb1..0246d9943f 100644
 +    {
 +        return (FloatRegIndex)(FLOATREG_XMM_BASE + NumXMMSubRegs * index + sub_idx);
      }
- 
+
      static inline FloatRegIndex
 diff --git a/src/arch/x86/types.cc b/src/arch/x86/types.cc
 index 8588467481..9c1587a3f9 100644
@@ -8954,18 +8954,18 @@ index 8588467481..9c1587a3f9 100644
      paramOut(cp, name + ".rex", (uint8_t)machInst.rex);
 -    paramOut(cp, name + ".vex", (uint32_t)machInst.vex);
 +    paramOut(cp, name + ".evex", (uint32_t)machInst.evex);
- 
+
      // Opcode
      paramOut(cp, name + ".opcode.type", (uint8_t)machInst.opcode.type);
 @@ -76,8 +76,8 @@ paramIn(CheckpointIn &cp, const string &name, ExtMachInst &machInst)
      machInst.rex = temp8;
- 
+
      uint32_t temp32;
 -    paramIn(cp, name + ".vex", temp32);
 -    machInst.vex = temp32;
 +    paramIn(cp, name + ".evex", temp32);
 +    machInst.evex = temp32;
- 
+
      // Opcode
      paramIn(cp, name + ".opcode.type", temp8);
 diff --git a/src/arch/x86/types.hh b/src/arch/x86/types.hh
@@ -8979,11 +8979,11 @@ index 890a9e5cf4..e5864ed863 100644
 +        EVexPrefix,
          XopPrefix,
      };
- 
+
 @@ -135,14 +136,71 @@ namespace X86ISA
          Bitfield<1, 0> p;
      EndBitUnion(Vex2Of2)
- 
+
 -    BitUnion8(VexInfo)
 -        // Extra register index.
 -        Bitfield<6, 3> v;
@@ -9057,7 +9057,7 @@ index 890a9e5cf4..e5864ed863 100644
 +        Bitfield<1>      evex_present;
 +        Bitfield<0>      vex_present;
 +    EndBitUnion(EVexInfo)
- 
+
      enum OpcodeType {
          BadOpcode,
 @@ -204,7 +262,7 @@ namespace X86ISA
@@ -9066,7 +9066,7 @@ index 890a9e5cf4..e5864ed863 100644
          Rex rex;
 -        VexInfo vex;
 +        EVexInfo evex;
- 
+
          //This holds all of the bytes of the opcode
          struct
 @@ -237,13 +295,13 @@ namespace X86ISA
@@ -9114,7 +9114,7 @@ index 39a142c2ab..b311eefcdc 100644
 @@ -113,6 +113,13 @@ namespace X86ISA
       */
      void setRFlags(ThreadContext *tc, uint64_t val);
- 
+
 +    /**
 +     * Extract the bit string representing a double value.
 +     */
@@ -9131,7 +9131,7 @@ index 6f1c9ae366..50390b9c3d 100644
 +++ b/src/arch/x86/x86_traits.hh
 @@ -55,8 +55,13 @@ namespace X86ISA
      //6. The register to use for shift doubles
- 
+
      const int NumMMXRegs = 8;
 -    const int NumXMMRegs = 16;
 -    const int NumMicroFpRegs = 8;
@@ -9142,7 +9142,7 @@ index 6f1c9ae366..50390b9c3d 100644
 +     */
 +    const int NumXMMSubRegs = 8;
 +    const int NumMicroFpRegs = 16;
- 
+
      const int NumCRegs = 16;
      const int NumDRegs = 8;
 diff --git a/src/cpu/o3/O3CPU.py b/src/cpu/o3/O3CPU.py
@@ -9150,9 +9150,9 @@ index 1118775547..9e97e879d0 100644
 --- a/src/cpu/o3/O3CPU.py
 +++ b/src/cpu/o3/O3CPU.py
 @@ -136,8 +136,8 @@ class DerivO3CPU(BaseCPU):
- 
+
      numRobs = Param.Unsigned(1, "Number of Reorder Buffers");
- 
+
 -    numPhysIntRegs = Param.Unsigned(256, "Number of physical integer registers")
 -    numPhysFloatRegs = Param.Unsigned(256, "Number of physical floating point "
 +    numPhysIntRegs = Param.Unsigned(1024, "Number of physical integer registers")

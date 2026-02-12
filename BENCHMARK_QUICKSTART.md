@@ -78,7 +78,7 @@ m5_dump_reset_stats(0, 0);  // Marks start of ROI, resets counters
 // Kernel execution (only this is measured in ROI)
 vadd_avx256(z_avx, x, y, n);
 
-// After kernel  
+// After kernel
 m5_dump_reset_stats(0, 0);  // Marks end of ROI, dumps stats
 ```
 

@@ -18,35 +18,33 @@ from .floating_point.arithmetic import (
     vcmpps,
     vdivps,
     vfmadd231ps,
+    vmaxps,
+    vminps,
     vmulps,
     vsubps,
     vxorps,
-    vminps, 
-    vmaxps
-    
 )
 from .floating_point.data_transfer import (
+    vbroadcastss,
     vmovaps,
+    vmovshdup,
+    vmovsldup,
     vmovups,
     vzeroupper,
-    vmovsldup, 
-    vmovshdup, 
-    vbroadcastss
 )
-
 from .integer.arithmetic import (
     vpaddd,
     vpand,
-    vpminsd,
     vpbroadcastd,
-    vpxor,
+    vpminsd,
+    vpmulld,
     vpor,
     vpsubd,
-    vpmulld
+    vpxor,
 )
 from .integer.data_transfer import (
+    vmovd,
     vmovdqu,
-    vmovd
 )
 
 microcode = ""
